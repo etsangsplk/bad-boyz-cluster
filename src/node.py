@@ -3,7 +3,7 @@
 from paste import httpserver, reloader
 import gridservice.utils
 from gridservice import http
-from gridservice.http import JSONRequest
+from gridservice.http import JSONRequest, JSONResponse
 
 def node_register_GET(_GET, _POST):
 	response = JSONRequest( 'http://localhost:8051/node/register', 
@@ -15,7 +15,9 @@ def node_register_GET(_GET, _POST):
 		}
 	)
 
-	if response.get_reponse_code() == 200:
+	# This is unlikely to happen in reality, this request would be perfomed when the
+	# daemon is initiated, not via the webserver. It is for example only.
+	if response.get_response_code() == 200:
 		return JSONResponse({ 'success': 'Node was registered with the Master' })
 	else:
 		return JSONResponse({ 'error_msg': 'Was unable to register with the master'})

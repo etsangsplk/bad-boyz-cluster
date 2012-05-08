@@ -2,6 +2,23 @@
 
 from paste import httpserver, reloader
 import gridservice.utils
+from gridservice import http
+from gridservice.http import Response, JSONResponse
+
+class Grid:
+	def add_node(self, node):
+		self.nodes[ node['ip_address'] + ":" + node['port'] ] = node
+
+	def __init__(self):
+		self.nodes = {}
+
+	def __str__(self):
+		return str(self.nodes)
+
+grid = Grid()
+
+def validate_request(req, fields):
+	return set(fields).issubset(set(req.keys()))
 
 #
 # node_register_POST
@@ -11,8 +28,14 @@ import gridservice.utils
 #
 
 def node_register_POST(_GET, _POST):
-	
-	return _POST
+
+	# Verify valid JSON request
+	if validate_request(_POST, ['ip_address', 'port', 'cores']): 
+		node = _POST
+		grid.add_node(node)
+		return JSONResponse({ 'success': "Node added successfully." }, http.OK)
+	else:
+		return JSONResponse({ 'error_msg': 'Invalid JSON received.' }, http.BAD_REQUEST)
 
 routes = {
 	('/node/register', 'POST'): node_register_POST,
