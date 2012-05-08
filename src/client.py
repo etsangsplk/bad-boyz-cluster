@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-from cgi import parse_qs, escape
-import json
-import urllib
-import urllib2
-
+from paste import httpserver, reloader
 import gridservice.utils
 
 def node_register_GET(_GET, _POST):
@@ -21,21 +17,12 @@ def node_register_GET(_GET, _POST):
 routes = {
 	('/node/register', 'GET'): node_register_GET,
 }
-	
-def application(env, start_response):
-	path = env['PATH_INFO']
-
-	response_body = json.dumps( gridservice.utils.route(routes, env, path) )
-	status = '200 OK'
-	response_headers = [
-		('Content-Type', 'text/plain'),
-		('Content-Length', str(len(response_body)))
-	]
-	start_response(status, response_headers)
-
-	return [response_body]
 
 if __name__ == '__main__':
-	from paste import httpserver, reloader
 	reloader.install()
-	httpserver.serve(application, host='127.0.0.1', port=8050)
+	
+	host = '127.0.0.1'
+	port = 8050
+
+	app = gridservice.utils.make_json_app(routes)
+	httpserver.serve(app, host = host, port = port)
