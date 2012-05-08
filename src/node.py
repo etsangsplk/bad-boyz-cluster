@@ -32,5 +32,5 @@ if __name__ == '__main__':
 	host = '127.0.0.1'
 	port = 8050
 
-	app = gridservice.utils.make_json_app(routes)
+	app = gridservice.utils.make_app(routes)
 	httpserver.serve(app, host = host, port = port)
