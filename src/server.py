@@ -21,13 +21,13 @@ def validate_request(req, fields):
 	return set(fields).issubset(set(req.keys()))
 
 #
-# node_register_POST
+# node_POST
 #
 # Takes a ip_address, port and cores and initiates
 # the new node in the network.
 #
 
-def node_register_POST(_GET, _POST):
+def node_POST(_GET, _POST):
 
 	# Verify valid JSON request
 	if validate_request(_POST, ['ip_address', 'port', 'cores']): 
@@ -38,8 +38,8 @@ def node_register_POST(_GET, _POST):
 		return JSONResponse({ 'error_msg': 'Invalid JSON received.' }, http.BAD_REQUEST)
 
 routes = {
-	('/node/register', 'POST'): node_register_POST,
-}	
+	('/node', 'POST'): node_POST,
+}
 
 if __name__ == '__main__':
 	reloader.install()
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 	host = '127.0.0.1'
 	port = 8051
 
-	app = gridservice.utils.make_json_app(routes)
+	app = gridservice.utils.make_app(routes)
 	httpserver.serve(app, host = host, port = port)
 
 #from wsgiref.simple_server import make_server

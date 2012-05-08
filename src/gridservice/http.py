@@ -4,6 +4,8 @@ import urllib2
 
 OK = "200 OK"
 BAD_REQUEST = "400 Bad Request"
+NOT_FOUND = "404 Not Found"
+METHOD_NOT_ALLOWED = "405 Method Not Allowed"
 
 class Response(object):
 	
@@ -48,9 +50,10 @@ class Request(object):
 
 	default_content_type = 'text/plain'
 
-	def __init__(self, url, data):
+	def __init__(self, method, url, data):
 		self.set_url(url)
 		self.set_data(data)
+		self.set_method(method)
 		self.send()
 
 	def set_url(self, url):
@@ -58,6 +61,9 @@ class Request(object):
 
 	def set_data(self, data):
 		self.data = data
+
+	def set_method(self, method):
+		self.method = method
 
 	def set_response_code(self, response_code):
 		self.response_code = response_code
@@ -73,6 +79,7 @@ class Request(object):
 	
 	def send(self):
 		request = urllib2.Request(self.url, self.data, {'Content-Type': self.default_content_type})
+		request.get_method = lambda: self.method
 		response = urllib2.urlopen(request)
 
 		self.set_response_code(response.getcode())

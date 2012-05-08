@@ -6,7 +6,7 @@ from gridservice import http
 from gridservice.http import JSONRequest, JSONResponse
 
 def node_register_GET(_GET, _POST):
-	response = JSONRequest( 'http://localhost:8051/node/register', 
+	response = JSONRequest( 'PUT', 'http://localhost:8051/node', 
 		{ 
 			'ip_address': 'localhost',
 			'port': '8051',
