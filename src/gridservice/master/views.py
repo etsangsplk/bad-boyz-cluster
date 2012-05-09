@@ -45,7 +45,7 @@ def job_files_PUT(request, v):
 #
 
 def node_POST(request):
-	if gridservice.utils.validate_request(request.get_json(), ['ip_address', 'port', 'cores']): 
+	if gridservice.utils.validate_request(request.json, ['ip_address', 'port', 'cores']): 
 		node = request.json
 
 		model.grid.add_node(node)

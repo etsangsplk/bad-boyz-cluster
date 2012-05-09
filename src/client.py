@@ -1,11 +1,31 @@
 #!/usr/bin/env python
 
 import os
+from optparse import OptionParser
 from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
-url = "http://localhost:8051"
+# Parse the argument from the CLI
+parser = OptionParser()
 
-executable = 'myexec'
+parser.add_option("--gh", "--grid_hostname", dest="ghost",
+	help="The hostname the node should listen on", 
+	metavar="HOSTNAME", default = "127.0.0.1")
+
+parser.add_option("--gp", "--grid_port", dest="gport",
+	help="The port the node should listen on", 
+	metavar="PORT", default = 8051)
+
+parser.add_option("-e", "--executable", dest="executable",
+	help="The path to the executable (Must be relative and only forward from the current directory)", 
+	metavar="PATH/TO/EXECUTABLE")
+
+# Sample client, this code is ugly and messy and sucks
+
+(options, args) = parser.parse_args()
+
+url = "http://%s:%s" % (options.ghost, options.gport)
+executable = options.executable
+
 files = [ 'file1.txt' ]
 
 request = JSONHTTPRequest( 'POST', url + '/job', { 
