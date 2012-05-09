@@ -6,7 +6,7 @@ from gridservice import http
 from gridservice.http import JSONRequest, JSONResponse
 
 def node_register_GET(_GET, _POST):
-	response = JSONRequest( 'PUT', 'http://localhost:8051/node', 
+	request = JSONRequest( 'POST', 'http://localhost:8051/node', 
 		{ 
 			'ip_address': 'localhost',
 			'port': '8051',
@@ -17,13 +17,18 @@ def node_register_GET(_GET, _POST):
 
 	# This is unlikely to happen in reality, this request would be perfomed when the
 	# daemon is initiated, not via the webserver. It is for example only.
-	if response.get_response_code() == 200:
+	if not request.failed():
 		return JSONResponse({ 'success': 'Node was registered with the Master' })
 	else:
-		return JSONResponse({ 'error_msg': 'Was unable to register with the master'})
+		return JSONResponse({ 'error_msg': 'Was unable to register with the master (%s)' 
+			% (request.failed())})
+
+def node_GET(_GET, _POST, func_vars):
+	return JSONResponse(func_vars)
 
 routes = {
 	('/node/register', 'GET'): node_register_GET,
+	('/node/{id:\d+}', 'GET'): node_GET,
 }
 
 if __name__ == '__main__':

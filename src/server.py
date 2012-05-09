@@ -33,7 +33,7 @@ def node_POST(_GET, _POST):
 	if validate_request(_POST, ['ip_address', 'port', 'cores']): 
 		node = _POST
 		grid.add_node(node)
-		return JSONResponse({ 'success': "Node added successfully." }, http.OK)
+		return JSONResponse({ 'success': "Node added successfully." }, 201)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid JSON received.' }, http.BAD_REQUEST)
 

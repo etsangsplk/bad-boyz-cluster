@@ -2,10 +2,12 @@ import json
 import urllib
 import urllib2
 
-OK = "200 OK"
-BAD_REQUEST = "400 Bad Request"
-NOT_FOUND = "404 Not Found"
-METHOD_NOT_ALLOWED = "405 Method Not Allowed"
+import BaseHTTPServer
+
+OK = 200
+BAD_REQUEST = 400
+NOT_FOUND = 404
+METHOD_NOT_ALLOWED = 405
 
 class Response(object):
 	
@@ -28,6 +30,10 @@ class Response(object):
 	def set_body(self, body):
 		self.body = body
 
+	def get_status_string(self):
+		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
+		return str(self.status) + " " + responses[self.status][0]
+
 	def get_response(self, start_response):
 		if not self.headers:
 			self.add_headers([
@@ -35,7 +41,7 @@ class Response(object):
 				('Content-Length', str(len(self.body)))
 			])
 
-		start_response(self.status, self.headers)
+		start_response(self.get_status_string(), self.headers)
 
 		return [self.body]
 
@@ -54,6 +60,8 @@ class Request(object):
 		self.set_url(url)
 		self.set_data(data)
 		self.set_method(method)
+		self.failure = False
+
 		self.send()
 
 	def set_url(self, url):
@@ -65,25 +73,43 @@ class Request(object):
 	def set_method(self, method):
 		self.method = method
 
-	def set_response_code(self, response_code):
-		self.response_code = response_code
+	def set_status(self, status):
+		self.status= status
 
-	def get_response_code(self):
-		return self.response_code
+	def get_status(self):
+		return self.status
 
 	def set_response(self, response):
 		self.response = response
 
 	def get_response(self):
 		return self.response;
-	
+
+	def get_status_string(self):
+		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
+		return str(self.status) + " " + responses[self.status][0]
+
+	def failed(self):
+		return self.failure
+
 	def send(self):
 		request = urllib2.Request(self.url, self.data, {'Content-Type': self.default_content_type})
 		request.get_method = lambda: self.method
-		response = urllib2.urlopen(request)
+		
+		try:
+			response = urllib2.urlopen(request)
 
-		self.set_response_code(response.getcode())
-		self.set_response(response.read())
+		except urllib2.HTTPError as e:
+			self.set_status(e.code)
+			self.set_response(e.read())
+			self.failure = self.get_status_string()
+
+		except urllib2.URLError as e:
+			self.failure = e.reason[1]
+
+		else:
+			self.set_status(response.getcode())
+			self.set_response(response.read())
 
 class JSONRequest(Request):
 
@@ -94,4 +120,5 @@ class JSONRequest(Request):
 
 	def send(self):
 		super(JSONRequest, self).send()
-		self.set_response(json.loads(self.get_response()))
+		if self.get_response():
+			self.set_response(json.loads(self.get_response()))
