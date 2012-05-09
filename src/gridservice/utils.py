@@ -8,6 +8,18 @@ from gridservice import http
 from gridservice.http import Response, JSONResponse
 
 #
+# validate_request(req, fields)
+#
+# Simple function to check that a subset of keys
+# are in a dictionary. Useful for checking a request
+# contains the minimum required information for 
+# processing.
+#
+
+def validate_request(req, fields):
+	return set(fields).issubset(set(req.keys()))
+
+#
 # process_GET(env)
 #
 # Retrieves the GET variables from the environment
