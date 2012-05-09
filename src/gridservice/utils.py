@@ -114,16 +114,16 @@ def route_expr_to_parser(expr):
 		(?::([^}]+))? # The optional :regex part
 		\}            # The exact character "}"
 	''', re.VERBOSE)
-
+	
 	regex = ""
 	last_pos = 0
 	for match in expr_parser.finditer(expr):
 		regex += re.escape(expr[last_pos:match.start()])
 
 		var_name = match.group(1)
-		expr = match.group(2) or '[^/]+'
-		expr = '(?P<%s>%s)' % (var_name, expr)
-		regex += expr
+		expression = match.group(2) or '[^/]+'
+		expression = '(?P<%s>%s)' % (var_name, expression)
+		regex += expression
 
 		last_pos = match.end()
 	

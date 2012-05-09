@@ -29,6 +29,7 @@ def node_GET(_GET, _POST, func_vars):
 routes = {
 	('/node/register', 'GET'): node_register_GET,
 	('/node/{id:\d+}', 'GET'): node_GET,
+	('/node/{name:\w+}/{id:\d+}', 'GET'): node_GET
 }
 
 if __name__ == '__main__':
