@@ -47,8 +47,7 @@ class Response(object):
 
 		start_response(self.get_status_string(), self.headers)
 
-		print self.body
-		print len(self.body)
+		print "Response: " + str(self.status) + ": " + self.body
 
 		return [self.body]
 
@@ -117,6 +116,11 @@ class HTTPRequest(object):
 
 		self.send()
 
+	@property
+	def status_string(self):
+		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
+		return str(self.status) + " " + responses[self.status][0]
+
 	def set_url(self, url):
 		self.url = url
 
@@ -138,10 +142,6 @@ class HTTPRequest(object):
 	def get_response(self):
 		return self.response;
 
-	def get_status_string(self):
-		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
-		return str(self.status) + " " + responses[self.status][0]
-
 	def get_headers(self):
 		self.headers.update({ 'Content-Type': self.default_content_type })
 		return self.headers
@@ -159,7 +159,7 @@ class HTTPRequest(object):
 		except urllib2.HTTPError as e:
 			self.set_status(e.code)
 			self.set_response(e.read())
-			self.failure = self.get_status_string()
+			self.failure = self.status_string
 
 		except urllib2.URLError as e:
 			self.failure = e.reason[1]
@@ -167,8 +167,7 @@ class HTTPRequest(object):
 		else:
 			self.set_status(response.getcode())
 			self.set_response(response.read())
-			print self.get_status()
-			print self.get_response()
+			print "Request: " + str(self.get_status()) + ": " + self.get_response()
 
 class FileHTTPRequest(HTTPRequest):
 	
@@ -192,6 +191,5 @@ class JSONHTTPRequest(HTTPRequest):
 	def send(self):
 		super(JSONHTTPRequest, self).send()
 		if self.get_response():
-			print self.get_response()
 			self.set_response(json.loads(self.get_response()))
 
