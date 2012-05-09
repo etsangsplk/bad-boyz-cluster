@@ -19,7 +19,7 @@ def job_POST(request):
 		files = request.json['files']
 
 		job = Job(executable, files)
-		model.grid.scheduler.add_to_queue(job)
+		model.grid.thread.scheduler.add_to_queue(job)
 
 		return JSONResponse({ 'success': "Job added successfully.", 'id': 1 }, 201)
 	else:

@@ -10,48 +10,21 @@ from time import sleep
 class Grid(object):
 	def __init__(self, scheduler):
 		self.nodes = {}
-		self.scheduler = scheduler
-		self.scheduler.start()
+		self.start_scheduler(scheduler)
 
 	def add_node(self, node):
 		self.nodes[ node['ip_address'] + ":" + node['port'] ] = node
-	
-	def __str__(self):
-		return str(self.nodes)
 
-#
-# Scheduler
-#
-# A generic Scheduler object
-#
+	def start_scheduler(self, scheduler):
 
-class Scheduler(object):
-	def __init__(self):
-		self.queue_lock = threading.Lock()
-		self.queue = []
-		self.thread = SchedulerThread(self)
-
-	def start(self):
+		# Setting daemon = True causes the thread to 
+		# be closed with the main program
+		self.thread = SchedulerThread(scheduler)
+		self.thread.daemon = True
 		self.thread.start()
 
-	def add_to_queue(self, job):
-		with self.queue_lock:
-			self.queue.append(job)
-
-	def allocate_jobs(self):
-		with self.queue_lock:
-			print self.queue
-		
-		sleep(2)
-
-#
-# RoundRobinScheduler
-#
-# A Round Robin Scheduling Algorithm
-#
-
-class RoundRobinScheduler(Scheduler):
-	pass
+	def __str__(self):
+		return str(self.nodes)
 
 #
 # SchedulerThread
@@ -68,6 +41,40 @@ class SchedulerThread(threading.Thread):
 	def run(self):
 		while True:
 			self.scheduler.allocate_jobs()
+
+#
+# Scheduler
+#
+# A generic Scheduler object
+#
+
+class Scheduler(object):
+	def __init__(self):
+		self.queue_lock = threading.Lock()
+		self.queue = []
+		
+	def add_to_queue(self, job):
+		
+		# Need to ensure thread safety by checking the 
+		# queue is not in use before modifying it
+		with self.queue_lock:
+			self.queue.append(job)
+
+	def allocate_jobs(self):
+		with self.queue_lock:
+			print self.queue
+		
+		# Do not put the sleep inside the lock
+		sleep(2)
+
+#
+# RoundRobinScheduler
+#
+# A Round Robin Scheduling Algorithm
+#
+
+class RoundRobinScheduler(Scheduler):
+	pass
 
 #
 # Job
