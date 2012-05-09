@@ -12,6 +12,14 @@ def put_file(path, data):
 	fp.write(data)
 	fp.close()
 
+def get_file(path, data):
+	fp = open( path, "rb" )
+	data = fp.read()
+	fp.close()
+
+	return data
+
+
 #
 # validate_request(req, fields)
 #

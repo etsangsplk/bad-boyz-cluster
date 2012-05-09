@@ -128,6 +128,8 @@ class FileRequest(Request):
 			'Content-length': length 
 		})
 
+		file_data.close()
+
 class JSONRequest(Request):
 
 	default_content_type = 'application/json'
