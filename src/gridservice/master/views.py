@@ -25,6 +25,13 @@ def job_POST(_GET, _POST):
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
+#
+# job_files_PUT(_GET, _POST, v)
+# 
+# Takes a binary PUT to a path and stores the file on 
+# the local disk based on the id, type and path of the file
+#
+
 def job_files_PUT(_GET, _POST, v):
 	gridservice.utils.put_file(
 		os.path.join("jobs", v['id'], "files", v['type'], v['path']), 

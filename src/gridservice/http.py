@@ -14,7 +14,10 @@ class Response(object):
 	
 	default_content_type = 'text/plain'
 
-	def __init__(self, body, status=OK, headers = []):
+	def __init__(self, body, status=OK, headers = None):
+		if headers == None:
+			headers = []
+
 		self.set_body(body)
 		self.set_status(status)
 		self.set_headers(headers)
@@ -44,6 +47,9 @@ class Response(object):
 
 		start_response(self.get_status_string(), self.headers)
 
+		print self.body
+		print len(self.body)
+
 		return [self.body]
 
 class JSONResponse(Response):
@@ -54,10 +60,17 @@ class JSONResponse(Response):
 		self.body = json.dumps(body)
 
 class Request(object):
+	pass
+
+class HTTPRequest(object):
 
 	default_content_type = 'text/plain'
 
-	def __init__(self, method, url, data, headers={}):
+	def __init__(self, method, url, data, headers = None):
+
+		if headers == None:
+			headers = {}
+
 		self.set_url(url)
 		self.set_data(data)
 		self.set_method(method)
@@ -117,20 +130,22 @@ class Request(object):
 		else:
 			self.set_status(response.getcode())
 			self.set_response(response.read())
+			print self.get_status()
+			print self.get_response()
 
-class FileRequest(Request):
+class FileHTTPRequest(HTTPRequest):
 	
 	def __init__(self, method, url, filename):
 		file_data = open(filename, "rb")
 		length = os.path.getsize(filename)
 
-		super(FileRequest, self).__init__(method, url, file_data, { 
+		super(FileHTTPRequest, self).__init__(method, url, file_data, { 
 			'Content-length': length 
 		})
 
 		file_data.close()
 
-class JSONRequest(Request):
+class JSONHTTPRequest(HTTPRequest):
 
 	default_content_type = 'application/json'
 
@@ -138,7 +153,7 @@ class JSONRequest(Request):
 		self.data = json.dumps(data)
 
 	def send(self):
-		super(JSONRequest, self).send()
+		super(JSONHTTPRequest, self).send()
 		if self.get_response():
 			self.set_response(json.loads(self.get_response()))
 
