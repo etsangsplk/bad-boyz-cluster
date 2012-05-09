@@ -1,3 +1,4 @@
+import os
 import json
 import urllib
 import urllib2
@@ -56,12 +57,13 @@ class Request(object):
 
 	default_content_type = 'text/plain'
 
-	def __init__(self, method, url, data):
+	def __init__(self, method, url, data, headers={}):
 		self.set_url(url)
 		self.set_data(data)
 		self.set_method(method)
 		self.failure = False
 		self.set_response("")
+		self.headers = headers
 
 		self.send()
 
@@ -75,7 +77,7 @@ class Request(object):
 		self.method = method
 
 	def set_status(self, status):
-		self.status= status
+		self.status = status
 
 	def get_status(self):
 		return self.status
@@ -90,11 +92,15 @@ class Request(object):
 		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
 		return str(self.status) + " " + responses[self.status][0]
 
+	def get_headers(self):
+		self.headers.update({ 'Content-Type': self.default_content_type })
+		return self.headers
+	
 	def failed(self):
 		return self.failure
 
 	def send(self):
-		request = urllib2.Request(self.url, self.data, {'Content-Type': self.default_content_type})
+		request = urllib2.Request(self.url, self.data, self.get_headers())
 		request.get_method = lambda: self.method
 		
 		try:
@@ -112,6 +118,16 @@ class Request(object):
 			self.set_status(response.getcode())
 			self.set_response(response.read())
 
+class FileRequest(Request):
+	
+	def __init__(self, method, url, filename):
+		file_data = open(filename, "rb")
+		length = os.path.getsize(filename)
+
+		super(FileRequest, self).__init__(method, url, file_data, { 
+			'Content-length': length 
+		})
+
 class JSONRequest(Request):
 
 	default_content_type = 'application/json'
@@ -123,3 +139,4 @@ class JSONRequest(Request):
 		super(JSONRequest, self).send()
 		if self.get_response():
 			self.set_response(json.loads(self.get_response()))
+

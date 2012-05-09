@@ -7,7 +7,9 @@ import gridservice.master.views as views
 
 routes = {
 	('/node', 'POST'): views.node_POST,
-	('/job', 'POST'): views.job_POST
+	('/job', 'POST'): views.job_POST,
+	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'): views.job_files_PUT,
+	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT
 }
 
 if __name__ == '__main__':

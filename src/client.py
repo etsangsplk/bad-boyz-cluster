@@ -1,17 +1,31 @@
 #!/usr/bin/env python
 
-from gridservice.http import JSONRequest, JSONResponse
+import os
+from gridservice.http import FileRequest, JSONRequest, JSONResponse
 
 url = "http://localhost:8051"
 
-request = JSONRequest( 'POST', url + '/job', 
-	{ 
-		'executable': 'localhost',
-		'files': ['file1.txt', 'file2.txt', 'file3.txt']
-	}
-)
+executable = 'myexec'
+files = [ 'file1.txt' ]
+
+request = JSONRequest( 'POST', url + '/job', { 
+	'executable': executable,
+	'files': files
+})
 
 if not request.failed():
-	print request.get_response()
+	res = request.get_response()
+	
+	for filename in files:
+		req_path = url + '/job/' + str(res['id']) + '/files/executable/' + filename
+	
+		request = FileRequest( 'PUT', req_path, filename )
+		
+		if not request.failed():
+			print request.get_response()
+		else:
+			print req_path
+			print request.failed()
+
 else:
 	print request.failed()

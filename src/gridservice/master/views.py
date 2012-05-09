@@ -1,3 +1,4 @@
+import os
 import gridservice.utils
 from gridservice import http
 from gridservice.http import Response, JSONResponse
@@ -20,9 +21,16 @@ def job_POST(_GET, _POST):
 		job = Job(executable, files)
 		model.grid.scheduler.add_to_queue(job)
 
-		return JSONResponse({ 'success': "Job added successfully." }, 201)
+		return JSONResponse({ 'success': "Job added successfully.", 'id': 1 }, 201)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
+
+def job_files_PUT(_GET, _POST, v):
+	gridservice.utils.put_file(
+		os.path.join("jobs", v['id'], "files", v['type'], v['path']), 
+		_POST)
+
+	return JSONResponse(v)
 
 #
 # node_POST

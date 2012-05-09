@@ -7,6 +7,11 @@ import re
 from gridservice import http
 from gridservice.http import Response, JSONResponse
 
+def put_file(path, data):
+	fp = open( path, "w+" )
+	fp.write(data)
+	fp.close()
+
 #
 # validate_request(req, fields)
 #
@@ -47,8 +52,10 @@ def process_POST(env):
 	
 	if env['CONTENT_TYPE'] == "application/json":
 		return json.loads(_POST)
-	else:
+	elif env['CONTENT_TYPE'] == "application/x-www-form-urlencoded":
 		return parse_qs(_POST)
+	else:
+		return _POST
 
 #
 # route(routes, env)
@@ -141,6 +148,8 @@ def route_expr_to_parser(expr):
 	
 	regex += re.escape(expr[last_pos:])
 	regex = '^%s$' % regex
+
+	#print regex
 	route_parser = re.compile(regex)
 
 	return route_parser
