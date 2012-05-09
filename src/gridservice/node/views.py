@@ -2,7 +2,7 @@ import gridservice.utils
 from gridservice import http
 from gridservice.http import JSONHTTPRequest, JSONResponse
 
-def node_register_GET(_GET, _POST):
+def node_register_GET(request):
 	request = JSONHTTPRequest( 'POST', 'http://localhost:8051/node', 
 		{ 
 			'ip_address': 'localhost',

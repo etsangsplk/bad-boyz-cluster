@@ -13,10 +13,10 @@ import gridservice.master.model as model
 # to the queue
 #
 
-def job_POST(_GET, _POST):
-	if gridservice.utils.validate_request(_POST, ['executable', 'files']):
-		executable = _POST['executable']
-		files = _POST['files']
+def job_POST(request):
+	if gridservice.utils.validate_request(request.json, ['executable', 'files']):
+		executable = request.json['executable']
+		files = request.json['files']
 
 		job = Job(executable, files)
 		model.grid.scheduler.add_to_queue(job)
@@ -32,10 +32,8 @@ def job_POST(_GET, _POST):
 # the local disk based on the id, type and path of the file
 #
 
-def job_files_PUT(_GET, _POST, v):
-	gridservice.utils.put_file(
-		os.path.join("jobs", v['id'], "files", v['type'], v['path']), 
-		_POST)
+def job_files_PUT(request, v):
+	request.get_raw_to_file(os.path.join("jobs", v['id'], "files", v['type'], v['path']))
 
 	return JSONResponse(v)
 
@@ -46,9 +44,10 @@ def job_files_PUT(_GET, _POST, v):
 # the new node in the network.
 #
 
-def node_POST(_GET, _POST):
-	if gridservice.utils.validate_request(_POST, ['ip_address', 'port', 'cores']): 
-		node = _POST
+def node_POST(request):
+	if gridservice.utils.validate_request(request.get_json(), ['ip_address', 'port', 'cores']): 
+		node = request.json
+
 		model.grid.add_node(node)
 		return JSONResponse({ 'success': "Node added successfully." }, 201)
 	else:

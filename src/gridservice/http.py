@@ -59,8 +59,45 @@ class JSONResponse(Response):
 	def set_body(self, body):
 		self.body = json.dumps(body)
 
+
+
 class Request(object):
-	pass
+	
+	def __init__(self, env):
+		self.env = env
+		self.length = env['CONTENT_LENGTH']
+		self.content_type = env['CONTENT_TYPE']
+		self.query_string = env['QUERY_STRING']
+
+	@property
+	def raw(self):
+		if getattr(self, '_raw_cache', None) is None:
+			self._raw_cache = self.get_raw()
+		return self._raw_cache
+
+	@property
+	def json(self):
+		return json.loads( self.raw )
+	
+	@property
+	def form(self):
+		return parse_qs( self.raw )
+
+	def get_raw(self):
+		if self.length:
+			return self.env['wsgi.input'].read(int(self.length))
+		else:
+			return None
+		
+	def get_raw_to_file(self, filename):
+		fp = open(filename, "w+" )
+		fp.write(self.raw)
+		fp.close()
+
+	def get_query(self):
+		return parse_qs(self.query_string)
+
+
 
 class HTTPRequest(object):
 
@@ -155,5 +192,6 @@ class JSONHTTPRequest(HTTPRequest):
 	def send(self):
 		super(JSONHTTPRequest, self).send()
 		if self.get_response():
+			print self.get_response()
 			self.set_response(json.loads(self.get_response()))
 
