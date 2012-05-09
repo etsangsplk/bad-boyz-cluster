@@ -27,17 +27,21 @@ class Grid(object):
 
 class Scheduler(object):
 	def __init__(self):
-		self.jobs = []
+		self.queue_lock = threading.Lock()
+		self.queue = []
 		self.thread = SchedulerThread(self)
 
 	def start(self):
 		self.thread.start()
 
 	def add_to_queue(self, job):
-		self.jobs.append(job)
+		with self.queue_lock:
+			self.queue.append(job)
 
 	def allocate_jobs(self):
-		print "Testing"
+		with self.queue_lock:
+			print self.queue
+		
 		sleep(2)
 
 #
@@ -93,9 +97,9 @@ class Job(object):
 	def create_work_units(self):
 		self.work_units = []
 		
-		if files:
-			for filename in files:
-				self.work_units.append( WorkUnit(self.excutable, filename) )
+		if self.files:
+			for filename in self.files:
+				self.work_units.append( WorkUnit(self.executable, filename) )
 		else:
 			self.work_units.append( WorkUnit(self.executable) )
 
@@ -109,7 +113,7 @@ class Job(object):
 class WorkUnit(object):
 	
 	def __init__(self, executable, filename):
-		self.executable = execuatble
+		self.executable = executable
 		self.filename = filename
 
 	def get_filename(self):

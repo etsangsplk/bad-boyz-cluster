@@ -3,6 +3,8 @@ from gridservice import http
 from gridservice.http import Response, JSONResponse
 from gridservice.grid import Job
 
+import gridservice.master.model as model
+
 #
 # job_POST
 #
@@ -11,14 +13,14 @@ from gridservice.grid import Job
 #
 
 def job_POST(_GET, _POST):
-
 	if gridservice.utils.validate_request(_POST, ['executable', 'files']):
-		executable = node['executable']
-		files = node['files']
+		executable = _POST['executable']
+		files = _POST['files']
 
 		job = Job(executable, files)
-		grid.scheduler.add_to_queue(job)
+		model.grid.scheduler.add_to_queue(job)
 
+		return JSONResponse({ 'success': "Job added successfully." }, 201)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
@@ -30,11 +32,9 @@ def job_POST(_GET, _POST):
 #
 
 def node_POST(_GET, _POST):
-
-	# Verify valid JSON request
 	if gridservice.utils.validate_request(_POST, ['ip_address', 'port', 'cores']): 
 		node = _POST
-		grid.add_node(node)
+		model.grid.add_node(node)
 		return JSONResponse({ 'success': "Node added successfully." }, 201)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)

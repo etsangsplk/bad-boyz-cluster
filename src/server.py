@@ -5,17 +5,12 @@ from paste import httpserver, reloader
 import gridservice.utils
 import gridservice.master.views as views
 
-from gridservice.grid import Grid, RoundRobinScheduler
-
 routes = {
 	('/node', 'POST'): views.node_POST,
+	('/job', 'POST'): views.job_POST
 }
 
 if __name__ == '__main__':
-
-	# Boot up the Grid
-	scheduler = RoundRobinScheduler()
-	grid = Grid(scheduler)
 
 	# Initalise the WSGI Server
 	reloader.install()

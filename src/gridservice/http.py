@@ -61,6 +61,7 @@ class Request(object):
 		self.set_data(data)
 		self.set_method(method)
 		self.failure = False
+		self.set_response("")
 
 		self.send()
 
