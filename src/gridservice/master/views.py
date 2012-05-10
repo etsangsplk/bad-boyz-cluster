@@ -3,7 +3,7 @@ import time
 import gridservice.utils
 from gridservice import http
 from gridservice.http import require_json, Response, FileResponse, JSONResponse
-from gridservice.grid import Job
+from gridservice.grid import Job, NodeNotFoundException
 
 import gridservice.master.model as model
 
@@ -57,13 +57,15 @@ def node_POST(request):
 
 def node_id_GET(request, v):
 	node_id = v['id']
-	node = model.grid.get_node(node_id)
+	try:
+		node = model.grid.get_node(node_id)
+	except NodeNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, 404)
 
 	return JSONResponse(node, 200)
 
 @require_json
 def node_id_POST(request, v):
-
 	if gridservice.utils.validate_request(request.json, ['jobs']): 
 		node_id = v['id']
 
@@ -71,7 +73,10 @@ def node_id_POST(request, v):
 		update = request.json
 		update.update({ 'heartbeat_ts': int(time.time()) })
 		
-		node = model.grid.update_node(node_id, update)
+		try:
+			node = model.grid.update_node(node_id, update)
+		except NodeNotFoundException as e:
+			return JSONResponse({ 'error_msg': e.args[0] }, 404)
 
 		return JSONResponse(node, 200)
 	else:

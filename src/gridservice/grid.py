@@ -15,7 +15,7 @@ class Grid(object):
 		return self.thread.scheduler.add_node(node) 
 
 	def get_node(self, node_id):
-		return self.thread.scheduler.nodes[ int(node_id) ]
+		return self.thread.scheduler.get_node_by_id(node_id)
 
 	def update_node(self, node_id, update):
 		self.get_node(node_id).update(update)
@@ -83,7 +83,11 @@ class Scheduler(object):
 		self.last_node_id = 0
 
 	def get_node_by_id(self, node_id):
-		return self.nodes[ node_id ]
+		node_id = int(node_id)
+		if node_id in self.nodes:
+			return self.nodes[ node_id ]
+		else:
+			raise NodeNotFoundException("There is no node with id: %s" % node_id)
 
 	def get_node_id(self, node_ident):
 		return self.node_ids[ node_ident ];
@@ -178,3 +182,12 @@ class WorkUnit(object):
 
 	def get_executable(self):
 		return self.executable
+
+#
+# NodeNotFoundException
+#
+# To be raised when a node is requested that can't be found
+#
+
+class NodeNotFoundException(Exception):
+	pass
