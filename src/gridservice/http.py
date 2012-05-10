@@ -2,6 +2,7 @@ import os
 import json
 import urllib
 import urllib2
+import mimetypes
 
 import BaseHTTPServer
 
@@ -19,7 +20,7 @@ class Response(object):
 			headers = []
 
 		self.body = body
-		self.status= status
+		self.status = status
 		self.headers = headers
 	
 	def add_headers(self, headers):
@@ -42,6 +43,35 @@ class Response(object):
 	def status_string(self):
 		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
 		return str(self.status) + " " + responses[self.status][0]
+
+class FileResponse(Response):
+	
+	def __init__(self, filename, headers = None):
+
+		if headers == None:
+			headers = []
+
+		root = "www"
+		path = os.path.join(root, filename)
+		
+		# Check for file injection and existance
+		if not os.path.normpath(path).startswith(root) or not os.path.exists(path):	
+			status = 404
+			body = ""
+
+		# Respond with the file
+		else:
+			status = 200
+
+			body = file(path, "r").read()
+			self.content_type = mimetypes.guess_type(path)[0]
+			length = os.path.getsize(path)
+			headers.extend([ 
+				('Content-Type', self.content_type), 
+				('Content-Length', length) 
+			])
+
+		super(FileResponse, self).__init__(body, status, headers)
 
 class JSONResponse(Response):
 

@@ -13,16 +13,14 @@ routes = {
 
 	# Requests for the console, YEAH!
 	('/', 'GET'): views.index_GET,
-	('/css/{file:[A-z0-9./]+}.css', 'GET'): views.css_GET,
-	('/js/{file:[A-z0-9./]+}.js', 'GET'): views.js_GET,
-	('/img/{file:[A-z0-9./]+}.png', 'GET'): views.png_GET,
-	('/img/{file:[A-z0-9./]+}.jpg', 'GET'): views.jpg_GET,
 	
 	# Now for the JSON bits...
 	('/json/nodes', 'GET'): views.nodes_GET,
 
 	# This is redundant just for testing
-	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT
+	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT,
+	
+	('/{file:[A-z0-9\.\/]+}', 'GET'): views.file_GET,
 }
 
 if __name__ == '__main__':

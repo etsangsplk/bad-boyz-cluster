@@ -1,12 +1,11 @@
 import os
 import gridservice.utils
 from gridservice import http
-from gridservice.http import require_json, Response, JSONResponse
+from gridservice.http import require_json, Response, FileResponse, JSONResponse
 from gridservice.grid import Job
 
 import gridservice.master.model as model
 
-import io
 #
 # job_POST
 #
@@ -56,37 +55,20 @@ def node_POST(request):
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
+#
+#
+# Console
+#
+#
 
-
-###############################################
-####### 	This is the Console yo!  ##########
-###############################################
-
-
-# Basic handlers for the consoles files
 def index_GET(request):
-	return Response(status=200, headers=[('content-type', 'text/html')], body=file("console/console.html", "r").read())
+	return FileResponse("console/console.html")
 
-def css_GET(request, v):
-	# Get whatever CSS has been requested...
-	return Response(status=200, headers=[('content-type', 'text/css')], body=file("console/css/" + v["file"] + ".css", "r").read())
-
-def js_GET(request, v):
-	# Get whatever CSS has been requested...
-	return Response(status=200, headers=[('content-type', 'text/javascript')], body=file("console/js/" + v["file"] + ".js", "r").read())
-
-def png_GET(request, v):
-	# Get whatever CSS has been requested...
-	return Response(status=200, headers=[('content-type', 'image/png')], body=file("console/img/" + v["file"] + ".png", "r").read())
-
-def jpg_GET(request, v):
-	# Get whatever CSS has been requested...
-	return Response(status=200, headers=[('content-type', 'image/jpeg')], body=file("console/img/" + v["file"] + ".jpg", "r").read())
+def file_GET(request, v):
+	return FileResponse(v["file"])
 
 # Now some handlers for the JSON action
 
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()
-
 	return  JSONResponse({ 'success': "Job added successfully.", 'nodes': nodeList }, 200)
-
