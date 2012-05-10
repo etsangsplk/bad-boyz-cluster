@@ -55,6 +55,7 @@ class JSONResponse(Response):
 	def body(self, body):
 		self._body = json.dumps(body)
 
+
 #
 # @require_json decorator
 #
@@ -117,59 +118,26 @@ class HTTPRequest(object):
 		if headers == None:
 			headers = {}
 
-		self.data = data
 		self.url = url
-		self.method = method
-		self.failure = False
-		self.headers = headers
+		self.data = data
 
-		self.send()
+		self.headers = { 'Content-Type': self.content_type }
+		self.headers.update(headers)
 
-	@property
-	def has_failed(self):
-		return bool(self.failure)
+		request = urllib2.Request(url, self.data, headers)
+		request.get_method = lambda: method
+		response = urllib2.urlopen(request)
 
-	@property
-	def status_string(self):
-		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
-		return str(self.status) + " " + responses[self.status][0]
+		self.msg = response.msg
+		self.status = response.getcode()
+		self.response = response.read()
 
-	@property
-	def headers(self):
-		headers = dict(self._headers)
-		headers.update({ 'Content-Type': self.content_type })
-		return headers
-
-	@headers.setter
-	def headers(self, headers):
-		self._headers = headers
-
-	def add_headers(self, headers):
-		self._headers.update(headers)
-	
-	def send(self):
-		request = urllib2.Request(self.url, self.data, self.headers)
-		request.get_method = lambda: self.method
-		
-		try:
-			response = urllib2.urlopen(request)
-
-		except urllib2.HTTPError as e:
-			self.status = e.code
-			self.response = e.read()
-			self.failure = self.status_string
-
-		except urllib2.URLError as e:
-			self.failure = e.reason[1]
-
-		else:
-			self.status = response.getcode()
-			self.response = response.read()
-			print "Request: " + str(self.status) + ": " + str(self.response)
+		print "Request: " + str(self.status) + ": " + str(self.response)
 
 class FileHTTPRequest(HTTPRequest):
 	
 	def __init__(self, method, url, filename):
+
 		file_data = open(filename, "rb")
 		length = os.path.getsize(filename)
 
@@ -187,14 +155,11 @@ class JSONHTTPRequest(HTTPRequest):
 
 	@property
 	def response(self):
-		try:
-			return json.loads(self._response)
-		except TypeError as e:
-			raise InvalidResponseJSONException(self._response + " is invalid JSON")
+		return self._response
 
 	@response.setter
 	def response(self, response):
-		self._response = response
+		self._response = json.loads(response)
 
 	@property
 	def data(self):
@@ -202,13 +167,4 @@ class JSONHTTPRequest(HTTPRequest):
 
 	@data.setter
 	def data(self, data):
-		try:
-			self._data = None
-		except TypeError as e:
-			raise InvalidRequestJSONException(data + " is invalid JSON")
-
-class InvalidResponseJSONException(Exception):
-	pass
-
-class InvalidRequestJSONException(Exception):
-	pass
+		self._data = json.dumps(data)

@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
 import os
+import sys
+from urllib2 import HTTPError, URLError
+from httplib import HTTPException
+
 from optparse import OptionParser
 from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
 from gridservice.grid import GridService
+
+import gridservice.client.utils as client_utils
 
 import gridservice.client.model as model
 
@@ -28,30 +34,28 @@ parser.add_option("-e", "--executable", dest="executable",
 model.grid_service.host = options.ghost
 model.grid_service.port = options.gport
 
-# Do client-y things
+
 executable = options.executable
 
 files = [ 'file1.txt' ]
 
-request = JSONHTTPRequest( 'POST', model.grid_service.url + '/job', { 
-	'executable': executable,
-	'files': files
-})
+try:
+	request = JSONHTTPRequest( 'POST', model.grid_service.url + '/job', { 
+		'executable': executable,
+		'files': files
+	})
 
-if not request.has_failed:
-	res = request.response
-	
-	for filename in files:
-		req_path = model.grid_service.url + '/job/' + str(res['id']) + '/files/executable/' + filename
-	
+except (HTTPError, URLError) as e:
+	client_utils.request_error(e, "Could not add a new job.")
+
+res = request.response
+
+for filename in files:
+	req_path = model.grid_service.url + '/job/' + str(res['id']) + '/files/executable/' + filename
+
+	try:
 		request = FileHTTPRequest( 'PUT', req_path, filename )
-		
-		if not request.has_failed:
-			print request.response
-		else:
-			print req_path
-			print request.failure
-
-else:
-	print request.failure
+	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not upload file to The Grid.")
+	
 	print request.response
