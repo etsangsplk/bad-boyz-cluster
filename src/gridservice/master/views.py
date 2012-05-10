@@ -6,6 +6,7 @@ from gridservice.grid import Job
 
 import gridservice.master.model as model
 
+import io
 #
 # job_POST
 #
@@ -54,4 +55,34 @@ def node_POST(request):
 		return JSONResponse({ 'success': "Node added successfully." }, 201)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
+
+
+
+###############################################
+####### 	This is the Console yo!  ##########
+###############################################
+
+
+# Basic handlers for the consoles files
+def index_GET(request):
+	return Response(status=200, headers=[('content-type', 'text/html')], body=file("console/console.html", "r").read())
+
+def css_GET(request, v):
+	# Get whatever CSS has been requested...
+	return Response(status=200, headers=[('content-type', 'text/css')], body=file("console/css/" + v["file"] + ".css", "r").read())
+
+def js_GET(request, v):
+	# Get whatever CSS has been requested...
+	return Response(status=200, headers=[('content-type', 'text/javascript')], body=file("console/js/" + v["file"] + ".js", "r").read())
+
+def png_GET(request, v):
+	# Get whatever CSS has been requested...
+	return Response(status=200, headers=[('content-type', 'image/png')], body=file("console/img/" + v["file"] + ".png", "r").read())
+
+def jpg_GET(request, v):
+	# Get whatever CSS has been requested...
+	return Response(status=200, headers=[('content-type', 'image/jpeg')], body=file("console/img/" + v["file"] + ".jpg", "r").read())
+
+# Now some handlers for the JSON action
+
 

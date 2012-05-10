@@ -13,7 +13,7 @@ class Grid(object):
 		self.start_scheduler(scheduler)
 
 	def add_node(self, node):
-		self.nodes[ node['ip_address'] + ":" + node['port'] ] = node
+		self.nodes[ node['ip_address'] + ":" + str(node['port']) ] = node
 
 	def start_scheduler(self, scheduler):
 
