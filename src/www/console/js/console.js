@@ -1,25 +1,21 @@
-
-
-function console(){
+function console() {
 	var _ = this;
 
-
-	function do_updates(){
+	function do_updates() {
 		update();
-		setTimeout( function() { do_updates(); }, 1500 )
+		setTimeout( do_updates, 1500 )
 	}
 
-	function node_id(n){
-		return (n.ip_address + "-" + n.port).replace(/\./g, '_');
-	} 
-	function node_name(n){
-		return n.ip_address + ":" + n.port;
+	function node_id(n) {
+		return (n.host + "-" + n.port).replace(/\./g, '_');
 	} 
 
-	function render(updates){
-		// 
+	function node_name(n) {
+		return n.host + ":" + n.port;
+	} 
 
-		for (var i=0; i < updates.length; i++){
+	function render(updates) {
+		for (var i = 0; i < updates.length; i++) {
 			// Check to see if we already have a node here?
 			var n = updates[i];
 
@@ -38,8 +34,7 @@ function console(){
 		}
 	}
 
-
-	function update(){
+	function update() {
 		$.ajax({
 			url: "/json/nodes",
 			success: function (response) {
@@ -51,7 +46,4 @@ function console(){
 	}
 
 	do_updates();
-
-
 }
-

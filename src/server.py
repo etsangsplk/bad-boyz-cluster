@@ -22,7 +22,7 @@ routes = [
 	
 	# Serve files directly from disk 
 	(('/', 'GET'), views.index_GET),
-	(('/{file:[A-z0-9\.\/]+}', 'GET'), views.file_GET),
+	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), views.file_GET),
 ]
 
 if __name__ == '__main__':

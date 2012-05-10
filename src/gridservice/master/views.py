@@ -108,4 +108,4 @@ def file_GET(request, v):
 
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()
-	return  JSONResponse({ 'success': "Job added successfully.", 'nodes': nodeList }, 200)
+	return  JSONResponse({ 'nodes': nodeList }, 200)

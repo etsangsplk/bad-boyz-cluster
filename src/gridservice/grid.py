@@ -1,5 +1,5 @@
 import threading
-from time import sleep
+import time 
 
 #
 # Grid
@@ -8,31 +8,102 @@ from time import sleep
 #
 
 class Grid(object):
-	def __init__(self, scheduler):
-		self.start_scheduler(scheduler)
+	def __init__(self, scheduler_func):
+		self.jobs = {}
+		self.job_ids = {}
+		self.next_job_id = 0
+		
+		self.nodes = {}
+		self.node_ids = {}
+		self.next_node_id = 0
 
-	def add_node(self, node):
-		return self.thread.scheduler.add_node(node) 
+		self.scheduler = scheduler_func(self)
+		self.scheduler.start()
+
+	#
+	# add_job(self, job)
+	#
+		
+	def add_job(self, job_id):
+		pass
+
+	#
+	# get_job(self, job_id)
+	#
+
+	def get_job(self, job_id):
+		pass
+
+	#
+	# get_node_id(self, node_ident)
+	#
+	# Takes a node identifier in form of HOST:PORT and
+	# returns the unique identifier of that node
+	#
+
+	def get_node_id(self, node_ident):
+		if node_ident in self.node_ids:
+			return self.node_ids[ node_ident ]
+		else:
+			raise NodeNotFoundException("There is no node with ident: %s" % node_ident)
+
+	#
+	# get_node(self, node_id)
+	#
+	# Takes a node_is either as an internal id, or as 
+	# the string HOST:PORT and returns the node as a dict
+	#
 
 	def get_node(self, node_id):
-		return self.thread.scheduler.get_node_by_id(node_id)
+
+		if isinstance(node_id, str):
+			if node_id.isdigit():
+				node_id = int(node_id)
+			else:
+				node_id = self.get_node_id(node_id)
+
+		if node_id in self.nodes:
+			return self.nodes[ node_id ]
+		else:
+			raise NodeNotFoundException("There is no node with id: %s" % node_id)
+
+	#
+	# add_node(self, node)
+	#
+	# Takes a dict containing at minimum a host and port,
+	# calculates a unique ID for the host/port if it hasn't
+	# seen it before, and returns that ID
+	#
+
+	def add_node(self, node):
+		node_ident = "%s:%s" % (node['host'], node['port'])
+
+		if node_ident not in self.node_ids:
+			self.node_ids[ node_ident ] = self.next_node_id
+			self.next_node_id += 1
+
+		node_id = self.get_node_id(node_ident)
+
+		node['node_id'] = node_id
+		self.nodes[ node_id ] = node
+
+		return node_id
+
+	# 
+	# update_node(self, node_id, update)
+	#
+	# Takes a node_id and a dict with an update
+	# and updates the node dict with the given
+	#
 
 	def update_node(self, node_id, update):
 		self.get_node(node_id).update(update)
 		return self.get_node(node_id)
 
-	def start_scheduler(self, scheduler):
-
-		# Setting daemon = True causes the thread to 
-		# be closed with the main program
-		self.thread = SchedulerThread(scheduler)
-		self.thread.daemon = True
-		self.thread.start()
-
 #
 # GridService
 #
-# Object for handling connection to a remote grid
+# THIS SHIT IS DEPRECATED, DON'T USE IT 
 # 
 
 class GridService:
@@ -52,62 +123,50 @@ class GridService:
 		return self.url
 
 #
-# SchedulerThread
-#
-# A thread for the scheduler, will run in its own thread
-# on Master checking the queue and allocating jobs.
-#
-
-class SchedulerThread(threading.Thread):
-	def __init__(self, scheduler):
-		super(SchedulerThread, self).__init__()
-		self.scheduler = scheduler
-
-	def run(self):
-		while True:
-			self.scheduler.allocate_jobs()
-
-#
 # Scheduler
 #
 # A generic Scheduler object
 #
 
 class Scheduler(object):
-	def __init__(self):
+	
+	JOB_ALLOCATOR_INTERVAL = 2
+
+	def __init__(self, grid):
+		self.grid = grid
+
 		self.queue_lock = threading.Lock()
 		self.queue = []
 
-		self.nodes = {}
-		self.node_ids = {}
-		self.last_node_id = 0
+	def start(self):
+		self.start_job_allocator()
 
-	def get_node_by_id(self, node_id):
-		node_id = int(node_id)
-		if node_id in self.nodes:
-			return self.nodes[ node_id ]
-		else:
-			raise NodeNotFoundException("There is no node with id: %s" % node_id)
+	def start_job_allocator(self):
+		self.thread = threading.Thread(target = self.job_allocator)
+		self.thread.name = "Master:Grid:Scheduler:JobAllocator"
+		self.thread.daemon = True
+		self.thread.start()
 
-	def get_node_id(self, node_ident):
-		return self.node_ids[ node_ident ];
+	def job_allocator(self):
+		while True:
+			self.allocate_jobs()
+			time.sleep(self.JOB_ALLOCATOR_INTERVAL)
 
-	def add_node(self, node):
-		node_ident = "%s:%s" % (node['host'], node['port'])
-
-		if node_ident not in self.node_ids:
-			self.node_ids[ node_ident ] = self.last_node_id
-			self.last_node_id += 1
-
-		node_id = self.get_node_id( node_ident )
-
-		node['node_id'] = node_id
-		self.nodes[ node_id ] = node
-
-		return node_id
+	def allocate_jobs(self):
+		raise NotImplementedError()
 
 	def add_to_queue(self, job):
-		
+		raise NotImplementedError()
+
+#
+# BullshitScheduler
+#
+# A BullshitScheduling Algorithm
+#
+
+class BullshitScheduler(Scheduler):
+
+	def add_to_queue(self, job):
 		# Need to ensure thread safety by checking the 
 		# queue is not in use before modifying it
 		with self.queue_lock:
@@ -115,21 +174,8 @@ class Scheduler(object):
 
 	def allocate_jobs(self):
 		with self.queue_lock:
-			print self.nodes
+			print self.grid.nodes
 			print self.queue
-		
-		# Do not put the sleep inside the lock
-		sleep(2)
-
-#
-# RoundRobinScheduler
-#
-# A Round Robin Scheduling Algorithm
-#
-
-class RoundRobinScheduler(Scheduler):
-	pass
-
 #
 # Job
 #

@@ -1,6 +1,5 @@
-from gridservice.grid import Grid, RoundRobinScheduler
+from gridservice.grid import Grid, BullshitScheduler
 
 # Bring the Grid online
 
-scheduler = RoundRobinScheduler()
-grid = Grid(scheduler)
+grid = Grid(BullshitScheduler)
