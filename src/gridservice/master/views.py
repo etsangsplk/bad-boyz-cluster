@@ -1,7 +1,7 @@
 import os
 import gridservice.utils
 from gridservice import http
-from gridservice.http import Response, JSONResponse
+from gridservice.http import require_json, Response, JSONResponse
 from gridservice.grid import Job
 
 import gridservice.master.model as model
@@ -13,6 +13,7 @@ import gridservice.master.model as model
 # to the queue
 #
 
+@require_json
 def job_POST(request):
 	if gridservice.utils.validate_request(request.json, ['executable', 'files']):
 		executable = request.json['executable']
@@ -33,7 +34,7 @@ def job_POST(request):
 #
 
 def job_files_PUT(request, v):
-	request.get_raw_to_file(os.path.join("jobs", v['id'], "files", v['type'], v['path']))
+	request.raw_to_file(os.path.join("jobs", v['id'], "files", v['type'], v['path']))
 
 	return JSONResponse(v)
 
@@ -44,6 +45,7 @@ def job_files_PUT(request, v):
 # the new node in the network.
 #
 
+@require_json
 def node_POST(request):
 	if gridservice.utils.validate_request(request.json, ['ip_address', 'port', 'cores']): 
 		node = request.json

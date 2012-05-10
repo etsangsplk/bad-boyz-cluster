@@ -12,52 +12,63 @@ METHOD_NOT_ALLOWED = 405
 
 class Response(object):
 	
-	default_content_type = 'text/plain'
+	content_type = 'text/plain'
 
 	def __init__(self, body, status=OK, headers = None):
 		if headers == None:
 			headers = []
 
-		self.set_body(body)
-		self.set_status(status)
-		self.set_headers(headers)
-	
-	def set_status(self, status):
-		self.status = status
-	
-	def set_headers(self, headers):
+		self.body = body
+		self.status= status
 		self.headers = headers
-
+	
 	def add_headers(self, headers):
 		self.headers.extend(headers)
-
-	def set_body(self, body):
-		self.body = body
-
-	def get_status_string(self):
-		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
-		return str(self.status) + " " + responses[self.status][0]
 
 	def get_response(self, start_response):
 		if not self.headers:
 			self.add_headers([
-				('Content-Type', self.default_content_type),
+				('Content-Type', self.content_type),
 				('Content-Length', str(len(self.body)))
 			])
 
-		start_response(self.get_status_string(), self.headers)
+		start_response(self.status_string, self.headers)
 
 		print "Response: " + str(self.status) + ": " + self.body
 
 		return [self.body]
 
+	@property
+	def status_string(self):
+		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
+		return str(self.status) + " " + responses[self.status][0]
+
 class JSONResponse(Response):
 
-	default_content_type = 'application/json'
+	content_type = 'application/json'
 	
-	def set_body(self, body):
-		self.body = json.dumps(body)
+	@property
+	def body(self):
+		return self._body
 
+	@body.setter
+	def body(self, body):
+		self._body = json.dumps(body)
+
+#
+# @require_json decorator
+#
+
+def require_json(func):
+	def decorator_func(request, *args, **kwargs):
+		try:
+			request.json
+		except ValueError as e:
+			return JSONResponse({ 'error': 'Invalid JSON was recieved.' }, 400)
+
+		return func(request, *args, **kwargs)
+
+	return decorator_func
 
 
 class Request(object):
@@ -68,10 +79,21 @@ class Request(object):
 		self.content_type = env['CONTENT_TYPE']
 		self.query_string = env['QUERY_STRING']
 
+	def _raw(self):
+		if self.length:
+			return self.env['wsgi.input'].read(int(self.length))
+		else:
+			return None
+		
+	def raw_to_file(self, filename):
+		fp = open(filename, "w+")
+		fp.write(self.raw)
+		fp.close()
+
 	@property
 	def raw(self):
 		if getattr(self, '_raw_cache', None) is None:
-			self._raw_cache = self.get_raw()
+			self._raw_cache = self._raw()
 		return self._raw_cache
 
 	@property
@@ -79,95 +101,71 @@ class Request(object):
 		return json.loads( self.raw )
 	
 	@property
-	def form(self):
+	def post(self):
 		return parse_qs( self.raw )
 
-	def get_raw(self):
-		if self.length:
-			return self.env['wsgi.input'].read(int(self.length))
-		else:
-			return None
-		
-	def get_raw_to_file(self, filename):
-		fp = open(filename, "w+" )
-		fp.write(self.raw)
-		fp.close()
-
-	def get_query(self):
+	@property
+	def query(self):
 		return parse_qs(self.query_string)
-
-
 
 class HTTPRequest(object):
 
-	default_content_type = 'text/plain'
+	content_type = 'text/plain'
 
 	def __init__(self, method, url, data, headers = None):
 
 		if headers == None:
 			headers = {}
 
-		self.set_url(url)
-		self.set_data(data)
-		self.set_method(method)
+		self.data = data
+		self.url = url
+		self.method = method
 		self.failure = False
-		self.set_response("")
 		self.headers = headers
 
 		self.send()
+
+	@property
+	def has_failed(self):
+		return bool(self.failure)
 
 	@property
 	def status_string(self):
 		responses = BaseHTTPServer.BaseHTTPRequestHandler.responses
 		return str(self.status) + " " + responses[self.status][0]
 
-	def set_url(self, url):
-		self.url = url
+	@property
+	def headers(self):
+		headers = dict(self._headers)
+		headers.update({ 'Content-Type': self.content_type })
+		return headers
 
-	def set_data(self, data):
-		self.data = data
+	@headers.setter
+	def headers(self, headers):
+		self._headers = headers
 
-	def set_method(self, method):
-		self.method = method
-
-	def set_status(self, status):
-		self.status = status
-
-	def get_status(self):
-		return self.status
-
-	def set_response(self, response):
-		self.response = response
-
-	def get_response(self):
-		return self.response;
-
-	def get_headers(self):
-		self.headers.update({ 'Content-Type': self.default_content_type })
-		return self.headers
+	def add_headers(self, headers):
+		self._headers.update(headers)
 	
-	def failed(self):
-		return self.failure
-
 	def send(self):
-		request = urllib2.Request(self.url, self.data, self.get_headers())
+		request = urllib2.Request(self.url, self.data, self.headers)
 		request.get_method = lambda: self.method
 		
 		try:
 			response = urllib2.urlopen(request)
 
 		except urllib2.HTTPError as e:
-			self.set_status(e.code)
-			self.set_response(e.read())
+			self.status = e.code
+			self.response = e.read()
 			self.failure = self.status_string
 
 		except urllib2.URLError as e:
 			self.failure = e.reason[1]
 
 		else:
-			self.set_status(response.getcode())
-			self.set_response(response.read())
-			print "Request: " + str(self.get_status()) + ": " + self.get_response()
+			self.status = response.getcode()
+			self.response = response.read()
+			print "Request: " + str(self.status) + ": " + str(self.response)
 
 class FileHTTPRequest(HTTPRequest):
 	
@@ -175,6 +173,8 @@ class FileHTTPRequest(HTTPRequest):
 		file_data = open(filename, "rb")
 		length = os.path.getsize(filename)
 
+		# Files need their content-length specified directly as 
+		# you cannot take the length() of a file pointer
 		super(FileHTTPRequest, self).__init__(method, url, file_data, { 
 			'Content-length': length 
 		})
@@ -183,13 +183,32 @@ class FileHTTPRequest(HTTPRequest):
 
 class JSONHTTPRequest(HTTPRequest):
 
-	default_content_type = 'application/json'
+	content_type = 'application/json'
 
-	def set_data(self, data):
-		self.data = json.dumps(data)
+	@property
+	def response(self):
+		try:
+			return json.loads(self._response)
+		except TypeError as e:
+			raise InvalidResponseJSONException(self._response + " is invalid JSON")
 
-	def send(self):
-		super(JSONHTTPRequest, self).send()
-		if self.get_response():
-			self.set_response(json.loads(self.get_response()))
+	@response.setter
+	def response(self, response):
+		self._response = response
 
+	@property
+	def data(self):
+		return self._data
+
+	@data.setter
+	def data(self, data):
+		try:
+			self._data = None
+		except TypeError as e:
+			raise InvalidRequestJSONException(data + " is invalid JSON")
+
+class InvalidResponseJSONException(Exception):
+	pass
+
+class InvalidRequestJSONException(Exception):
+	pass
