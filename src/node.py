@@ -15,6 +15,8 @@ from httplib import HTTPException
 from threading import Thread
 
 
+import gridservice.node.monitor as monitor
+
 
 
 class NodeServer:
@@ -55,6 +57,8 @@ class NodeServer:
 
 		self.app = gridservice.utils.make_app(routes)
 
+		self.mon = monitor.Monitor()
+
 		self.start_heartbeat_async()
 
 		httpserver.serve(self.app, host = self.host, port = self.port)
@@ -80,10 +84,13 @@ class NodeServer:
 					'ip_address': self.host ,
 					'port': self.port,
 					'cores': 1,
-					'os': 'OSX'
+					'os': 'OSX',
+					'current_job': 'None',
+					'cpu': self.mon.cpu()
+
 				}
 			)
-			print "Heartbeat"
+			print "Heartbeat: (CPU: " + str(self.mon.cpu()) + "%)"
 
 
 		except (HTTPException, URLError) as e:
