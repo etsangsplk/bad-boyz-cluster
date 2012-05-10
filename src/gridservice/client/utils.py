@@ -1,4 +1,3 @@
-import sys
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
@@ -11,5 +10,3 @@ def request_error(e, err_str):
 		print "%s\nMessage: %s" % (err_str, e.reason)
 	else:
 		print "An unknown error occured with your request: %r" % e
-
-	sys.exit(1)

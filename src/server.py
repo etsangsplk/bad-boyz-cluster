@@ -6,21 +6,24 @@ from paste import httpserver, reloader
 import gridservice.utils
 import gridservice.master.views as views
 
-routes = {
-	('/node', 'POST'): views.node_POST,
-	('/job', 'POST'): views.job_POST,
-	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'): views.job_files_PUT,
+routes = [
+	(('/node', 'POST'), views.node_POST),
+	(('/node/{id:\d+}', 'GET'), views.node_id_GET),
+	(('/node/{id:\d+}', 'POST'), views.node_id_POST),
+	
+	(('/job', 'POST'), views.job_POST),
+	(('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
 
 	# Console Requests
-	('/json/nodes', 'GET'): views.nodes_GET,
+	(('/json/nodes', 'GET'), views.nodes_GET),
 
 	# This is redundant just for testing
-	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT,
+	(('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), views.job_files_PUT),
 	
 	# Serve files directly from disk 
-	('/', 'GET'): views.index_GET,
-	('/{file:[A-z0-9\.\/]+}', 'GET'): views.file_GET,
-}
+	(('/', 'GET'), views.index_GET),
+	(('/{file:[A-z0-9\.\/]+}', 'GET'), views.file_GET),
+]
 
 if __name__ == '__main__':
 

@@ -9,11 +9,17 @@ from time import sleep
 
 class Grid(object):
 	def __init__(self, scheduler):
-		self.nodes = {}
 		self.start_scheduler(scheduler)
 
 	def add_node(self, node):
-		self.nodes[ node['ip_address'] + ":" + str(node['port']) ] = node
+		return self.thread.scheduler.add_node(node) 
+
+	def get_node(self, node_id):
+		return self.thread.scheduler.nodes[ int(node_id) ]
+
+	def update_node(self, node_id, update):
+		self.get_node(node_id).update(update)
+		return self.get_node(node_id)
 
 	def start_scheduler(self, scheduler):
 
@@ -22,9 +28,6 @@ class Grid(object):
 		self.thread = SchedulerThread(scheduler)
 		self.thread.daemon = True
 		self.thread.start()
-
-	def __str__(self):
-		return str(self.nodes)
 
 #
 # GridService
@@ -74,7 +77,31 @@ class Scheduler(object):
 	def __init__(self):
 		self.queue_lock = threading.Lock()
 		self.queue = []
-		
+
+		self.nodes = {}
+		self.node_ids = {}
+		self.last_node_id = 0
+
+	def get_node_by_id(self, node_id):
+		return self.nodes[ node_id ]
+
+	def get_node_id(self, node_ident):
+		return self.node_ids[ node_ident ];
+
+	def add_node(self, node):
+		node_ident = "%s:%s" % (node['host'], node['port'])
+
+		if node_ident not in self.node_ids:
+			self.node_ids[ node_ident ] = self.last_node_id
+			self.last_node_id += 1
+
+		node_id = self.get_node_id( node_ident )
+
+		node['node_id'] = node_id
+		self.nodes[ node_id ] = node
+
+		return node_id
+
 	def add_to_queue(self, job):
 		
 		# Need to ensure thread safety by checking the 
@@ -84,6 +111,7 @@ class Scheduler(object):
 
 	def allocate_jobs(self):
 		with self.queue_lock:
+			print self.nodes
 			print self.queue
 		
 		# Do not put the sleep inside the lock

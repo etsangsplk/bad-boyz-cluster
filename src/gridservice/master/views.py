@@ -1,4 +1,5 @@
 import os
+import time
 import gridservice.utils
 from gridservice import http
 from gridservice.http import require_json, Response, FileResponse, JSONResponse
@@ -47,11 +48,32 @@ def job_files_PUT(request, v):
 
 @require_json
 def node_POST(request):
-	if gridservice.utils.validate_request(request.json, ['ip_address', 'port', 'cores', 'current_job', 'cpu']): 
+	if gridservice.utils.validate_request(request.json, ['host', 'port', 'cores', 'programs', 'cost']): 
 		node = request.json
+		node_id = model.grid.add_node(node)
+		return JSONResponse({ 'node_id': node_id }, 200)
+	else:
+		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
-		model.grid.add_node(node)
-		return JSONResponse({ 'success': "Node added successfully." }, 201)
+def node_id_GET(request, v):
+	node_id = v['id']
+	node = model.grid.get_node(node_id)
+
+	return JSONResponse(node, 200)
+
+@require_json
+def node_id_POST(request, v):
+
+	if gridservice.utils.validate_request(request.json, ['jobs']): 
+		node_id = v['id']
+
+		# Timestamp the heartbeat so we can check its age later
+		update = request.json
+		update.update({ 'heartbeat_ts': int(time.time()) })
+		
+		node = model.grid.update_node(node_id, update)
+
+		return JSONResponse(node, 200)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 

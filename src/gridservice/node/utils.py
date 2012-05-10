@@ -1,12 +1,12 @@
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
-def request_error(e, err_str):
+def request_error_cli(e, err_str):
 	if isinstance(e, HTTPError):
-		return JSONResponse({ 'error_msg': err_str, 'code': e.code, 'msg': e.msg, 'url': e.url }, http.BAD_REQUEST )
+		print "%s\nRequest to: %s\nResponse: %s %s" % (err_str, e.url, e.code, e.msg)
 	elif isinstance(e, HTTPException):
-		return JSONResponse({ 'error_msg': err_str, 'msg': e.message }, http.BAD_REQUEST )
+		print "%s\nMessage: %s" % (err_str, e.message)
 	elif isinstance(e, URLError):
-		return JSONResponse({ 'error_msg': err_str, 'msg': e.reason }, http.BAD_REQUEST )
+		print "%s\nMessage: %s" % (err_str, e.reason)
 	else:
-		return JSONResponse({ 'error_msg': err_str, 'msg': e }, http.BAD_REQUEST )
+		print "An unknown error occured with your request: %r" % e
