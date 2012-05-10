@@ -56,18 +56,28 @@ def node_POST(request):
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
 #
+# index_GET
 #
-# Console
-#
+# A nice alias for the console index
 #
 
 def index_GET(request):
 	return FileResponse("console/console.html")
 
+#
+# file_GET
+#
+# Serves a file directly from disk
+#
+
 def file_GET(request, v):
 	return FileResponse(v["file"])
 
-# Now some handlers for the JSON action
+#
+# node_GET
+#
+# Who knows what this does yet?
+#
 
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()

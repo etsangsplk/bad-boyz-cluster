@@ -11,15 +11,14 @@ routes = {
 	('/job', 'POST'): views.job_POST,
 	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'): views.job_files_PUT,
 
-	# Requests for the console, YEAH!
-	('/', 'GET'): views.index_GET,
-	
-	# Now for the JSON bits...
+	# Console Requests
 	('/json/nodes', 'GET'): views.nodes_GET,
 
 	# This is redundant just for testing
 	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT,
 	
+	# Serve files directly from disk 
+	('/', 'GET'): views.index_GET,
 	('/{file:[A-z0-9\.\/]+}', 'GET'): views.file_GET,
 }
 
