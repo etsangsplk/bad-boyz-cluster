@@ -17,6 +17,9 @@ routes = {
 	('/js/{file:[A-z0-9./]+}.js', 'GET'): views.js_GET,
 	('/img/{file:[A-z0-9./]+}.png', 'GET'): views.png_GET,
 	('/img/{file:[A-z0-9./]+}.jpg', 'GET'): views.jpg_GET,
+	
+	# Now for the JSON bits...
+	('/json/nodes', 'GET'): views.nodes_GET,
 
 	# This is redundant just for testing
 	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT

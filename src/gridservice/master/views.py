@@ -85,4 +85,8 @@ def jpg_GET(request, v):
 
 # Now some handlers for the JSON action
 
+def nodes_GET(request):
+	nodeList = model.grid.nodes.values()
+
+	return  JSONResponse({ 'success': "Job added successfully.", 'nodes': nodeList }, 200)
 
