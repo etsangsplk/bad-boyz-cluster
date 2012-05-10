@@ -27,6 +27,28 @@ class Grid(object):
 		return str(self.nodes)
 
 #
+# GridService
+#
+# Object for handling connection to a remote grid
+# 
+
+class GridService:
+	
+	def __init__(self):
+		self.host = ""
+		self.port = ""
+
+	@property
+	def url(self):
+		return self._url()
+
+	def _url(self):
+		return "http://%s:%s" % (self.host, int(self.port))
+
+	def __str__(self):
+		return self.url
+
+#
 # SchedulerThread
 #
 # A thread for the scheduler, will run in its own thread

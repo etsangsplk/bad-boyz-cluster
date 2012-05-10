@@ -3,6 +3,9 @@
 import os
 from optparse import OptionParser
 from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.grid import GridService
+
+import gridservice.client.model as model
 
 # Parse the argument from the CLI
 parser = OptionParser()
@@ -19,33 +22,36 @@ parser.add_option("-e", "--executable", dest="executable",
 	help="The path to the executable (Must be relative and only forward from the current directory)", 
 	metavar="PATH/TO/EXECUTABLE")
 
-# Sample client, this code is ugly and messy and sucks
-
 (options, args) = parser.parse_args()
 
-url = "http://%s:%s" % (options.ghost, options.gport)
+# Initialise the GridService
+model.grid_service.host = options.ghost
+model.grid_service.port = options.gport
+
+# Do client-y things
 executable = options.executable
 
 files = [ 'file1.txt' ]
 
-request = JSONHTTPRequest( 'POST', url + '/job', { 
+request = JSONHTTPRequest( 'POST', model.grid_service.url + '/job', { 
 	'executable': executable,
 	'files': files
 })
 
-if not request.failed():
-	res = request.get_response()
+if not request.has_failed:
+	res = request.response
 	
 	for filename in files:
-		req_path = url + '/job/' + str(res['id']) + '/files/executable/' + filename
+		req_path = model.grid_service.url + '/job/' + str(res['id']) + '/files/executable/' + filename
 	
 		request = FileHTTPRequest( 'PUT', req_path, filename )
 		
-		if not request.failed():
-			print request.get_response()
+		if not request.has_failed:
+			print request.response
 		else:
 			print req_path
-			print request.failed()
+			print request.failure
 
 else:
-	print request.failed()
+	print request.failure
+	print request.response
