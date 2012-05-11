@@ -84,6 +84,20 @@ def node_id_GET(request, v):
 	return JSONResponse(node, 200)
 
 #
+# node_id_GET(request, v)
+#
+# Returns the node at the given URI
+#
+
+def node_id_GET(request, v):
+	try:
+		node = model.grid.get_node(v['id'])
+	except NodeNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+
+	return JSONResponse(node, 200)
+
+#
 # node_id_POST(request, v)
 #
 # Updates the node at the given URI, returns the node
@@ -94,12 +108,8 @@ def node_id_POST(request, v):
 	if gridservice.utils.validate_request(request.json, ['jobs']): 
 		node_id = v['id']
 
-		# Timestamp the heartbeat so we can check its age later
-		update = request.json
-		update.update({ 'heartbeat_ts': int(time.time()) })
-		
 		try:
-			node = model.grid.update_node(node_id, update)
+			node = model.grid.update_node(node_id, request.json)
 		except NodeNotFoundException as e:
 			return JSONResponse({ 'error_msg': e.args[0] }, 404)
 

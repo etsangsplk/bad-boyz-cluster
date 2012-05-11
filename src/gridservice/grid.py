@@ -92,8 +92,11 @@ class Grid(object):
 		node_ident = "%s:%s" % (node['host'], node['port'])
 
 		if node_ident not in self.node_ids:
+			node.update({'created_ts': int(time.time())})
 			self.node_ids[ node_ident ] = self.next_node_id
 			self.next_node_id += 1
+		
+		node.update({'came_online_ts': int(time.time()), 'heartbeat_ts': int(time.time())})
 
 		node_id = self.get_node_id(node_ident)
 
@@ -110,6 +113,8 @@ class Grid(object):
 	#
 
 	def update_node(self, node_id, update):
+		update.update({'heartbeat_ts': int(time.time())})
+
 		self.get_node(node_id).update(update)
 		return self.get_node(node_id)
 
@@ -186,6 +191,8 @@ class Job(object):
 		self.deadline = data['deadline']
 		self.command = data['command']
 		self.budget = data['budget']
+		self.created_ts = int(time.time())
+		self.finished_ts = None
 
 		self.create_work_units()
 
@@ -226,6 +233,8 @@ class Job(object):
 			'deadline': self.deadline,
 			'command': self.command,
 			'budget': self.budget,
+			'created_ts': self.created_ts,
+			'finished_ts': self.finished_ts,
 			'work_units': [],
 		}
 
@@ -254,6 +263,8 @@ class WorkUnit(object):
 		self.node_id = None
 		self.status = "QUEUED"
 		self.filename = filename
+		self.created_ts = int(time.time())
+		self.finished_ts = None
 
 	@property
 	def cost(self):
@@ -264,7 +275,9 @@ class WorkUnit(object):
 			'node_id': self.node_id,
 			'status': self.status,
 			'filename': self.filename,
-			'cost': self.cost
+			'cost': self.cost,
+			'created_ts': self.created_ts,
+			'finished_ts': self.finished_ts,
 		}	
 
 		return d

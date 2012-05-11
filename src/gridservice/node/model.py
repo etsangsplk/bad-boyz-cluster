@@ -63,7 +63,6 @@ class NodeServer:
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Heatbeat Failed: Unable to establish a connection to the grid")
 
-	
 	def register_node(self):
 		try:
 			request = JSONHTTPRequest( 'POST', self.grid_url + '/node', { 
