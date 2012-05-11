@@ -17,7 +17,7 @@ class NodeServer:
 		self.port = port
 		self.ghost = ghost
 		self.gport = gport
-		self.jobs = []
+		self.work_units = []
 
 		self.cores = 1
 		self.os = 'OSX'
@@ -56,7 +56,6 @@ class NodeServer:
 		try:
 			request = JSONHTTPRequest( 'POST', self.grid_url + '/node/' + str(self.node_id), { 
 				'cpu': self.mon.cpu(),
-				'jobs': self.jobs,
 			})
 			print "Heartbeat: (CPU: " + str(self.mon.cpu()) + "%)"
 

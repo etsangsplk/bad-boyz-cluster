@@ -7,6 +7,7 @@ import gridservice.utils
 import gridservice.master.views as views
 
 routes = [
+	(('/node', 'GET'), views.node_GET),
 	(('/node', 'POST'), views.node_POST),
 	(('/node/{id:\d+}', 'GET'), views.node_id_GET),
 	(('/node/{id:\d+}', 'POST'), views.node_id_POST),

@@ -1,6 +1,7 @@
 import threading
 import time 
 import json
+import copy
 
 #
 # Grid
@@ -19,6 +20,17 @@ class Grid(object):
 
 		self.scheduler = scheduler_func(self)
 		self.scheduler.start()
+
+	#
+	# get_free_node
+	#
+	# A generator of node that have at least 1 core free
+	#
+
+	def get_free_node(self):
+		for node in self.nodes.values():
+			if (node['cores'] - len(node['work_units']) > 0):
+				yield node
 
 	#
 	# add_job(self, job_data)
@@ -101,6 +113,8 @@ class Grid(object):
 		node_id = self.get_node_id(node_ident)
 
 		node['node_id'] = node_id
+		node['work_units'] = []
+
 		self.nodes[ node_id ] = node
 
 		return node_id
@@ -118,6 +132,23 @@ class Grid(object):
 		self.get_node(node_id).update(update)
 		return self.get_node(node_id)
 
+	#
+	# node_to_dict(self, node)
+	#
+	# For some stupid reason Nodes are still not an object,
+	# but are a dict, so we need some fancy converting to
+	# output a node nicely.
+	#
+
+	def node_to_dict(self, node):
+		n = copy.copy(node)
+
+		n['work_units'] = []
+		for unit in node['work_units']:
+			n['work_units'].append(unit.to_dict())
+
+		return n
+
 #
 # Scheduler
 #
@@ -126,7 +157,7 @@ class Grid(object):
 
 class Scheduler(object):
 	
-	JOB_ALLOCATOR_INTERVAL = 2
+	WORK_UNIT_ALLOCATOR_INTERVAL = 2
 
 	def __init__(self, grid):
 		self.grid = grid
@@ -135,24 +166,59 @@ class Scheduler(object):
 		self.queue = []
 
 	def start(self):
-		self.start_job_allocator()
+		self.start_work_unit_allocator()
 
-	def start_job_allocator(self):
-		self.thread = threading.Thread(target = self.job_allocator)
-		self.thread.name = "Master:Grid:Scheduler:JobAllocator"
+	def get_queued(self):
+		return [unit for unit in self.queue if unit.status == "QUEUED"]
+
+	def start_work_unit_allocator(self):
+		self.thread = threading.Thread(target = self.work_unit_allocator)
+		self.thread.name = "Master:Grid:Scheduler:WorkUnitAllocator"
 		self.thread.daemon = True
 		self.thread.start()
 
-	def job_allocator(self):
+	def work_unit_allocator(self):
 		while True:
-			self.allocate_jobs()
-			time.sleep(self.JOB_ALLOCATOR_INTERVAL)
+			self.allocate_work_units()
+			time.sleep(self.WORK_UNIT_ALLOCATOR_INTERVAL)
 
-	def allocate_jobs(self):
-		raise NotImplementedError()
+	def allocate_work_unit(self, node, work_unit):
+
+		print "Allocating Work Unit from Job %s to Node %s:%s" % (work_unit.job.job_id, node['host'], node['port'])
+
+		work_unit.running(node['node_id'])
+		node['work_units'].append(work_unit)
+
+		# SEND THE DAMN WORK UNIT ALREADY
 
 	def add_to_queue(self, job):
+		with self.queue_lock:
+			for work_unit in job.work_units:
+				self.queue.append(work_unit)
+
+	def allocate_work_units(self):
+		with self.queue_lock:
+			while self.grid.get_free_node():
+				unit = self.next_work_unit()
+
+				if unit == None:
+					print "Job Queue is empty."
+					break
+
+				self.allocate_work_unit(self.grid.get_free_node().next(), unit)
+
+	#
+	# next_work_unit(self)
+	# 
+	# This is the workhorse of the scheduler, this function will
+	# look through the list of queued work units and decide what
+	# needs to be allocated next. It returns a dict which is
+	# the node that the work unit is going to be allocated to.
+	#
+
+	def next_work_unit(self):
 		raise NotImplementedError()
+
 
 #
 # BullshitScheduler
@@ -162,17 +228,15 @@ class Scheduler(object):
 
 class BullshitScheduler(Scheduler):
 
-	def add_to_queue(self, job):
-		# Need to ensure thread safety by checking the 
-		# queue is not in use before modifying it
-		with self.queue_lock:
-			self.queue.append(job)
+	# Are you ready for the worlds most advanced 
+	# scheduling algorithm?
 
-	def allocate_jobs(self):
-		with self.queue_lock:
-			print self.grid.nodes
-			for job in self.queue:
-				print job
+	def next_work_unit(self):
+		if len(self.get_queued()) > 0:
+			return self.get_queued()[0]
+		else:
+			return None
+
 #
 # Job
 #
@@ -223,6 +287,18 @@ class Job(object):
 		else:
 			self.work_units.append( WorkUnit(self) )
 
+	def update_status(self):
+
+		# Assume the job is finished. Look for contradiction.
+		finished = True
+		for work_unit in self.work_units:
+			if work_unit.status != "FINISHED":
+				finished = False
+				break
+
+		if finished:
+			self.status = "FINISHED"
+
 	def to_dict(self):
 		d = {
 			'job_id': self.job_id,
@@ -269,6 +345,15 @@ class WorkUnit(object):
 	@property
 	def cost(self):
 		return self.job.budget_per_node_hour
+
+	def running(self, node_id):
+		self.node_id = node_id
+		self.status = "RUNNING"
+		self.job.status = "RUNNING"
+
+	def finished(self):
+		self.status = "FINISHED"
+		self.job.update_status()
 
 	def to_dict(self):
 		d = {

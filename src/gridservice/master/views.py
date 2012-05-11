@@ -59,6 +59,21 @@ def job_files_PUT(request, v):
 	return JSONResponse(v)
 
 #
+# node_GET(request)
+#
+# Get a list of all nodes
+#
+
+def node_GET(request):
+	nodes = model.grid.nodes
+
+	safe_nodes = {}
+	for key, node in nodes.items():
+		safe_nodes.update({ key: model.grid.node_to_dict(node) })
+	
+	return JSONResponse(safe_nodes, 200)
+
+#
 # node_POST(request)
 #
 # Takes a ip_address, port and cores and initiates
@@ -81,7 +96,7 @@ def node_id_GET(request, v):
 	except NodeNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, 404)
 
-	return JSONResponse(node, 200)
+	return JSONResponse(model.grid.node_to_dict(node), 200)
 
 #
 # node_id_GET(request, v)
@@ -95,7 +110,7 @@ def node_id_GET(request, v):
 	except NodeNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, 404)
 
-	return JSONResponse(node, 200)
+	return JSONResponse(model.grid.node_to_dict(node), 200)
 
 #
 # node_id_POST(request, v)
@@ -105,7 +120,7 @@ def node_id_GET(request, v):
 
 @require_json
 def node_id_POST(request, v):
-	if gridservice.utils.validate_request(request.json, ['jobs']): 
+	if gridservice.utils.validate_request(request.json, []): 
 		node_id = v['id']
 
 		try:
@@ -113,7 +128,7 @@ def node_id_POST(request, v):
 		except NodeNotFoundException as e:
 			return JSONResponse({ 'error_msg': e.args[0] }, 404)
 
-		return JSONResponse(node, 200)
+		return JSONResponse(model.grid.node_to_dict(node), 200)
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
