@@ -10,7 +10,6 @@ import time
 class Grid(object):
 	def __init__(self, scheduler_func):
 		self.jobs = {}
-		self.job_ids = {}
 		self.next_job_id = 0
 		
 		self.nodes = {}
@@ -21,11 +20,17 @@ class Grid(object):
 		self.scheduler.start()
 
 	#
-	# add_job(self, job)
+	# add_job(self, job_data)
 	#
 		
-	def add_job(self, job_id):
-		pass
+	def add_job(self, job_data):
+		job = Job(self.next_job_id, job_data)
+		self.jobs[ self.next_job_id ] = job
+		self.next_job_id += 1
+
+		self.scheduler.add_to_queue(job)
+
+		return job
 
 	#
 	# get_job(self, job_id)
@@ -184,21 +189,35 @@ class BullshitScheduler(Scheduler):
 #
 
 class Job(object):
-	def __init__(self, executable, files=[]):
-		self.executable = executable
-		self.files = files
+
+	def __init__(self, job_id, data):
+		self.job_id = job_id
+		self.executable = data['executable']
+		self.files = data['files']
+		self.status = "QUEUED"
+		self.wall_time = data['wall_time']
+		self.deadline = data['deadline']
+		self.command = data['command']
+		self.budget = data['budget']
+
 		self.create_work_units()
 
-	def get_files(self):
-		return self.files
+	#
+	# @property budget_per_node_hour(self)
+	# 
+	# The budget available per node per hour is the overall budget
+	# divided by how many cores are required (number of work units)
+	# which determins how much money is available per node. Then
+	# this is divided by the wall_time, which is how many hours are
+	# required per node.
+	#
 
-	def get_executable(self):
-		return self.executable
+	@property
+	def budget_per_node_hour(self):
+		return self.budget / self.num_work_units / self.job.wall_time
 
-	def count_files(self):
-		return length(self.files)
-
-	def count_work_units(self):
+	@property
+	def num_work_units(self):
 		return length(self.work_units)
 
 	def create_work_units(self):
@@ -206,9 +225,9 @@ class Job(object):
 		
 		if self.files:
 			for filename in self.files:
-				self.work_units.append( WorkUnit(self.executable, filename) )
+				self.work_units.append( WorkUnit(self, filename) )
 		else:
-			self.work_units.append( WorkUnit(self.executable) )
+			self.work_units.append( WorkUnit(self) )
 
 #
 # WorkUnit
@@ -219,21 +238,27 @@ class Job(object):
 
 class WorkUnit(object):
 	
-	def __init__(self, executable, filename):
-		self.executable = executable
+	def __init__(self, job, filename = None):
+		self.job = job
+		self.node_id = None
+		self.status = "QUEUED"
 		self.filename = filename
 
-	def get_filename(self):
-		return self.filename
+	@property
+	def cost(self):
+		return self.job.budget_per_node_hour
 
-	def get_executable(self):
-		return self.executable
-
-#
 # NodeNotFoundException
 #
 # To be raised when a node is requested that can't be found
 #
 
 class NodeNotFoundException(Exception):
+	pass
+
+#
+# JobNotFoundException
+#
+
+class JobNotFoundException(Exception):
 	pass

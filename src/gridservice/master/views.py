@@ -8,7 +8,7 @@ from gridservice.grid import Job, NodeNotFoundException
 import gridservice.master.model as model
 
 #
-# job_POST
+# job_POST(request)
 #
 # Creates a new Job sent by a client and adds it 
 # to the queue
@@ -16,31 +16,36 @@ import gridservice.master.model as model
 
 @require_json
 def job_POST(request):
-	if gridservice.utils.validate_request(request.json, ['executable', 'files']):
-		executable = request.json['executable']
-		files = request.json['files']
+	if gridservice.utils.validate_request(request.json, 
+		['executable', 'files', 'wall_time', 'deadline', 'command', 'budget']):
 
-		job = Job(executable, files)
-		model.grid.thread.scheduler.add_to_queue(job)
+		job = model.grid.add_job(request.json)
 
-		return JSONResponse({ 'success': "Job added successfully.", 'id': 1 }, 201)
+		return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, 200)
+
 	else:
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
 #
-# job_files_PUT(_GET, _POST, v)
+# job_files_PUT(request, v)
 # 
 # Takes a binary PUT to a path and stores the file on 
 # the local disk based on the id, type and path of the file
 #
 
 def job_files_PUT(request, v):
-	request.raw_to_file(os.path.join("jobs", v['id'], "files", v['type'], v['path']))
+	file_dir = os.path.join("jobs", v['id'], "files")
+	path = os.path.join( file_dir, os.path.dirname(v['path']) )
+
+	if not os.path.exists(path):
+		path = os.makedirs( path )
+
+	request.raw_to_file( os.path.join(file_dir, v['path']) )
 
 	return JSONResponse(v)
 
 #
-# node_POST
+# node_POST(request)
 #
 # Takes a ip_address, port and cores and initiates
 # the new node in the network.
@@ -64,6 +69,12 @@ def node_id_GET(request, v):
 
 	return JSONResponse(node, 200)
 
+#
+# node_id_POST(request, v)
+#
+# Updates the node at the given URI, returns the node
+#
+
 @require_json
 def node_id_POST(request, v):
 	if gridservice.utils.validate_request(request.json, ['jobs']): 
@@ -83,7 +94,7 @@ def node_id_POST(request, v):
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
 #
-# index_GET
+# index_GET(request)
 #
 # A nice alias for the console index
 #
@@ -92,7 +103,7 @@ def index_GET(request):
 	return FileResponse("console/console.html")
 
 #
-# file_GET
+# file_GET(request, v)
 #
 # Serves a file directly from disk
 #
@@ -101,7 +112,7 @@ def file_GET(request, v):
 	return FileResponse(v["file"])
 
 #
-# node_GET
+# node_GET(request)
 #
 # Who knows what this does yet?
 #

@@ -31,31 +31,37 @@ parser.add_option("-e", "--executable", dest="executable",
 (options, args) = parser.parse_args()
 
 # Initialise the GridService
-model.grid_service.host = options.ghost
-model.grid_service.port = options.gport
-
+ghost = options.ghost
+gport = options.gport
+grid_url = "http://%s:%s" % (ghost, gport)
 
 executable = options.executable
 
 files = [ 'file1.txt' ]
 
 try:
-	request = JSONHTTPRequest( 'POST', model.grid_service.url + '/job', { 
-		'executable': executable,
-		'files': files
+	request = JSONHTTPRequest( 'POST', grid_url + '/job', { 
+		'executable': 'adder',
+		'files': files,
+		'wall_time': '10:00:00',
+		'deadline': '2012-05-10 12:00:00',
+		'command': 'adder',
+		'budget': '500'
 	})
 
 except (HTTPError, URLError) as e:
-	client_utils.request_error(e, "Could not add a new job.")
+	client_utils.request_error(e, "Could not add a new job to The Grid.")
+	sys.exit(1)
 
 res = request.response
 
 for filename in files:
-	req_path = model.grid_service.url + '/job/' + str(res['id']) + '/files/executable/' + filename
+	req_path = grid_url + '/job/' + str(res['id']) + '/files/' + filename
 
 	try:
 		request = FileHTTPRequest( 'PUT', req_path, filename )
 	except (HTTPError, URLError) as e:
 		client_utils.request_error(e, "Could not upload file to The Grid.")
+		sys.exit(1)
 	
 	print request.response

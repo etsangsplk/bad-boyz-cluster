@@ -26,7 +26,7 @@ class NodeServer:
 
 		# THIS LINE IS FOR DEBUGGING, DELAYS REGISTER TO GIVE
 		# TIME FOR THE SERVER TO REBOOT ON CODE SAVE
-		time.sleep(2)
+		#time.sleep(2)
 
 		self.node_id = self.register_node()
 
