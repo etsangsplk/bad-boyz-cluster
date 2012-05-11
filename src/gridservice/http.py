@@ -3,6 +3,7 @@ import json
 import urllib
 import urllib2
 import mimetypes
+from cgi import parse_qs, escape
 
 import BaseHTTPServer
 

@@ -16,6 +16,7 @@ routes = [
 
 	# Console Requests
 	(('/json/nodes', 'GET'), views.nodes_GET),
+	(('/json/jobs', 'GET'), views.jobs_GET),
 
 	# This is redundant just for testing
 	(('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), views.job_files_PUT),
@@ -23,6 +24,12 @@ routes = [
 	# Serve files directly from disk 
 	(('/', 'GET'), views.index_GET),
 	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), views.file_GET),
+
+
+	(('/json/job/update/', 'POST'), views.job_update_POST),
+	(('/json/job/submit-file/{tmp_job_id:\d+}/', 'POST'), views.job_submit_file_POST),
+	(('/json/job/queue/', 'POST'), views.job_queue_POST),
+
 ]
 
 if __name__ == '__main__':

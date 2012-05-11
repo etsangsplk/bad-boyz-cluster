@@ -87,7 +87,6 @@ def node_id_POST(request, v):
 #
 # A nice alias for the console index
 #
-
 def index_GET(request):
 	return FileResponse("console/console.html")
 
@@ -108,4 +107,66 @@ def file_GET(request, v):
 
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()
-	return  JSONResponse({ 'nodes': nodeList }, 200)
+	return  JSONResponse({ 'nodes': nodeList}, 200)
+
+
+def jobs_GET(request):
+	jobs = model.grid.scheduler.queue
+
+	ljobs=[]
+	for j in jobs:
+		d = dict()
+		d["executable"] = j.executable
+		d["name"] = j.name
+		d["status"] = j.status
+		d["id"] = j.id
+		d["work_count_all"] = len(j.work_units)
+		d["work_count_queued"] = len( [w for w in j.work_units if w.status=="Queued"])
+		d["work_count_active"] = len( [w for w in j.work_units if w.status=="Active"])
+		d["work_count_complete"] = len([w for w in j.work_units if w.status=="Complete"])
+		ljobs.append(d)
+
+	return  JSONResponse({ 'jobs': ljobs}, 200)
+
+
+def job_update_POST(request):
+	name=None
+	cmd=None
+	tmp_job_id=-1
+	if request.post.has_key("name"):
+		name = request.post["name"][0]
+
+	if request.post.has_key("command"):
+		cmd = request.post["command"][0]
+
+	if request.post.has_key("tmp_job_id"):
+		tmp_job_id = int(request.post["tmp_job_id"][0])
+
+	# Now lets go and create / update the temp job
+	if (tmp_job_id == -1):
+		tmp_job_id = model.grid.tmp_job_create(cmd, name)
+	else:
+		tmp_job_id = model.grid.tmp_job_update(tmp_job_id, cmd, name)
+
+
+	return JSONResponse( {'tmp_job_id': tmp_job_id} , 200)
+
+
+
+def job_submit_file_POST(request, v):
+	filename = request.query["qqfile"][0]
+	tmp_job_id = int(v["tmp_job_id"])
+
+
+	model.grid.tmp_job_add_file(tmp_job_id, filename, request.raw)
+
+
+	return JSONResponse( {'tmp_job_id': tmp_job_id, 'filename': filename} , 200)
+
+def job_queue_POST(request):
+	if request.post.has_key("tmp_job_id"):
+		tmp_job_id = int(request.post["tmp_job_id"][0])
+
+	job_id = model.grid.tmp_job_enqueue(tmp_job_id)
+
+	return JSONResponse( {'job_id': job_id} , 200)
