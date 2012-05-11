@@ -114,28 +114,6 @@ class Grid(object):
 		return self.get_node(node_id)
 
 #
-# GridService
-#
-# THIS SHIT IS DEPRECATED, DON'T USE IT 
-# 
-
-class GridService:
-	
-	def __init__(self):
-		self.host = ""
-		self.port = ""
-
-	@property
-	def url(self):
-		return self._url()
-
-	def _url(self):
-		return "http://%s:%s" % (self.host, int(self.port))
-
-	def __str__(self):
-		return self.url
-
-#
 # Scheduler
 #
 # A generic Scheduler object

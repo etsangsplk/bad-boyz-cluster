@@ -7,7 +7,6 @@ from httplib import HTTPException
 
 from optparse import OptionParser
 from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
-from gridservice.grid import GridService
 
 import gridservice.client.utils as client_utils
 
