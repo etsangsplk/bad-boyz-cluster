@@ -198,14 +198,14 @@ class Scheduler(object):
 
 	def allocate_work_units(self):
 		with self.queue_lock:
-			while self.grid.get_free_node():
+			for node in self.grid.get_free_node():
 				unit = self.next_work_unit()
 
 				if unit == None:
 					print "Job Queue is empty."
 					break
 
-				self.allocate_work_unit(self.grid.get_free_node().next(), unit)
+				self.allocate_work_unit(node, unit)
 
 	#
 	# next_work_unit(self)
@@ -298,6 +298,7 @@ class Job(object):
 
 		if finished:
 			self.status = "FINISHED"
+			self.finished_ts = int(time.time())
 
 	def to_dict(self):
 		d = {
@@ -353,6 +354,7 @@ class WorkUnit(object):
 
 	def finished(self):
 		self.status = "FINISHED"
+		self.finished_ts = int(time.time())
 		self.job.update_status()
 
 	def to_dict(self):

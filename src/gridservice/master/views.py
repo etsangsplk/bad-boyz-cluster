@@ -8,6 +8,21 @@ from gridservice.grid import Job, NodeNotFoundException, JobNotFoundException
 import gridservice.master.model as model
 
 #
+# job_GET(request)
+#
+# Returns a list of all jobs
+#
+
+def job_GET(request):
+	jobs = model.grid.jobs
+	
+	safe_jobs = {}
+	for key, job in jobs.items():
+		safe_jobs.update({ key: job.to_dict() })
+	
+	return JSONResponse(safe_jobs, 200)
+
+#
 # job_POST(request)
 #
 # Creates a new Job sent by a client and adds it 

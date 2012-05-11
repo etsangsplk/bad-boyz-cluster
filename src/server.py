@@ -12,6 +12,7 @@ routes = [
 	(('/node/{id:\d+}', 'GET'), views.node_id_GET),
 	(('/node/{id:\d+}', 'POST'), views.node_id_POST),
 	
+	(('/job', 'GET'), views.job_GET),
 	(('/job', 'POST'), views.job_POST),
 	(('/job/{id:\d+}', 'GET'), views.job_id_GET),
 
