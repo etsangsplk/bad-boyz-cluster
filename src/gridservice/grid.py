@@ -232,6 +232,8 @@ class BullshitScheduler(Scheduler):
 	# scheduling algorithm?
 
 	def next_work_unit(self):
+
+		# Get the first job you find.
 		if len(self.get_queued()) > 0:
 			return self.get_queued()[0]
 		else:
