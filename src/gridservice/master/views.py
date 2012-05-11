@@ -3,7 +3,7 @@ import time
 import gridservice.utils
 from gridservice import http
 from gridservice.http import require_json, Response, FileResponse, JSONResponse
-from gridservice.grid import Job, NodeNotFoundException
+from gridservice.grid import Job, NodeNotFoundException, JobNotFoundException
 
 import gridservice.master.model as model
 
@@ -27,6 +27,20 @@ def job_POST(request):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
 #
+# job_id_GET(request, v)
+#
+# Get a job by the id in the URI
+#
+
+def job_id_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+	
+	return JSONResponse(job.to_dict(), 200)
+
+#
 # job_files_PUT(request, v)
 # 
 # Takes a binary PUT to a path and stores the file on 
@@ -38,7 +52,7 @@ def job_files_PUT(request, v):
 	path = os.path.join( file_dir, os.path.dirname(v['path']) )
 
 	if not os.path.exists(path):
-		path = os.makedirs( path )
+		path = os.makedirs(path)
 
 	request.raw_to_file( os.path.join(file_dir, v['path']) )
 

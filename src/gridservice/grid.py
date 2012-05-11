@@ -1,5 +1,6 @@
 import threading
 import time 
+import json
 
 #
 # Grid
@@ -36,8 +37,15 @@ class Grid(object):
 	# get_job(self, job_id)
 	#
 
-	def get_job(self, job_id):
-		pass
+	def get_job(self, job_id):	
+
+		if isinstance(job_id, str) and job_id.isdigit():
+			job_id = int(job_id)
+
+		if job_id in self.jobs:
+			return self.jobs[ job_id ]
+		else:
+			raise JobNotFoundException("There is no job with id: %s" % job_id)
 
 	#
 	# get_node_id(self, node_ident)
@@ -180,7 +188,8 @@ class BullshitScheduler(Scheduler):
 	def allocate_jobs(self):
 		with self.queue_lock:
 			print self.grid.nodes
-			print self.queue
+			for job in self.queue:
+				print job
 #
 # Job
 #
@@ -214,11 +223,11 @@ class Job(object):
 
 	@property
 	def budget_per_node_hour(self):
-		return self.budget / self.num_work_units / self.job.wall_time
+		return int(self.budget) / self.num_work_units / time.strptime(self.wall_time, "%H:%M:%S").tm_hour
 
 	@property
 	def num_work_units(self):
-		return length(self.work_units)
+		return len(self.work_units)
 
 	def create_work_units(self):
 		self.work_units = []
@@ -228,6 +237,30 @@ class Job(object):
 				self.work_units.append( WorkUnit(self, filename) )
 		else:
 			self.work_units.append( WorkUnit(self) )
+
+	def to_dict(self):
+		d = {
+			'job_id': self.job_id,
+			'executable': self.executable,
+			'files': self.files,
+			'status': self.status,
+			'walltime': self.wall_time,
+			'deadline': self.deadline,
+			'command': self.command,
+			'budget': self.budget,
+			'work_units': [],
+		}
+
+		for work_unit in self.work_units:
+			d['work_units'].append(work_unit.to_dict())
+		
+		return d
+	
+	def to_json(self):
+		return json.dumps(self.to_dict())
+
+	def __str__(self):
+		return self.to_json()
 
 #
 # WorkUnit
@@ -248,6 +281,23 @@ class WorkUnit(object):
 	def cost(self):
 		return self.job.budget_per_node_hour
 
+	def to_dict(self):
+		d = {
+			'node_id': self.node_id,
+			'status': self.status,
+			'filename': self.filename,
+			'cost': self.cost
+		}	
+
+		return d
+
+	def to_json(self):
+		return json.dumps(self.to_dict())
+
+	def __str__(self):
+		return self.to_json()
+
+#
 # NodeNotFoundException
 #
 # To be raised when a node is requested that can't be found
