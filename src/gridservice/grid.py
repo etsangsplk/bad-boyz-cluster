@@ -278,6 +278,11 @@ class BullshitScheduler(Scheduler):
 # A Job is an executable and any files it needs to be
 # run against. A job contains one or more WorkUnits.
 #
+# PENDING = Job is created but may still be modified
+# READY = Job is ready to be executed, added to queue
+# RUNNING = Job has at least one work unit being run
+# FINISHED = Job has all work units finished
+#
 
 class Job(object):
 
@@ -291,6 +296,7 @@ class Job(object):
 		self.budget = budget
 		self.created_ts = int(time.time())
 		self.ready_ts = None
+		self.running_ts = None
 		self.finished_ts = None
 		
 		self.files = []
@@ -314,6 +320,14 @@ class Job(object):
 	def num_work_units(self):
 		return len(self.work_units)
 
+	# 
+	# Status Setters
+	#
+
+	def running(self):
+		self.status = "RUNNING"
+		self.running_ts = int(time.time())
+
 	def ready(self):
 		self.status = "READY"
 		self.ready_ts = int(time.time())
@@ -321,7 +335,14 @@ class Job(object):
 	def finish(self):
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
-	
+
+	#
+	# Status Checkers
+	#
+
+	def is_running(self):
+		return self.status == "RUNNING"
+
 	def is_finished(self):
 
 		# Assume the job is finished. Look for contradiction.
@@ -331,6 +352,12 @@ class Job(object):
 				finished = False
 				break
 
+		return finished
+
+	#
+	#
+	#
+	
 	def add_file(self, filename):
 		self.files.append(filename)
 
@@ -349,6 +376,10 @@ class Job(object):
 				unit.finished()
 				return unit
 
+	#
+	# Representations
+	#
+
 	def to_dict(self):
 		d = {
 			'job_id': self.job_id,
@@ -360,6 +391,8 @@ class Job(object):
 			'flags': self.flags,
 			'budget': self.budget,
 			'created_ts': self.created_ts,
+			'ready_ts': self.ready_ts,
+			'running_ts': self.running_ts,
 			'finished_ts': self.finished_ts,
 			'work_units': [],
 		}
@@ -407,7 +440,9 @@ class WorkUnit(object):
 	def running(self, node_id):
 		self.node_id = node_id
 		self.status = "RUNNING"
-		self.job.status = "RUNNING"
+		
+		if not self.job.is_running():
+			self.job.running()
 
 	def finished(self):
 		self.status = "FINISHED"
