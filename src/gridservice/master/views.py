@@ -31,11 +31,19 @@ def job_GET(request):
 
 @require_json
 def job_POST(request):
-	if not gridservice.utils.validate_request(request.json, 
-		['executable', 'files', 'wall_time', 'deadline', 'flags', 'budget']):
+	d = request.json
+
+	if not gridservice.utils.validate_request(d, 
+		['executable', 'wall_time', 'deadline', 'flags', 'budget']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
-	job = model.grid.add_job(request.json)
+	job = model.grid.add_job(
+		executable = d['executable'], 
+		flags = d['flags'], 
+		wall_time = d['wall_time'], 
+		deadline = d['deadline'], 
+		budget = d['budget']
+	)
 
 	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, 200)
 

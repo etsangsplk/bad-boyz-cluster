@@ -40,12 +40,19 @@ class Grid(object):
 	# add_job(self, job_data)
 	#
 		
-	def add_job(self, job_data):
-		job = Job(self.next_job_id, job_data)
+	def add_job(self, executable, flags, wall_time, deadline, budget):
+		
+		job = Job(
+			job_id = self.next_job_id,
+			executable = executable, 
+			flags = flags, 
+			wall_time = wall_time, 
+			deadline = deadline, 
+			budget = budget
+		)
+
 		self.jobs[ self.next_job_id ] = job
 		self.next_job_id += 1
-
-		self.scheduler.add_to_queue(job)
 
 		return job
 
@@ -62,6 +69,15 @@ class Grid(object):
 			return self.jobs[ job_id ]
 		else:
 			raise JobNotFoundException("There is no job with id: %s" % job_id)
+
+	#
+	# ready_job(self, job_id)
+	#
+
+	def ready_job(self, job_id):
+		job = self.get_job(job_id)
+		job.ready()
+		self.scheduler.add_to_queue(job)
 
 	#
 	# get_node_id(self, node_ident)
@@ -265,19 +281,20 @@ class BullshitScheduler(Scheduler):
 
 class Job(object):
 
-	def __init__(self, job_id, data):
+	def __init__(self, job_id, executable, flags, wall_time, deadline, budget):
 		self.job_id = job_id
-		self.executable = data['executable']
-		self.files = data['files']
-		self.status = "QUEUED"
-		self.wall_time = data['wall_time']
-		self.deadline = data['deadline']
-		self.flags = data['flags']
-		self.budget = data['budget']
+		self.executable = executable
+		self.status = "PENDING"
+		self.wall_time = wall_time
+		self.deadline = deadline
+		self.flags = flags
+		self.budget = budget
 		self.created_ts = int(time.time())
+		self.ready_ts = None
 		self.finished_ts = None
-
-		self.create_work_units()
+		
+		self.files = []
+		self.work_units = []
 
 	#
 	# @property budget_per_node_hour(self)
@@ -297,6 +314,26 @@ class Job(object):
 	def num_work_units(self):
 		return len(self.work_units)
 
+	def ready(self):
+		self.status = "READY"
+		self.ready_ts = int(time.time())
+
+	def finish(self):
+		self.status = "FINISHED"
+		self.finished_ts = int(time.time())
+	
+	def is_finished(self):
+
+		# Assume the job is finished. Look for contradiction.
+		finished = True
+		for work_unit in self.work_units:
+			if work_unit.status != "FINISHED":
+				finished = False
+				break
+
+	def add_file(self, filename):
+		self.files.append(filename)
+
 	def create_work_units(self):
 		self.work_units = []
 		
@@ -311,19 +348,6 @@ class Job(object):
 			if unit.filename == filename:
 				unit.finished()
 				return unit
-
-	def update_status(self):
-
-		# Assume the job is finished. Look for contradiction.
-		finished = True
-		for work_unit in self.work_units:
-			if work_unit.status != "FINISHED":
-				finished = False
-				break
-
-		if finished:
-			self.status = "FINISHED"
-			self.finished_ts = int(time.time())
 
 	def to_dict(self):
 		d = {
@@ -388,7 +412,9 @@ class WorkUnit(object):
 	def finished(self):
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
-		self.job.update_status()
+		
+		if self.job.is_finished():
+			self.job.finish()			
 
 	def to_dict(self):
 		d = {
