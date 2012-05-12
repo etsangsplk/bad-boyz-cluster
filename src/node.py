@@ -9,6 +9,7 @@ import gridservice.node.model as model
 
 routes = [
 	(('/node/{id:\d+}', 'GET'), views.node_GET),
+	(('/task', 'POST'), views.task_POST),
 ]
 
 if __name__ == '__main__':
@@ -33,12 +34,11 @@ if __name__ == '__main__':
 		metavar="GRID_PORT", default = 8051)
 
 	(options, args) = parser.parse_args()
-
-	server = model.NodeServer(options.host, options.port, options.ghost, options.gport)
 	
+	model.server = model.NodeServer(options.host, options.port, options.ghost, options.gport)
+
 	# Initialise the WSGI Server
 	reloader.install()		
 
 	app = gridservice.utils.make_app(routes)
 	httpserver.serve(app, host = options.host, port = options.port)
-

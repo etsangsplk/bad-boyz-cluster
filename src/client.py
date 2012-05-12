@@ -40,11 +40,11 @@ files = [ 'file1.txt' ]
 
 try:
 	request = JSONHTTPRequest( 'POST', grid_url + '/job', { 
-		'executable': 'adder',
+		'executable': './test.py',
 		'files': files,
 		'wall_time': '10:00:00',
 		'deadline': '2012-05-10 12:00:00',
-		'command': 'adder',
+		'flags': '-time 5',
 		'budget': '500'
 	})
 

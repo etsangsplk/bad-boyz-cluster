@@ -2,6 +2,10 @@ import threading
 import time 
 import json
 import copy
+from urllib2 import HTTPError, URLError
+from httplib import HTTPException
+
+from gridservice.http import JSONHTTPRequest
 
 #
 # Grid
@@ -182,6 +186,9 @@ class Scheduler(object):
 			self.allocate_work_units()
 			time.sleep(self.WORK_UNIT_ALLOCATOR_INTERVAL)
 
+	def node_url(self, node):
+		return "http://%s:%s" % (node['host'], node['port'])
+
 	def allocate_work_unit(self, node, work_unit):
 
 		print "Allocating Work Unit from Job %s to Node %s:%s" % (work_unit.job.job_id, node['host'], node['port'])
@@ -189,7 +196,16 @@ class Scheduler(object):
 		work_unit.running(node['node_id'])
 		node['work_units'].append(work_unit)
 
-		# SEND THE DAMN WORK UNIT ALREADY
+		try:
+			request = JSONHTTPRequest( 'POST', self.node_url(node) + '/task', {
+				'job_id': work_unit.job.job_id,
+				'executable': work_unit.job.executable,
+				'flags': work_unit.job.flags,
+				'filename': work_unit.filename,
+				'wall_time': work_unit.job.wall_time,
+			})
+		except (HTTPException, URLError) as e:
+			pass
 
 	def add_to_queue(self, job):
 		with self.queue_lock:
@@ -198,6 +214,7 @@ class Scheduler(object):
 
 	def allocate_work_units(self):
 		with self.queue_lock:
+			print self.grid.jobs
 			for node in self.grid.get_free_node():
 				unit = self.next_work_unit()
 
@@ -255,7 +272,7 @@ class Job(object):
 		self.status = "QUEUED"
 		self.wall_time = data['wall_time']
 		self.deadline = data['deadline']
-		self.command = data['command']
+		self.flags = data['flags']
 		self.budget = data['budget']
 		self.created_ts = int(time.time())
 		self.finished_ts = None
@@ -289,6 +306,12 @@ class Job(object):
 		else:
 			self.work_units.append( WorkUnit(self) )
 
+	def finish_work_unit(self, filename):
+		for unit in self.work_units:
+			if unit.filename == filename:
+				unit.finished()
+				return unit
+
 	def update_status(self):
 
 		# Assume the job is finished. Look for contradiction.
@@ -310,7 +333,7 @@ class Job(object):
 			'status': self.status,
 			'walltime': self.wall_time,
 			'deadline': self.deadline,
-			'command': self.command,
+			'flags': self.flags,
 			'budget': self.budget,
 			'created_ts': self.created_ts,
 			'finished_ts': self.finished_ts,
@@ -328,6 +351,9 @@ class Job(object):
 	def __str__(self):
 		return self.to_json()
 
+	def __repr__(self):
+		return self.to_json()
+
 #
 # WorkUnit
 #
@@ -339,6 +365,7 @@ class WorkUnit(object):
 	
 	def __init__(self, job, filename = None):
 		self.job = job
+		self.process_id = None
 		self.node_id = None
 		self.status = "QUEUED"
 		self.filename = filename
@@ -348,6 +375,10 @@ class WorkUnit(object):
 	@property
 	def cost(self):
 		return self.job.budget_per_node_hour
+
+	@property
+	def command(self):
+		return "%s %s" % (self.job.executable, self.job.flags)
 
 	def running(self, node_id):
 		self.node_id = node_id
@@ -361,9 +392,14 @@ class WorkUnit(object):
 
 	def to_dict(self):
 		d = {
+			'job_id': self.job.job_id,
+			'executable': self.job.executable,
+			'flags': self.job.flags,
+			'filename': self.filename,
+			'wall_time': self.job.wall_time,
+
 			'node_id': self.node_id,
 			'status': self.status,
-			'filename': self.filename,
 			'cost': self.cost,
 			'created_ts': self.created_ts,
 			'finished_ts': self.finished_ts,
@@ -375,6 +411,9 @@ class WorkUnit(object):
 		return json.dumps(self.to_dict())
 
 	def __str__(self):
+		return self.to_json()
+
+	def __repr__(self):
 		return self.to_json()
 
 #

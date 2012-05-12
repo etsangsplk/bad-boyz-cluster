@@ -18,6 +18,8 @@ routes = [
 
 	(('/job/{id:\d+}/files/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
 
+	(('/job/{id:\d+}/workunit', 'POST'), views.job_workunit_POST),
+
 	# Console Requests
 	(('/json/nodes', 'GET'), views.nodes_GET),
 	
