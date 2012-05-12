@@ -62,5 +62,11 @@ for filename in files:
 	except (HTTPError, URLError) as e:
 		client_utils.request_error(e, "Could not upload file to The Grid.")
 		sys.exit(1)
-	
-	print request.response
+
+try:
+	request = JSONHTTPRequest( 'PUT', grid_url + '/job/' + str(res['id']) + '/status', {				'status': 'READY'
+	})
+
+except (HTTPError, URLError) as e:
+	client_utils.request_error(e, "Could send READY status to The Grid.")
+	sys.exit(1)

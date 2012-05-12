@@ -2,6 +2,7 @@ import threading
 import time 
 import json
 import copy
+import os
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
@@ -71,13 +72,20 @@ class Grid(object):
 			raise JobNotFoundException("There is no job with id: %s" % job_id)
 
 	#
-	# ready_job(self, job_id)
+	# update_job_status(self, job_id, status)
 	#
 
-	def ready_job(self, job_id):
+	def update_job_status(self, job_id, status):
+		if status not in [ "READY" ]:
+			raise InvalidJobStatusException("The job status %s is not valid.")
+
 		job = self.get_job(job_id)
-		job.ready()
-		self.scheduler.add_to_queue(job)
+		
+		if status == "READY":
+			job.ready()
+			self.scheduler.add_to_queue(job)
+
+		return job
 
 	#
 	# get_node_id(self, node_ident)
@@ -332,6 +340,8 @@ class Job(object):
 		self.status = "READY"
 		self.ready_ts = int(time.time())
 
+		self.create_work_units()
+
 	def finish(self):
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
@@ -358,12 +368,19 @@ class Job(object):
 	#
 	#
 	
+	def create_file_path(self, file_path):
+		file_dir = os.path.join("jobs", str(self.job_id), "files")
+		path = os.path.join( file_dir, os.path.dirname(file_path) )
+
+		if not os.path.exists(path):
+			path = os.makedirs(path)
+
+		return os.path.join( file_dir, file_path ) 
+
 	def add_file(self, filename):
 		self.files.append(filename)
 
 	def create_work_units(self):
-		self.work_units = []
-		
 		if self.files:
 			for filename in self.files:
 				self.work_units.append( WorkUnit(self, filename) )
@@ -491,4 +508,11 @@ class NodeNotFoundException(Exception):
 #
 
 class JobNotFoundException(Exception):
+	pass
+
+#
+# InvalidJobStatusException
+#
+
+class InvalidJobStatusException(Exception):
 	pass

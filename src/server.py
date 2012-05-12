@@ -15,6 +15,8 @@ routes = [
 	(('/job', 'GET'), views.job_GET),
 	(('/job', 'POST'), views.job_POST),
 	(('/job/{id:\d+}', 'GET'), views.job_id_GET),
+	(('/job/{id:\d+}/status', 'PUT'), views.job_status_PUT),
+
 
 	(('/job/{id:\d+}/files/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
 

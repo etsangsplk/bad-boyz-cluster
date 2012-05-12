@@ -1,9 +1,10 @@
 import os
 import time
 import gridservice.utils
+from gridservice.utils import validate_request
 from gridservice import http
 from gridservice.http import require_json, Response, FileResponse, JSONResponse
-from gridservice.grid import Job, NodeNotFoundException, JobNotFoundException
+from gridservice.grid import Job, NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
 
 import gridservice.master.model as model
 
@@ -20,7 +21,7 @@ def job_GET(request):
 	for key, job in jobs.items():
 		safe_jobs.update({ key: job.to_dict() })
 	
-	return JSONResponse(safe_jobs, 200)
+	return JSONResponse(safe_jobs, http.OK)
 
 #
 # job_POST(request)
@@ -33,7 +34,7 @@ def job_GET(request):
 def job_POST(request):
 	d = request.json
 
-	if not gridservice.utils.validate_request(d, 
+	if not validate_request(d, 
 		['executable', 'wall_time', 'deadline', 'flags', 'budget']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
@@ -45,7 +46,7 @@ def job_POST(request):
 		budget = d['budget']
 	)
 
-	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, 200)
+	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, http.OK)
 
 #
 # job_id_GET(request, v)
@@ -57,26 +58,49 @@ def job_id_GET(request, v):
 	try:
 		job = model.grid.get_job(v['id'])
 	except JobNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 	
-	return JSONResponse(job.to_dict(), 200)
+	return JSONResponse(job.to_dict(), http.OK)
+
+#
+# job_status_PUT(request, v)
+#
+# Sets the status of the job by the id in the URI
+#
+
+@require_json
+def job_status_PUT(request, v):
+	d = request.json
+
+	if not validate_request(d, ['status']): 
+		return JSONResponse({ 'error_msg': 'Invalid status JSON received.' }, http.BAD_REQUEST)
+
+	try:
+		job = model.grid.update_job_status(v['id'], d['status'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+	except InvalidJobStatusException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
+
+	return JSONResponse(job.to_dict(), http.OK)
 
 #
 # job_files_PUT(request, v)
 # 
 # Takes a binary PUT to a path and stores the file on 
-# the local disk based on the id, type and path of the file
+# the local disk based on the id and path of the file
 #
 
 def job_files_PUT(request, v):
-	file_dir = os.path.join("jobs", v['id'], "files")
-	path = os.path.join( file_dir, os.path.dirname(v['path']) )
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	if not os.path.exists(path):
-		path = os.makedirs(path)
-
-	request.raw_to_file( os.path.join(file_dir, v['path']) )
-
+	file_path = job.create_file_path(v['path'])
+	request.raw_to_file(file_path)
+	job.add_file(file_path)
+	
 	return JSONResponse(v)
 
 #
@@ -87,17 +111,17 @@ def job_files_PUT(request, v):
 
 @require_json
 def job_workunit_POST(request, v):
-	if not gridservice.utils.validate_request(request.json, ['filename']): 
+	if not validate_request(request.json, ['filename']): 
 		return JSONResponse({ 'error_msg': 'Invalid Work Unit JSON received.' }, http.BAD_REQUEST)
 
 	try:
 		job = model.grid.get_job(v['id'])
 	except JobNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
 	unit = job.finish_work_unit(request.json['filename'])
 
-	return JSONResponse(unit.to_dict(), 200)
+	return JSONResponse(unit.to_dict(), http.OK)
 
 #
 # node_GET(request)
@@ -112,7 +136,7 @@ def node_GET(request):
 	for key, node in nodes.items():
 		safe_nodes.update({ key: model.grid.node_to_dict(node) })
 	
-	return JSONResponse(safe_nodes, 200)
+	return JSONResponse(safe_nodes, http.OK)
 
 #
 # node_POST(request)
@@ -123,13 +147,13 @@ def node_GET(request):
 
 @require_json
 def node_POST(request):
-	if not gridservice.utils.validate_request(request.json, ['host', 'port', 'cores', 'programs', 'cost']): 
+	if not validate_request(request.json, ['host', 'port', 'cores', 'programs', 'cost']): 
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 	
 	node = request.json
 	node_id = model.grid.add_node(node)
 
-	return JSONResponse({ 'node_id': node_id }, 200)
+	return JSONResponse({ 'node_id': node_id }, http.OK)
 
 #
 # node_id_GET(request, v)
@@ -141,9 +165,9 @@ def node_id_GET(request, v):
 	try:
 		node = model.grid.get_node(v['id'])
 	except NodeNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	return JSONResponse(model.grid.node_to_dict(node), 200)
+	return JSONResponse(model.grid.node_to_dict(node), http.OK)
 
 #
 # node_id_POST(request, v)
@@ -153,15 +177,15 @@ def node_id_GET(request, v):
 
 @require_json
 def node_id_POST(request, v):
-	if not gridservice.utils.validate_request(request.json, []): 
+	if not validate_request(request.json, []): 
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
 
 	try:
 		node = model.grid.update_node(v['id'], request.json)
 	except NodeNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, 404)
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	return JSONResponse(model.grid.node_to_dict(node), 200)
+	return JSONResponse(model.grid.node_to_dict(node), http.OK)
 		
 #
 # index_GET(request)
@@ -189,4 +213,4 @@ def file_GET(request, v):
 
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()
-	return  JSONResponse({ 'nodes': nodeList }, 200)
+	return  JSONResponse({ 'nodes': nodeList }, http.OK)
