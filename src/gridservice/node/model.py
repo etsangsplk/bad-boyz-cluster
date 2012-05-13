@@ -9,7 +9,7 @@ from threading import Thread
 import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
-from gridservice.http import HTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
 from gridservice.grid import WorkUnit 
 
 from urllib2 import HTTPError, URLError
@@ -116,6 +116,12 @@ class NodeServer(object):
 
 	def finish_task(self, task):
 		task.finish()
+
+		url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
+		request = FileHTTPRequest( 'PUT', url, task.output_path )
+
+		url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
+		request = FileHTTPRequest( 'PUT', url, task.error_path )
 
 		url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
 		request = JSONHTTPRequest( 'POST', url, { 
