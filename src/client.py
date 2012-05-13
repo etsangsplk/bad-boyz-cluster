@@ -2,6 +2,8 @@
 
 import os
 import sys
+import time
+import datetime
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
@@ -11,7 +13,7 @@ from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
 import gridservice.client.utils as client_utils
 
 # Parse the argument from the CLI
-parser = OptionParser()
+parser = OptionParser(usage="./client.py --gh HOSTNAME --gh PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the node should listen on", 
@@ -22,48 +24,93 @@ parser.add_option("--gp", "--grid_port", dest="gport",
 	metavar="PORT", default = 8051)
 
 parser.add_option("-e", "--executable", dest="executable",
-	help="The path to the executable (Must be relative and only forward from the current directory)", 
-	metavar="PATH/TO/EXECUTABLE")
+	help="The executable you wish to run from The Grid", 
+	metavar="EXECUTABLE")
+
+parser.add_option("-w", "--wall_time", dest="wall_time",
+	help="The length of time expected for your program to complete on your longest file", 
+	metavar="WALL_TIME", default="1:00:00")
+
+parser.add_option("-d", "--deadline", dest="deadline",
+	help="The time the job must be completed by. Format: YYYY-MM-DD HH:MM:SS", 
+	metavar="DEADLINE", default=(datetime.datetime.utcnow() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'))
+	
+parser.add_option("-f", "--flags", dest="flags",
+	help="Flags to be passed to the executable", 
+	metavar="FLAGS", default="")
+
+parser.add_option("-b", "--budget", dest="budget",
+	help="The overall budget for the job (in cents)", 
+	metavar="BUDGET")
 
 (options, args) = parser.parse_args()
 
-# Initialise the GridService
-ghost = options.ghost
-gport = options.gport
-grid_url = "http://%s:%s" % (ghost, gport)
+#
+# Begin Client
+#
 
-executable = options.executable
+# Check the files exist before starting to avoid creating 
+# a new job when the inputs are not even valid.
 
-files = [ 'file1.txt' ]
+for filename in args:
+	if not os.path.exists(filename):
+		print "Could not find file: %s" % filename
+		sys.exit(1)
+
+# Check for a valid wall time
 
 try:
-	request = JSONHTTPRequest( 'POST', grid_url + '/job', { 
-		'executable': './test.py',
-		'files': files,
-		'wall_time': '10:00:00',
-		'deadline': '2012-05-10 12:00:00',
-		'flags': '-time 5',
-		'budget': '500'
+	time.strptime(options.wall_time, "%H:%M:%S")
+except ValueError:
+	print "Invalid Wall Time specified: %s" % options.walltime
+	sys.exit(1)
+
+# Check for a valid deadline
+
+try:
+	time.strptime(options.deadline, "%Y-%m-%d %H:%M:%S")
+except ValueError:
+	print "Invalid Deadline specified: %s" % options.deadline
+	sys.exit(1)
+
+# Create the Job on The Grid
+
+grid_url = "http://%s:%s" % (options.ghost, options.gport)
+
+try:
+	url = '%s/job' % grid_url
+	request = JSONHTTPRequest( 'POST', url, { 
+		'executable': options.executable,
+		'wall_time': options.wall_time,
+		'deadline': options.deadline,
+		'flags': options.flags,
+		'budget': options.budget
 	})
 
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not add a new job to The Grid.")
 	sys.exit(1)
 
-res = request.response
+# Send the input files for the Job to The Grid
 
-for filename in files:
-	req_path = grid_url + '/job/' + str(res['id']) + '/files/' + filename
+job_id = str(request.response['id'])
 
+for filename in args:
 	try:
-		request = FileHTTPRequest( 'PUT', req_path, filename )
+		url = grid_url + '/job/' + job_id + '/files/' + filename
+		request = FileHTTPRequest( 'PUT', url, filename )
+	except (IOError) as e:
+		print "Could not find file: %s" % filename
+		sys.exit(1)
 	except (HTTPError, URLError) as e:
 		client_utils.request_error(e, "Could not upload file to The Grid.")
 		sys.exit(1)
 
+# Inform The Grid that the Job is READY
+
 try:
-	request = JSONHTTPRequest( 'PUT', grid_url + '/job/' + str(res['id']) + '/status', {				'status': 'READY'
-	})
+	url = '%s/job/%s/status' % (grid_url, job_id)
+	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY'})
 
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could send READY status to The Grid.")
