@@ -3,7 +3,9 @@ import sys
 import os
 import subprocess
 import shlex
+import shutil
 import multiprocessing
+import thread
 
 from threading import Thread
 from urllib2 import HTTPError, URLError
@@ -16,6 +18,8 @@ from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest
 
 class NodeServer(object):
 	
+	RETRY_MAX_ATTEMPTS = 5
+	RETRY_INTERVAL = 1
 	HEARTBEAT_INTERVAL = 5
 	MONITOR_INTERVAL = 1
 
@@ -28,7 +32,10 @@ class NodeServer(object):
 
 		self.tasks = []
 		self.next_task_id = 0
+		self.retry_attempts = 0
 
+		self.programs = [ './test.py' ]
+		self.cost = 15
 		cores = None
 	
 		if not cores:
@@ -38,12 +45,13 @@ class NodeServer(object):
 				self.cores = 1
 		else:
 			self.cores = cores
-
-		self.programs = [ './test.py' ]
-		self.cost = 15
-
+		
 		# Register the node with The Grid
-		self.node_id = self.register_node()
+		try:
+			self.node_id = self.register_node()
+		except ServerUnavailableException as e:
+			print "%s" % (e.args[0])
+			sys.exit(1)
 
 		# Start the Monitor
 		self.mon = monitor.Monitor()
@@ -63,6 +71,29 @@ class NodeServer(object):
 		return "http://%s:%s" % (self.ghost, self.gport)
 
 	#
+	# reset_node_state(self)
+	#
+	# In the case of Server failure, all tasks on the Node
+	# become invalid. Kills off all running tasks, and
+	# resets the state of the node.
+	#
+
+	def reset_node_state(self):
+		# Kill all active tasks
+		for task in self.tasks:
+			task.kill()
+		
+		# Remove all task related files
+		path = os.path.join('www', 'tasks')
+		if os.path.exists(path):
+			shutil.rmtree(path)
+
+		# Reset internal state
+		self.tasks = []
+		self.next_task_id = 0
+		self.retry_attempts = 0
+
+	#
 	# register_node(self)
 	#
 	# Informs the server of the node's existence. Returns
@@ -80,10 +111,14 @@ class NodeServer(object):
 			})
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
-			sys.exit(1)
-	
+			raise ServerUnavailableException("The Grid is currently unavailable.")
+
+		# Reset the node state in the event of Server failure
+		self.reset_node_state()
+
 		return request.response['node_id']
 
+			
 	#
 	# add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time)
 	#
@@ -194,20 +229,40 @@ class NodeServer(object):
 		self.heartbeat_thread.daemon = True
 		self.heartbeat_thread.start()
 
+	#
+	# heartbeat(self)
+	#
+	# Send the Node heartbeat to The Grid every HEARTBEAT_INTERVAL
+	# seconds. If the heartbeat fails to be sent RETRY_MAX_ATTEMPTS
+	# in a row, the Node will exit. 
+	#
+
 	def heartbeat(self):
 		while True:
-			self.send_heartbeat()
+			try:
+				url = '%s/node/%s' % (self.grid_url, str(self.node_id))
+				request = JSONHTTPRequest( 'POST', url, { 
+					'cpu': self.mon.cpu(),
+				})
+			except (HTTPException, URLError) as e:
+				
+				node_utils.request_error_cli(e, 
+					"Heatbeat Failed: Unable to establish a connection to the grid")
+
+				if self.retry_attempts < self.RETRY_MAX_ATTEMPTS:
+					try:
+						self.node_id = self.register_node()
+					except ServerUnavailableException as e:
+						self.retry_attempts += 1
+				else:	
+					print "Unable to connect to The Grid after %d unsuccessful attempts" % (self.RETRY_MAX_ATTEMPTS)
+
+					# Reset the node state to clean up any running tasks
+					self.reset_node_state()
+
+					thread.interrupt_main()
+
 			time.sleep(self.HEARTBEAT_INTERVAL)
-
-	def send_heartbeat(self):
-		try:
-			request = JSONHTTPRequest( 'POST', self.grid_url + '/node/' + str(self.node_id), { 
-				'cpu': self.mon.cpu(),
-			})
-			print "Heartbeat: (CPU: " + str(self.mon.cpu()) + "%)"
-
-		except (HTTPException, URLError) as e:
-			node_utils.request_error_cli(e, "Heatbeat Failed: Unable to establish a connection to the grid")
 
 	#
 	# Process Monitor
@@ -334,6 +389,12 @@ class Task(object):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 
+	def kill(self):
+
+		# Kill the running process
+		if self.is_running() and not self.has_finished():
+			p.kill()
+
 	def execute(self):
 		if not os.path.exists(self.executable):
 			raise ExecutableNotFoundException("Executable %s not found." % self.executable)
@@ -390,3 +451,9 @@ class InvalidTaskStatusException(Exception):
 class TaskNotFoundException(Exception):
 	pass
 
+#
+# ServerUnavailableException
+#
+
+class ServerUnavailableException(Exception):
+	pass
