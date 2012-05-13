@@ -283,9 +283,9 @@ class Grid(object):
 				# Requeue orphaned work units
 				for unit in node['work_units']:
 
-					print "Requeuing work_unit %s" % (unit.work_unit_id)
-					unit.reset()
-					self.queue.append(unit)
+					if unit.status == "RUNNING":
+						unit.reset()
+						self.queue.append(unit)
 
 	#
 	# node_to_dict(self, node)
