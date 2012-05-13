@@ -15,19 +15,34 @@ from gridservice.utils import validate_request
 
 class Scheduler(object):
 	
+	# How often the work unit allocator will try to
+	# allocate new jobs from the queue.
+
 	WORK_UNIT_ALLOCATOR_INTERVAL = 2
+
+	#
+	# ___init___(self, grid)
+	#
+	# Initialise the scheduler
+	#
 
 	def __init__(self, grid):
 		self.grid = grid
 
-		self.queue_lock = threading.Lock()
-		self.queue = []
+	#
+	# start(self)
+	#
+	# Starts the work unit allocator
+	#
 
 	def start(self):
 		self.start_work_unit_allocator()
 
-	def get_queued(self):
-		return [unit for unit in self.queue if unit.status == "QUEUED"]
+	#
+	# start_work_unit_allocatior(self)
+	#
+	# Launches a new thread containing the work_unit_allocator
+	#
 
 	def start_work_unit_allocator(self):
 		self.thread = threading.Thread(target = self.work_unit_allocator)
@@ -35,43 +50,17 @@ class Scheduler(object):
 		self.thread.daemon = True
 		self.thread.start()
 
+	#
+	# work_unit_allocator(self)
+	#
+	# A infinite loop that attempts to allocate queued jobs
+	# then sleeps to allow more jobs to become available
+	#
+
 	def work_unit_allocator(self):
 		while True:
 			self.allocate_work_units()
 			time.sleep(self.WORK_UNIT_ALLOCATOR_INTERVAL)
-
-	def node_url(self, node):
-		return "http://%s:%s" % (node['host'], node['port'])
-
-	def allocate_work_unit(self, node, work_unit):
-
-		print "Allocating Work Unit from Job %s to Node %s:%s" % (work_unit.job.job_id, node['host'], node['port'])
-
-		try:
-			request = JSONHTTPRequest( 'POST', self.node_url(node) + '/task', {
-				'work_unit_id': work_unit.work_unit_id,
-				'job_id': work_unit.job.job_id,
-				'executable': work_unit.job.executable,
-				'flags': work_unit.job.flags,
-				'filename': work_unit.filename,
-				'wall_time': work_unit.job.wall_time,
-			})
-		except (HTTPException, URLError) as e:
-			return
-
-		d = request.response
-		if not validate_request(d, ['task_id']):
-			return
-
-		task_id = d['task_id']
-
-		work_unit.running(node['node_id'], d['task_id'])
-		node['work_units'].append(work_unit)
-
-	def add_to_queue(self, job):
-		with self.queue_lock:
-			for work_unit in job.work_units:
-				self.queue.append(work_unit)
 
 	#
 	# allocate_work_units(self)
@@ -81,14 +70,45 @@ class Scheduler(object):
 	#
 
 	def allocate_work_units(self):
-		with self.queue_lock:
+		with self.grid.queue_lock:
 			for node in self.grid.get_free_node():
 				unit = self.next_work_unit()
 
 				if unit == None:
 					break
 
-				self.allocate_work_unit(node, unit)
+				# If allocating the work unit has failed,
+				# we break to avoid death.
+				try:
+					self.allocate_work_unit(node, unit)
+				except NodeUnavailableException as e:
+					del self.grid.nodes[ self.grid.get_node_id(self.grid.get_node_ident(node)) ]		
+	#
+	# allocate_work_unit(self, node, work_unit)
+	#
+	# Allocates the given work_unit to the given node,
+	# send the work unit information to the node, and
+	# then updates the work unit to reflect it is now
+	# running and updates the node.
+	#
+
+	def allocate_work_unit(self, node, work_unit):
+		try:
+			url = '%s/task' % (self.grid.get_node_url(node))
+			request = JSONHTTPRequest( 'POST', url, {
+				'work_unit_id': work_unit.work_unit_id,
+				'job_id': work_unit.job.job_id,
+				'executable': work_unit.job.executable,
+				'flags': work_unit.job.flags,
+				'filename': work_unit.filename,
+				'wall_time': work_unit.job.wall_time,
+			})
+		except (HTTPException, URLError) as e:
+			raise NodeUnavailableException("The node at %s is unavailable." % self.grid.get_node_url(node))
+
+		d = request.response
+		work_unit.running(node['node_id'], d['task_id'])
+		node['work_units'].append(work_unit)
 
 	#
 	# next_work_unit(self)
@@ -117,8 +137,14 @@ class BullshitScheduler(Scheduler):
 	def next_work_unit(self):
 
 		# Get the first job you find.
-		if len(self.get_queued()) > 0:
-			return self.get_queued()[0]
+		if len(self.grid.get_queued()) > 0:
+			return self.grid.get_queued()[0]
 		else:
 			return None
 
+#
+# NodeUnavailableException
+#
+
+class NodeUnavailableException(Exception):
+	pass
