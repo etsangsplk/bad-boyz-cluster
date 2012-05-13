@@ -12,7 +12,8 @@ from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
 import gridservice.client.utils as client_utils
 
-# Parse the argument from the CLI
+# Parse the arguments from the CLI
+
 parser = OptionParser(usage="./client.py --gh HOSTNAME --gh PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
