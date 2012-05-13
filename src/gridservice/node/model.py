@@ -15,7 +15,7 @@ from gridservice.grid import WorkUnit
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
-class NodeServer:
+class NodeServer(object):
 	
 	HEARTBEAT_INTERVAL = 5
 	MONITOR_INTERVAL = 1
@@ -78,7 +78,6 @@ class NodeServer:
 			job_id = job_id,
 			executable = executable, 
 			flags = flags, 
-			filename = filename, 
 			wall_time = wall_time
 		)
 		self.tasks.append(task)
@@ -94,16 +93,6 @@ class NodeServer:
 			return self.tasks[ task_id ]
 		else:
 			raise TaskNotFoundException("There is no task with the id: %s" % task_id)
-
-	def update_task_status(self, task_id, status):
-		if status not in [ "READY" ]:
-			raise InvalidTaskStatusException("The task status %s is not valid." % status)
-		
-		if status == "READY":
-			task.ready()
-			task.execute()
-
-		return task
 
 	def finish_task(self, task):
 		task.finish()
@@ -166,17 +155,23 @@ class NodeServer:
 #
 # A task is the Node's representation of a Work Unit from the server.
 #
+# PENDING = Task is created but may still be modified
+# READY = Task is ready to be executed, added to queue
+# RUNNING = Task has been executed and is still running, or 
+# has finished but has not yet been updated by the task monitor
+# FINISHED = The Task has finished executing
+#
 
-class Task:
+class Task(object):
 	
-	def __init__(self, task_id, job_id, executable, flags, filename, wall_time):
+	def __init__(self, task_id, job_id, executable, flags, wall_time):
 		self.task_id = task_id
 
 		self.job_id = job_id
 		self.status = "PENDING"
 		self.executable = executable
 		self.flags = flags
-		self.filename = filename
+		self.filename = None
 		self.wall_time = wall_time
 
 		self.created_ts = int(time.time())
@@ -219,6 +214,18 @@ class Task:
 			return True
 		else:
 			return False
+
+	def create_file_path(self, file_path):
+		file_dir = os.path.join("tasks", str(self.task_id), "files", "input")
+		path = os.path.join( file_dir, os.path.dirname(file_path) )
+
+		if not os.path.exists(path):
+			path = os.makedirs(path)
+
+		return os.path.join( file_dir, file_path ) 
+
+	def add_file(self, filename):
+		self.filename = filename
 
 	def execute(self):
 		if not os.path.exists(self.executable):
