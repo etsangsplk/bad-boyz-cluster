@@ -2,6 +2,7 @@ import threading
 import time 
 import json
 import copy
+import shutil
 import os
 
 from urllib2 import HTTPError, URLError
@@ -39,6 +40,11 @@ class Grid(object):
 
 		self.queue_lock = threading.Lock()
 		self.queue = []
+
+		# Remove all job related files
+		path = os.path.join('www', 'jobs')
+		if os.path.exists(path):
+			shutil.rmtree(path)
 
 		# Start the scheduler
 		self.scheduler = scheduler_func(self)
