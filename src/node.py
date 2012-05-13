@@ -14,7 +14,7 @@ routes = [
 if __name__ == '__main__':
 
 	# Parse the argument from the CLI
-	parser = OptionParser()
+	parser = OptionParser(usage = "./node.py -l HOSTNAME -p PORT --gh GRID_HOST --gp GRID_PORT -c COST --co CORES PROGRAMS")
 	
 	parser.add_option("-l", "--hostname", dest="host",
 		help="The hostname the node should listen on", 
@@ -32,9 +32,17 @@ if __name__ == '__main__':
 		help="The port the node should listen on", 
 		metavar="GRID_PORT", default = 8051)
 
+	parser.add_option("-c", "--cost", dest="cost",
+		help="The cost to use the node per CPU hour (in cents)", 
+		metavar="COST", default = 10)
+
+	parser.add_option("--co", "--cores", dest="cores",
+		help="The number of cores of the node available. If blank, total available will be detected.", 
+		metavar="CORES", default = 0)
+
 	(options, args) = parser.parse_args()
 	
-	model.server = model.NodeServer(options.host, options.port, options.ghost, options.gport)
+	model.server = model.NodeServer(options.host, options.port, options.ghost, options.gport, options.cost, options.cores, args)
 
 	# Initialise the WSGI Server
 	reloader.install()		

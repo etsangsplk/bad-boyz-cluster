@@ -23,7 +23,7 @@ class NodeServer(object):
 	HEARTBEAT_INTERVAL = 5
 	MONITOR_INTERVAL = 1
 
-	def __init__(self, host, port, ghost, gport):
+	def __init__(self, host, port, ghost, gport, cost, cores, programs):
 
 		self.host = host
 		self.port = port
@@ -34,17 +34,16 @@ class NodeServer(object):
 		self.next_task_id = 0
 		self.retry_attempts = 0
 
-		self.programs = [ './test.py' ]
-		self.cost = 15
-		cores = None
+		self.programs = programs
+		self.cost = int(cost)
 	
-		if not cores:
+		if cores <= 0:
 			try:
 				self.cores = multiprocessing.cpu_count()
 			except NotImplementedError:
 				self.cores = 1
 		else:
-			self.cores = cores
+			self.cores = int(cores)
 		
 		# Register the node with The Grid
 		try:
