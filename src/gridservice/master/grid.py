@@ -21,6 +21,8 @@ from gridservice.master.job import Job
 
 class Grid(object):
 	
+	NODE_TIMEOUT = 10
+
 	#
 	# __init__(self, scheduler_func)
 	#
@@ -216,9 +218,25 @@ class Grid(object):
 	#
 
 	def get_free_node(self):
+
+		self.remove_timed_out_nodes()
+
 		for node in self.nodes.values():
 			if (node['cores'] - len(node['work_units']) > 0):
 				yield node
+
+	# 
+	# remove_timed_out_nodes
+	#
+	# Looks for nodes that have not had their heartbeat within
+	# NODE_TIMEOUT and removes them from the nodes list.
+	#
+	
+	def remove_timed_out_nodes(self):
+		for node_id, node in list(self.nodes.items()):
+			if node['heartbeat_ts'] + self.NODE_TIMEOUT < int(time.time()):
+				print "Node %s has timed out." % (self.get_node_ident(node))
+				del self.nodes[ node_id ]
 
 	#
 	# node_to_dict(self, node)
