@@ -1,5 +1,5 @@
-from gridservice.grid import Grid, BullshitScheduler
+from gridservice.master.grid import Grid
+from gridservice.master.scheduler import BullshitScheduler
 
 # Bring the Grid online
-
 grid = Grid(BullshitScheduler)

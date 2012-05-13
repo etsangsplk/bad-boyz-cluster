@@ -20,11 +20,7 @@ routes = [
 	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), views.job_files_GET),
 	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
 
-
 	(('/job/{id:\d+}/workunit', 'POST'), views.job_workunit_POST),
-
-	# Console Requests
-	(('/json/nodes', 'GET'), views.nodes_GET),
 	
 	# Serve files directly from disk 
 	(('/', 'GET'), views.index_GET),

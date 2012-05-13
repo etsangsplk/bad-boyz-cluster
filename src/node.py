@@ -8,7 +8,6 @@ import gridservice.node.views as views
 import gridservice.node.model as model
 
 routes = [
-	(('/node/{id:\d+}', 'GET'), views.node_GET),
 	(('/task', 'POST'), views.task_POST),
 ]
 

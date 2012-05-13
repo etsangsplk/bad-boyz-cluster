@@ -1,11 +1,12 @@
 import os
 import time
-import gridservice.utils
-from gridservice.utils import validate_request
-from gridservice import http
-from gridservice.http import require_json, Response, FileResponse, JSONResponse
-from gridservice.grid import Job, NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
 
+from gridservice import http
+from gridservice.utils import validate_request
+from gridservice.http import require_json, FileResponse, JSONResponse
+from gridservice.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
+
+import gridservice.utils
 import gridservice.master.model as model
 
 #
@@ -26,8 +27,7 @@ def job_GET(request):
 #
 # job_POST(request)
 #
-# Creates a new Job sent by a client and adds it 
-# to the queue
+# Creates a new Job sent by a client 
 #
 
 @require_json
@@ -85,6 +85,27 @@ def job_status_PUT(request, v):
 	return JSONResponse(job.to_dict(), http.OK)
 
 #
+# job_files_GET(request, v)
+# 
+# Returns a FileResponse of the file at the given URI
+#
+
+def job_files_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+	if v['type'] == "files":
+		file_path = job.input_path(v['path'])
+	elif v['type'] == "output":
+		file_path = joib.output_path(v['path'])
+	else:
+		return JSONResponse({ 'error_msg': "Invalid file type." }, http.BAD_REQUEST)
+
+	return FileResponse(file_path)
+
+#
 # job_files_PUT(request, v)
 # 
 # Takes a binary PUT to a path and stores the file on 
@@ -99,8 +120,10 @@ def job_files_PUT(request, v):
 
 	if v['type'] == "files":
 		file_path = job.input_path(v['path'])
-	else:
+	elif v['type'] == "output":
 		file_path = job.output_path(v['path'])
+	else:
+		return JSONResponse({ 'error_msg': "Invalid file type." }, http.BAD_REQUEST)
 
 	job.create_file_path(file_path)
 	request.raw_to_file(file_path)
@@ -109,28 +132,9 @@ def job_files_PUT(request, v):
 	return JSONResponse(v)
 
 #
-# job_files_GET(request, v)
-# 
-# Returns a FileResponse of the file at the given URI
-#
-
-def job_files_GET(request, v):
-	try:
-		job = model.grid.get_job(v['id'])
-	except JobNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
-
-	if v['type'] == "files":
-		file_path = job.input_path(v['path'])
-	else:
-		file_path = joib.output_path(v['path'])
-
-	return FileResponse(file_path)
-
-#
 # job_workunit_POST(request, v)
 # 
-# 
+# Marks the given workunit as finished
 #
 
 @require_json
@@ -228,13 +232,3 @@ def index_GET(request):
 
 def file_GET(request, v):
 	return FileResponse(os.path.join("www", v["file"]))
-
-#
-# node_GET(request)
-#
-# Who knows what this does yet?
-#
-
-def nodes_GET(request):
-	nodeList = model.grid.nodes.values()
-	return  JSONResponse({ 'nodes': nodeList }, http.OK)

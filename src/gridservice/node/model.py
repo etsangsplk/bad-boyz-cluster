@@ -4,16 +4,15 @@ import os
 import subprocess
 import shlex
 import multiprocessing
+
 from threading import Thread
+from urllib2 import HTTPError, URLError
+from httplib import HTTPException
 
 import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
-from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
-from gridservice.grid import WorkUnit 
-
-from urllib2 import HTTPError, URLError
-from httplib import HTTPException
+from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest
 
 class NodeServer(object):
 	
@@ -53,9 +52,22 @@ class NodeServer(object):
 		self.start_monitor()
 		self.start_heartbeat()
 
+	#
+	# @property grid_url
+	#
+	# Utility property to easily build the grid url
+	#
+
 	@property
 	def grid_url(self):
 		return "http://%s:%s" % (self.ghost, self.gport)
+
+	#
+	# register_node(self)
+	#
+	# Informs the server of the node's existence. Returns
+	# the node ID assigned to it by the server.
+	#
 
 	def register_node(self):
 		try:
@@ -71,6 +83,14 @@ class NodeServer(object):
 			sys.exit(1)
 	
 		return request.response['node_id']
+
+	#
+	# add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time)
+	#
+	# Takes the given task variables and creates a new task, requests the
+	# required file from the server, and readies the task for execution, which
+	# in turn executes the task.
+	#
 
 	def add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time):
 		
@@ -91,6 +111,13 @@ class NodeServer(object):
 
 		return task
 
+	#
+	# get_task_file(self, task)
+	#
+	# Requests the file required by the given task from the 
+	# server and saves the file to disk
+	#
+
 	def get_task_file(self, task):
 		try:
 			url = "%s/job/%s/files/%s" % (self.grid_url, task.job_id, task.filename)
@@ -105,6 +132,12 @@ class NodeServer(object):
 		fp.write(request.response)
 		fp.close()
 
+	#
+	# get_task(self, task_id)
+	#
+	# Get the task of the given id
+	#
+
 	def get_task(self, task_id):
 		if isinstance(task_id, str) and task_id.isdigit():
 			task_id = int(task_id)
@@ -114,20 +147,42 @@ class NodeServer(object):
 		else:
 			raise TaskNotFoundException("There is no task with the id: %s" % task_id)
 
+	#
+	# finish_task(self, task)
+	#
+	# Send the .o and .e files from the process to the server
+	# and inform the server the task is completed.
+	#
+
 	def finish_task(self, task):
+
+		# Send the results of stdout
+		try:
+			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
+			request = FileHTTPRequest( 'PUT', url, task.output_path )
+		except (HTTPException, URLError) as e:
+			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
+
+		# Send the results of stderr
+		try:
+			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
+			request = FileHTTPRequest( 'PUT', url, task.error_path )
+		except (HTTPException, URLError) as e:
+			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
+
+		# Inform the server the task is complete
+		try:
+			url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
+			request = JSONHTTPRequest( 'POST', url, { 
+				'job_id': task.job_id,
+				'filename': task.filename,
+			})
+		except (HTTPException, URLError) as e:
+			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
+
+		# Update the task internally to reflect that the server has 
+		# received all files and the complete status.
 		task.finish()
-
-		url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
-		request = FileHTTPRequest( 'PUT', url, task.output_path )
-
-		url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
-		request = FileHTTPRequest( 'PUT', url, task.error_path )
-
-		url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
-		request = JSONHTTPRequest( 'POST', url, { 
-			'job_id': task.job_id,
-			'filename': task.filename,
-		})
 
 	#
 	# Heartbeat
