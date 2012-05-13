@@ -77,7 +77,7 @@ class Grid(object):
 
 	def update_job_status(self, job_id, status):
 		if status not in [ "READY" ]:
-			raise InvalidJobStatusException("The job status %s is not valid.")
+			raise InvalidJobStatusException("The job status %s is not valid." % status)
 
 		job = self.get_job(job_id)
 		
@@ -302,6 +302,7 @@ class Job(object):
 		self.deadline = deadline
 		self.flags = flags
 		self.budget = budget
+
 		self.created_ts = int(time.time())
 		self.ready_ts = None
 		self.running_ts = None
@@ -496,8 +497,6 @@ class WorkUnit(object):
 
 #
 # NodeNotFoundException
-#
-# To be raised when a node is requested that can't be found
 #
 
 class NodeNotFoundException(Exception):
