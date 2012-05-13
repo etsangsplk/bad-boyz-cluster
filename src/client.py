@@ -10,8 +10,6 @@ from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
 import gridservice.client.utils as client_utils
 
-import gridservice.client.model as model
-
 # Parse the argument from the CLI
 parser = OptionParser()
 
