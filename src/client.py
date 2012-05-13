@@ -58,6 +58,14 @@ for filename in args:
 		print "Could not find file: %s" % filename
 		sys.exit(1)
 
+# Check for valid budget
+
+try:
+	budget = int(options.budget)
+except (TypeError, ValueError):
+	print "Invalid budget specified."
+	sys.exit(1)
+
 # Check for a valid wall time
 
 try:
@@ -85,7 +93,7 @@ try:
 		'wall_time': options.wall_time,
 		'deadline': options.deadline,
 		'flags': options.flags,
-		'budget': options.budget
+		'budget': budget
 	})
 
 except (HTTPError, URLError) as e:
