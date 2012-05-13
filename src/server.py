@@ -4,27 +4,27 @@ from optparse import OptionParser
 from paste import httpserver, reloader
 
 import gridservice.utils
-import gridservice.master.views as views
+import gridservice.master.controllers as controllers
 
 routes = [
-	(('/node', 'GET'), views.node_GET),
-	(('/node', 'POST'), views.node_POST),
-	(('/node/{id:\d+}', 'GET'), views.node_id_GET),
-	(('/node/{id:\d+}', 'POST'), views.node_id_POST),
+	(('/node', 'GET'), controllers.node_GET),
+	(('/node', 'POST'), controllers.node_POST),
+	(('/node/{id:\d+}', 'GET'), controllers.node_id_GET),
+	(('/node/{id:\d+}', 'POST'), controllers.node_id_POST),
 	
-	(('/job', 'GET'), views.job_GET),
-	(('/job', 'POST'), views.job_POST),
-	(('/job/{id:\d+}', 'GET'), views.job_id_GET),
-	(('/job/{id:\d+}/status', 'PUT'), views.job_status_PUT),
+	(('/job', 'GET'), controllers.job_GET),
+	(('/job', 'POST'), controllers.job_POST),
+	(('/job/{id:\d+}', 'GET'), controllers.job_id_GET),
+	(('/job/{id:\d+}/status', 'PUT'), controllers.job_status_PUT),
 
-	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), views.job_files_GET),
-	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
+	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), controllers.job_files_GET),
+	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), controllers.job_files_PUT),
 
-	(('/job/{id:\d+}/workunit', 'POST'), views.job_workunit_POST),
+	(('/job/{id:\d+}/workunit', 'POST'), controllers.job_workunit_POST),
 	
 	# Serve files directly from disk 
-	(('/', 'GET'), views.index_GET),
-	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), views.file_GET),
+	(('/', 'GET'), controllers.index_GET),
+	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), controllers.file_GET),
 ]
 
 if __name__ == '__main__':

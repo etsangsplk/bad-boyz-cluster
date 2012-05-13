@@ -4,11 +4,11 @@ from optparse import OptionParser
 from paste import httpserver, reloader
 
 import gridservice.utils
-import gridservice.node.views as views
+import gridservice.node.controllers as controllers
 import gridservice.node.model as model
 
 routes = [
-	(('/task', 'POST'), views.task_POST),
+	(('/task', 'POST'), controllers.task_POST),
 ]
 
 if __name__ == '__main__':
