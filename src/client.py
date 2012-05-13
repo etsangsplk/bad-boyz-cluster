@@ -48,8 +48,22 @@ parser.add_option("-j", "--job_id", dest="job_id",
 	help="The Job ID of a job to be killed.", 
 	metavar="JOB_ID")
 
+parser.add_option("-s", "--scheduler", dest="scheduler",
+	help="The Scheduler to change The Grid to.",
+	metavar="SCHEDULER")
 
 (options, args) = parser.parse_args()
+
+if options.scheduler:
+	
+	try:
+		url = 'http://%s:%s/scheduler' % (options.ghost, options.gport)
+		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler } )
+
+	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not update the scheduler of The Grid.")
+
+	sys.exit(1)
 
 if options.job_id:
 

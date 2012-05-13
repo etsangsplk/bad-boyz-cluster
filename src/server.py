@@ -5,11 +5,14 @@ from paste import httpserver, reloader
 
 import gridservice.utils
 import gridservice.master.controllers as controllers
+import gridservice.master.model as model
 
 from gridservice.master.grid import Grid
 from gridservice.master.scheduler import BullshitScheduler
 
 routes = [
+	(('/scheduler', 'PUT'), controllers.scheduler_PUT),
+
 	(('/node', 'GET'), controllers.node_GET),
 	(('/node', 'POST'), controllers.node_POST),
 	(('/node/{id:\d+}', 'GET'), controllers.node_id_GET),

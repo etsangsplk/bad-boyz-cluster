@@ -52,7 +52,6 @@ class Scheduler(object):
 	def stop(self):
 		self.killed = True
 		self.thread.join()
-		print "Thread Stopped"
 
 	#
 	# work_unit_allocator(self)

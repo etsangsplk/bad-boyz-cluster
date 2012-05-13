@@ -10,6 +10,23 @@ from gridservice.http import require_json, FileResponse, JSONResponse
 from gridservice.master.grid import NodeUnavailableException, NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
 
 #
+# schduler_PUT
+#
+# Sets the scheduler in use by The Grid
+#
+
+@require_json
+def scheduler_PUT(request):
+	d = request.json
+
+	if not validate_request(d, ['scheduler']):
+		return JSONResponse({ 'error_msg': 'Invalid Scheduler JSON Received' }, http.BAD_REQUEST)
+	
+	model.grid.scheduler = request.json['scheduler']
+
+	return JSONResponse({ 'success': 'Scheduler changed.' }, http.OK)
+
+#
 # job_GET(request)
 #
 # Returns a list of all jobs
