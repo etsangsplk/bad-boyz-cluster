@@ -6,6 +6,9 @@ from paste import httpserver, reloader
 import gridservice.utils
 import gridservice.master.controllers as controllers
 
+from gridservice.master.grid import Grid
+from gridservice.master.scheduler import BullshitScheduler
+
 routes = [
 	(('/node', 'GET'), controllers.node_GET),
 	(('/node', 'POST'), controllers.node_POST),
@@ -41,7 +44,14 @@ if __name__ == '__main__':
 		help="The port the server should listen on", 
 		metavar="PORT", default = 8051)
 
+	parser.add_option("-s", "--scheduler", dest="scheduler",
+		help="The scheduling algorithm to be used by The Grid", 
+		metavar="SCHEDULER", default = "Bullshit")
+
 	(options, args) = parser.parse_args()
+
+	# Bring the Grid online
+	model.grid = Grid(options.scheduler)
 
 	# Initalise the WSGI Server
 	reloader.install()

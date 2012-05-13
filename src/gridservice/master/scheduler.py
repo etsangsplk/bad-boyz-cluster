@@ -29,6 +29,7 @@ class Scheduler(object):
 
 	def __init__(self, grid):
 		self.grid = grid
+		self.killed = False
 
 	#
 	# start(self)
@@ -37,19 +38,21 @@ class Scheduler(object):
 	#
 
 	def start(self):
-		self.start_work_unit_allocator()
-
-	#
-	# start_work_unit_allocatior(self)
-	#
-	# Launches a new thread containing the work_unit_allocator
-	#
-
-	def start_work_unit_allocator(self):
 		self.thread = threading.Thread(target = self.work_unit_allocator)
 		self.thread.name = "Master:Grid:Scheduler:WorkUnitAllocator"
 		self.thread.daemon = True
 		self.thread.start()
+
+	#
+	# stop(self)
+	#
+	# Stops the work unit allocator
+	#
+
+	def stop(self):
+		self.killed = True
+		self.thread.join()
+		print "Thread Stopped"
 
 	#
 	# work_unit_allocator(self)
@@ -59,7 +62,7 @@ class Scheduler(object):
 	#
 
 	def work_unit_allocator(self):
-		while True:
+		while self.killed:
 			self.allocate_work_units()
 			time.sleep(self.WORK_UNIT_ALLOCATOR_INTERVAL)
 
@@ -133,6 +136,10 @@ class Scheduler(object):
 
 class BullshitScheduler(Scheduler):
 
+	def __init__(self, grid):
+		print "Using Bullshit"
+		super(BullshitScheduler, self).__init__(grid)
+
 	# Are you ready for the worlds most advanced 
 	# scheduling algorithm?
 
@@ -144,3 +151,17 @@ class BullshitScheduler(Scheduler):
 		else:
 			return None
 
+class RoundRobinScheduler(Scheduler):
+	
+	def __init__(self, grid):
+		print "Using RoundRobin"
+		super(RoundRobinScheduler, self).__init__(grid)
+
+class FCFSScheduler(Scheduler):
+	pass
+
+class DeadlineScheduler(Scheduler):
+	pass
+
+class DeadlineCostScheduler(Scheduler):
+	pass

@@ -11,7 +11,7 @@ from httplib import HTTPException
 from gridservice.http import JSONHTTPRequest
 from gridservice.utils import validate_request
 
-from gridservice.master.scheduler import BullshitScheduler
+from gridservice.master.scheduler import BullshitScheduler, RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler
 from gridservice.master.job import Job
 
 #
@@ -24,13 +24,21 @@ class Grid(object):
 	
 	NODE_TIMEOUT = 10
 
+	SCHEDULERS = {
+		'Bullshit': BullshitScheduler,
+		'RoundRobin': RoundRobinScheduler,
+		'FCFSScheduler': FCFSScheduler,
+		'Deadline': DeadlineScheduler,
+		'DeadlineCost': DeadlineCostScheduler,
+	}
+
 	#
 	# __init__(self, scheduler_func)
 	#
 	# Initialises The Grid using the given Scheduler
 	#
 
-	def __init__(self, scheduler_func):
+	def __init__(self, scheduler):
 		self.jobs = {}
 		self.next_job_id = 0
 		
@@ -47,8 +55,21 @@ class Grid(object):
 			shutil.rmtree(path)
 
 		# Start the scheduler
-		self.scheduler = scheduler_func(self)
-		self.scheduler.start()
+		self.scheduler = scheduler
+
+	@property
+	def scheduler(self):
+		return self._scheduler
+
+	@scheduler.setter
+	def scheduler(self, scheduler):
+		if hasattr(self, '_scheduler'):
+			self._scheduler.stop()
+
+		scheduler_func = self.SCHEDULERS.get(scheduler, BullshitScheduler)
+
+		self._scheduler = scheduler_func(self)
+		self._scheduler.start()
 
 	#
 	# add_job(self, executable, flags, wall_time, deadline, budget)
