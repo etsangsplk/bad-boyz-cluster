@@ -95,7 +95,6 @@ class NodeServer:
 		else:
 			raise TaskNotFoundException("There is no task with the id: %s" % task_id)
 
-	
 	def update_task_status(self, task_id, status):
 		if status not in [ "READY" ]:
 			raise InvalidTaskStatusException("The task status %s is not valid." % status)
@@ -156,8 +155,9 @@ class NodeServer:
 			time.sleep(self.MONITOR_INTERVAL)
 	
 	def monitor_tasks(self):
+		print self.tasks
 		for i, task in enumerate(self.tasks):
-			if not task.is_running():
+			if task.has_finished():
 				self.finish_task(task)
 				del self.tasks[i]
 
@@ -205,9 +205,18 @@ class Task:
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
 
+	def is_ready(self):
+		return self.status == "READY"
+
 	def is_running(self):
-		if self.process:
-			return self.process.poll() == None
+		return self.status == "RUNNING"
+	
+	def is_finished(self):
+		return self.status == "FINISHED"
+
+	def has_finished(self):
+		if self.is_running() and self.process.poll() != None:
+			return True
 		else:
 			return False
 
@@ -242,7 +251,7 @@ class Task:
 		self.running()
 
 	def __repr__(self):
-		return "%s: %s < %s" % (self.job_id, self.command, self.filename)
+		return "%s (%s) - %s: %s < %s" % (self.task_id, self.status, self.job_id, self.command, self.filename)
 
 #
 # ExecutableNotFoundException
