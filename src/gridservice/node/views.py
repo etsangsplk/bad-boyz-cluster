@@ -29,7 +29,23 @@ def task_POST(request):
 	except (InputFileNotFoundException, ExecutableNotFoundException) as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
-	return JSONResponse({ 'success': 'Task started.' }, 200)
+	return JSONResponse({ 'success': 'Task created.' }, 200)
+
+@require_json
+def task_status_PUT(request):
+	d = request.json
+
+	if not validate_request(d, ['status']): 
+		return JSONResponse({ 'error_msg': 'Invalid status JSON received.' }, http.BAD_REQUEST)
+
+	try:
+		job = model.server.update_task_status(v['id'], d['status'])
+	except TaskNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+	except InvalidTaskStatusException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
+
+	return JSONResponse({ 'success': 'Task started.' }, http.OK)
 
 def node_GET(request, v):
 	return JSONResponse(v)

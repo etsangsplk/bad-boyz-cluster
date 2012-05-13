@@ -28,6 +28,7 @@ class NodeServer:
 		self.gport = gport
 
 		self.tasks = []
+		self.next_task_id = 0
 
 		cores = None
 	
@@ -72,15 +73,43 @@ class NodeServer:
 		return request.response['node_id']
 
 	def add_task(self, job_id, executable, flags, filename, wall_time):
-		task = Task(job_id, executable, flags, filename, wall_time)
-		task.execute()		
+		task = Task(
+			task_id = self.next_task_id, 
+			job_id = job_id,
+			executable = executable, 
+			flags = flags, 
+			filename = filename, 
+			wall_time = wall_time
+		)
 		self.tasks.append(task)
+		self.next_task_id += 1
+
+		return task
+
+	def get_task(self, task_id):
+		if isinstance(task_id, str) and task_id.isdigit():
+			task_id = int(task_id)
+
+		if task_id in self.tasks:
+			return self.tasks[ task_id ]
+		else:
+			raise TaskNotFoundException("There is no task with the id: %s" % task_id)
+
+	
+	def update_task_status(self, task_id, status):
+		if status not in [ "READY" ]:
+			raise InvalidTaskStatusException("The task status %s is not valid." % status)
+		
+		if status == "READY":
+			task.ready()
+			task.execute()
+
+		return task
 
 	def finish_task(self, task):
-		print "Task Complete."
+		task.finish()
 
 		url = self.grid_url + '/job/' + str(task.job_id) + '/workunit'
-
 		request = JSONHTTPRequest( 'POST', url, { 
 			'job_id': task.job_id,
 			'filename': task.filename,
@@ -140,12 +169,20 @@ class NodeServer:
 
 class Task:
 	
-	def __init__(self, job_id, executable, flags, filename, wall_time):
+	def __init__(self, task_id, job_id, executable, flags, filename, wall_time):
+		self.task_id = task_id
+
 		self.job_id = job_id
+		self.status = "PENDING"
 		self.executable = executable
 		self.flags = flags
 		self.filename = filename
 		self.wall_time = wall_time
+
+		self.created_ts = int(time.time())
+		self.ready_ts = None
+		self.running_ts = None
+		self.finished_ts = None
 	
 		self.process = None
 		self.infile = None
@@ -155,6 +192,18 @@ class Task:
 	@property
 	def command(self):
 		return "%s %s" % (self.executable, self.flags)
+
+	def ready(self):
+		self.status = "READY"
+		self.ready_ts = int(time.time())
+
+	def running(self):
+		self.status = "RUNNING"
+		self.running_ts = int(time.time())
+
+	def finish(self):
+		self.status = "FINISHED"
+		self.finished_ts = int(time.time())
 
 	def is_running(self):
 		if self.process:
@@ -190,6 +239,8 @@ class Task:
 		self.process = subprocess.Popen(args, 
 			stdout = self.outfile, stderr = self.errfile, stdin = self.infile)
 
+		self.running()
+
 	def __repr__(self):
 		return "%s: %s < %s" % (self.job_id, self.command, self.filename)
 
@@ -206,3 +257,18 @@ class ExecutableNotFoundException(Exception):
 
 class InputFileNotFoundException(Exception):
 	pass
+
+#
+# InvalidTaskStatusException
+#
+
+class InvalidTaskStatusException(Exception):
+	pass
+
+#
+# TaskNotFoundException
+#
+
+class TaskNotFoundException(Exception):
+	pass
+
