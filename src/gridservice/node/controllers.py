@@ -7,7 +7,7 @@ import gridservice.node.utils as node_utils
 
 from gridservice import http
 from gridservice.http import require_json, JSONResponse
-from gridservice.node.model import InputFileNotFoundException, ExecutableNotFoundException
+from gridservice.node.model import TaskNotFoundException, InputFileNotFoundException, ExecutableNotFoundException
 
 @require_json
 def task_POST(request):
@@ -30,3 +30,14 @@ def task_POST(request):
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
 	return JSONResponse({ 'success': 'Task created.', 'task_id': task.task_id }, 200)
+
+def task_id_DELETE(request, v):
+	
+	try:
+		task = model.server.get_task(v['id'])
+	except (TaskNotFoundException) as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
+
+	model.server.kill_task(task)
+
+	return JSONResponse({ 'success': 'Task killed.' }, 200)

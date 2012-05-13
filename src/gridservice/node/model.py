@@ -30,7 +30,7 @@ class NodeServer(object):
 		self.ghost = ghost
 		self.gport = gport
 
-		self.tasks = []
+		self.tasks = {}
 		self.next_task_id = 0
 		self.retry_attempts = 0
 
@@ -88,7 +88,7 @@ class NodeServer(object):
 			shutil.rmtree(path)
 
 		# Reset internal state
-		self.tasks = []
+		self.tasks = {}
 		self.next_task_id = 0
 		self.retry_attempts = 0
 
@@ -140,7 +140,7 @@ class NodeServer(object):
 		self.get_task_file(task)
 		task.ready()
 	
-		self.tasks.append(task)
+		self.tasks.update({ task.task_id: task })
 		self.next_task_id += 1
 
 		return task
@@ -182,14 +182,13 @@ class NodeServer(object):
 			raise TaskNotFoundException("There is no task with the id: %s" % task_id)
 
 	#
-	# finish_task(self, task)
+	# send_task_output(self, task)
 	#
-	# Send the .o and .e files from the process to the server
-	# and inform the server the task is completed.
+	# Sends the output and error files of a task to the sever.
 	#
 
-	def finish_task(self, task):
-
+	def send_task_output(self, task):
+	
 		# Send the results of stdout
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
@@ -203,6 +202,29 @@ class NodeServer(object):
 			request = FileHTTPRequest( 'PUT', url, task.error_path )
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
+
+	#
+	# kill_task(self, task)
+	#
+	# Kills a running process and forces the immediate return
+	# of any output files created.
+	#
+
+	def kill_task(self, task):
+		
+		task.kill()
+		self.send_task_output(task)
+
+	#
+	# finish_task(self, task)
+	#
+	# Send the .o and .e files from the process to the server
+	# and inform the server the task is completed.
+	#
+
+	def finish_task(self, task):
+
+		self.send_task_output(task)
 
 		# Inform the server the task is complete
 		try:
@@ -280,7 +302,7 @@ class NodeServer(object):
 	
 	def monitor_tasks(self):
 		print self.tasks
-		for i, task in enumerate(self.tasks):
+		for i, task in list(self.tasks.items()):
 			if task.has_finished():
 				self.finish_task(task)
 				del self.tasks[i]
@@ -392,7 +414,7 @@ class Task(object):
 
 		# Kill the running process
 		if self.is_running() and not self.has_finished():
-			p.kill()
+			self.process.kill()
 
 	def execute(self):
 		if not os.path.exists(self.executable):

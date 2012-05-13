@@ -7,7 +7,7 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, FileResponse, JSONResponse
-from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
+from gridservice.master.grid import NodeUnavailableException, NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
 
 #
 # job_GET(request)
@@ -61,6 +61,25 @@ def job_id_GET(request, v):
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 	
 	return JSONResponse(job.to_dict(), http.OK)
+
+#
+# job_id_DELETE(request, v)
+#
+# Kills the job running with ID
+#
+
+def job_id_DELETE(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+	
+	try:
+		model.grid.kill_job(job)
+	except NodeUnavailableException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
+
+	return JSONResponse({ 'success': "Job killed successfully." }, http.OK)
 
 #
 # job_status_PUT(request, v)

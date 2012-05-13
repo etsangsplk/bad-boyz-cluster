@@ -8,7 +8,7 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from optparse import OptionParser
-from gridservice.http import FileHTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
 import gridservice.client.utils as client_utils
 
@@ -44,7 +44,23 @@ parser.add_option("-b", "--budget", dest="budget",
 	help="The overall budget for the job (in cents)", 
 	metavar="BUDGET")
 
+parser.add_option("-j", "--job_id", dest="job_id",
+	help="The Job ID of a job to be killed.", 
+	metavar="JOB_ID")
+
+
 (options, args) = parser.parse_args()
+
+if options.job_id:
+
+	try:
+		url = 'http://%s:%s/job/%s' % (options.ghost, options.gport, options.job_id)
+		request = HTTPRequest( 'DELETE', url, "" )
+
+	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not delete the job %s from The Grid." % options.job_id)
+
+	sys.exit(1)
 
 #
 # Begin Client

@@ -1,8 +1,6 @@
 Must Do:
 - Authentication Layer
-- Able to cancel running jobs
 - Able to detect failed jobs and reschedule them (what does this even mean)
-- Give nodes a DEAD status rather than removing them outright
 - Make it possible to dynamically change the Scheduler used
 - Merge in Terrence code
 

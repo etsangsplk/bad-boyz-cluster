@@ -6,6 +6,7 @@ from httplib import HTTPException
 
 from gridservice.http import JSONHTTPRequest
 from gridservice.utils import validate_request
+#from gridservice.master.grid import NodeUnavailableException
 
 #
 # Scheduler
@@ -142,9 +143,3 @@ class BullshitScheduler(Scheduler):
 		else:
 			return None
 
-#
-# NodeUnavailableException
-#
-
-class NodeUnavailableException(Exception):
-	pass

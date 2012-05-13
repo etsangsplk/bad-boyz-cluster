@@ -9,6 +9,7 @@ import gridservice.node.model as model
 
 routes = [
 	(('/task', 'POST'), controllers.task_POST),
+	(('/task/{id:\d+}', 'DELETE'), controllers.task_id_DELETE),
 ]
 
 if __name__ == '__main__':

@@ -69,6 +69,13 @@ class Job(object):
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
 
+	def kill(self):
+		self.status = "KILLED"
+		self.finished_ts = int(time.time())
+
+		for unit in self.work_units:
+			unit.kill()
+
 	#
 	# Status Checkers
 	#
@@ -207,6 +214,10 @@ class WorkUnit(object):
 		
 		if self.job.is_finished():
 			self.job.finish()			
+
+	def kill(self):
+		self.status = "KILLED"
+		self.finished_ts = int(time.time())
 
 	def to_dict(self):
 		d = {

@@ -89,6 +89,25 @@ class Grid(object):
 			raise JobNotFoundException("There is no job with id: %s" % job_id)
 
 	#
+	# kill_job(self, job)
+	#
+	# Kills a job, stops all running work units on all nodes
+	#
+
+	def kill_job(self, job):
+
+		for unit in job.work_units:
+			if unit.status == "RUNNING":
+				try:
+					node = self.nodes[ unit.node_id ]
+					url = '%s/task/%s' % (self.get_node_url(node), unit.task_id)
+					request = JSONHTTPRequest( 'DELETE', url, "" )
+				except (HTTPException, URLError) as e:
+					print "The node at %s is unavailable. Couldn't kill work unit." % self.get_node_url(node)
+
+		job.kill()
+	
+	#
 	# update_job_status(self, job_id, status)
 	#
 	# Updates a jobs status, currently only supports READY
@@ -116,6 +135,12 @@ class Grid(object):
 		with self.queue_lock:
 			for work_unit in job.work_units:
 				self.queue.append(work_unit)
+
+	#
+	# finish_work_unit(self, jobm filename)
+	#
+	#
+	#
 
 	def finish_work_unit(self, job, filename):
 		unit = job.finish_work_unit(filename)
@@ -147,6 +172,7 @@ class Grid(object):
 		node_id = self.get_node_id(node_ident)
 
 		node['node_id'] = node_id
+		node['status'] = "ONLINE"
 		node['work_units'] = []
 
 		self.nodes[ node_id ] = node
@@ -237,7 +263,7 @@ class Grid(object):
 		self.remove_timed_out_nodes()
 
 		for node in self.nodes.values():
-			if (node['cores'] - len(node['work_units']) > 0):
+			if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
 				yield node
 
 	# 
@@ -251,7 +277,7 @@ class Grid(object):
 		for node_id, node in list(self.nodes.items()):
 			if node['heartbeat_ts'] + self.NODE_TIMEOUT < int(time.time()):
 				print "Node %s has timed out." % (self.get_node_ident(node))
-				del self.nodes[ node_id ]
+				node['status'] = "DEAD"
 
 	#
 	# node_to_dict(self, node)
@@ -289,4 +315,11 @@ class JobNotFoundException(Exception):
 #
 
 class InvalidJobStatusException(Exception):
+	pass
+
+#
+# NodeUnavailableException
+#
+
+class NodeUnavailableException(Exception):
 	pass
