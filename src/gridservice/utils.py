@@ -42,6 +42,8 @@ def validate_request(req, fields):
 def route(routes, env):
 	request = Request(env)
 
+	print "Request: " + str( request.raw )
+
 	route = route_find(routes, env)
 	if route: 
 		func, func_vars = route
@@ -59,10 +61,10 @@ def route(routes, env):
 #
 
 def route_find(routes, env):
-	for route in routes.keys():
+	for route, func in routes:
 		match = route_match(route, env['PATH_INFO'], env['REQUEST_METHOD'])
 		if match != False:
-			return ( routes[route], match )
+			return ( func, match )
 
 	return False
 

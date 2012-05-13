@@ -6,24 +6,31 @@ from paste import httpserver, reloader
 import gridservice.utils
 import gridservice.master.views as views
 
-routes = {
-	('/node', 'POST'): views.node_POST,
-	('/job', 'POST'): views.job_POST,
-	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'): views.job_files_PUT,
-
-	# Requests for the console, YEAH!
-	('/', 'GET'): views.index_GET,
-	('/css/{file:[A-z0-9./]+}.css', 'GET'): views.css_GET,
-	('/js/{file:[A-z0-9./]+}.js', 'GET'): views.js_GET,
-	('/img/{file:[A-z0-9./]+}.png', 'GET'): views.png_GET,
-	('/img/{file:[A-z0-9./]+}.jpg', 'GET'): views.jpg_GET,
+routes = [
+	(('/node', 'POST'), views.node_POST),
+	(('/node/{id:\d+}', 'GET'), views.node_id_GET),
+	(('/node/{id:\d+}', 'POST'), views.node_id_POST),
 	
-	# Now for the JSON bits...
-	('/json/nodes', 'GET'): views.nodes_GET,
+	(('/job', 'POST'), views.job_POST),
+	(('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), views.job_files_PUT),
+
+	# Console Requests
+	(('/json/nodes', 'GET'), views.nodes_GET),
+	(('/json/jobs', 'GET'), views.jobs_GET),
 
 	# This is redundant just for testing
-	('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'): views.job_files_PUT
-}
+	(('/job/{id:\d+}/files/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), views.job_files_PUT),
+	
+	# Serve files directly from disk 
+	(('/', 'GET'), views.index_GET),
+	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), views.file_GET),
+
+
+	(('/json/job/update/', 'POST'), views.job_update_POST),
+	(('/json/job/submit-file/{tmp_job_id:\d+}/', 'POST'), views.job_submit_file_POST),
+	(('/json/job/queue/', 'POST'), views.job_queue_POST),
+
+]
 
 if __name__ == '__main__':
 
