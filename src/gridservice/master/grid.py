@@ -135,7 +135,6 @@ class Grid(object):
 		with self.queue_lock:
 			for work_unit in job.work_units:
 				self.queue.append(work_unit)
-
 	#
 	# finish_work_unit(self, jobm filename)
 	#
@@ -275,9 +274,18 @@ class Grid(object):
 	
 	def remove_timed_out_nodes(self):
 		for node_id, node in list(self.nodes.items()):
-			if node['heartbeat_ts'] + self.NODE_TIMEOUT < int(time.time()):
+			if node['status'] == "ONLINE" and node['heartbeat_ts'] + self.NODE_TIMEOUT < int(time.time()):
 				print "Node %s has timed out." % (self.get_node_ident(node))
+
+				# Remove the node by setting status to DEAD
 				node['status'] = "DEAD"
+
+				# Requeue orphaned work units
+				for unit in node['work_units']:
+
+					print "Requeuing work_unit %s" % (unit.work_unit_id)
+					unit.reset()
+					self.queue.append(unit)
 
 	#
 	# node_to_dict(self, node)

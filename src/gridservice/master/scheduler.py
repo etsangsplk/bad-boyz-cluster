@@ -83,7 +83,8 @@ class Scheduler(object):
 				try:
 					self.allocate_work_unit(node, unit)
 				except NodeUnavailableException as e:
-					del self.grid.nodes[ self.grid.get_node_id(self.grid.get_node_ident(node)) ]		
+					self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+
 	#
 	# allocate_work_unit(self, node, work_unit)
 	#

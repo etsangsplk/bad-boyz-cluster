@@ -215,6 +215,11 @@ class WorkUnit(object):
 		if self.job.is_finished():
 			self.job.finish()			
 
+	def reset(self):
+		self.status = "QUEUED"
+		self.task_id = None
+		self.node_id = None
+
 	def kill(self):
 		self.status = "KILLED"
 		self.finished_ts = int(time.time())
