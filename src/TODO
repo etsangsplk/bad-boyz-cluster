@@ -1,5 +1,12 @@
-- Clean up output files on Node once they have been sent to the Server
+Must Do:
+- Authentication Layer
 - Make it possible to dynamically change the Scheduler used
+- Merge in Terrence code
+
+Nice to Have:
+- Clean up output files on Node once they have been sent to the Server
 - Properly handle the case of failing to connect to the Node when
 attempting to send the Task
-- Authentication Layer
+- Tidy up the Node Model
+- See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
+
