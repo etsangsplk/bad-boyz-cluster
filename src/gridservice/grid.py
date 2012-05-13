@@ -6,6 +6,8 @@ import os
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
+from gridservice.utils import validate_request
+
 from gridservice.http import JSONHTTPRequest
 
 #
@@ -217,11 +219,9 @@ class Scheduler(object):
 
 		print "Allocating Work Unit from Job %s to Node %s:%s" % (work_unit.job.job_id, node['host'], node['port'])
 
-		work_unit.running(node['node_id'])
-		node['work_units'].append(work_unit)
-
 		try:
 			request = JSONHTTPRequest( 'POST', self.node_url(node) + '/task', {
+				'work_unit_id': work_unit.work_unit_id,
 				'job_id': work_unit.job.job_id,
 				'executable': work_unit.job.executable,
 				'flags': work_unit.job.flags,
@@ -229,7 +229,16 @@ class Scheduler(object):
 				'wall_time': work_unit.job.wall_time,
 			})
 		except (HTTPException, URLError) as e:
-			pass
+			return
+
+		d = request.response
+		if not validate_request(d, ['task_id']):
+			return
+
+		task_id = d['task_id']
+
+		work_unit.running(node['node_id'], d['task_id'])
+		node['work_units'].append(work_unit)
 
 	def add_to_queue(self, job):
 		with self.queue_lock:
@@ -333,15 +342,15 @@ class Job(object):
 	# Status Setters
 	#
 
-	def running(self):
-		self.status = "RUNNING"
-		self.running_ts = int(time.time())
-
 	def ready(self):
 		self.status = "READY"
 		self.ready_ts = int(time.time())
 
 		self.create_work_units()
+
+	def running(self):
+		self.status = "RUNNING"
+		self.running_ts = int(time.time())
 
 	def finish(self):
 		self.status = "FINISHED"
@@ -369,24 +378,37 @@ class Job(object):
 	#
 	#
 	
+	@property
+	def input_dir(self):
+		return os.path.join("www", "jobs", str(self.job_id), "input")
+
+	@property
+	def output_dir(self):
+		return os.path.join("www", "jobs", str(self.job_id), "output")
+
+	def input_path(self, filename):
+		return os.path.join(self.input_dir, filename)
+
+	def output_path(self, filename):
+		return os.path.join(self.output_dir, filename)
+
+	def create_file_paths(self):
+		self.create_file_path(self.output_dir)
+
 	def create_file_path(self, file_path):
-		file_dir = os.path.join("jobs", str(self.job_id), "files")
-		path = os.path.join( file_dir, os.path.dirname(file_path) )
-
-		if not os.path.exists(path):
-			path = os.makedirs(path)
-
-		return os.path.join( file_dir, file_path ) 
+		dir_path = os.path.dirname(file_path)
+		if not os.path.exists(dir_path):
+			os.makedirs(dir_path)
 
 	def add_file(self, filename):
 		self.files.append(filename)
 
 	def create_work_units(self):
 		if self.files:
-			for filename in self.files:
-				self.work_units.append( WorkUnit(self, filename) )
+			for i, filename in enumerate(self.files):
+				self.work_units.append( WorkUnit(i, self, filename) )
 		else:
-			self.work_units.append( WorkUnit(self) )
+			self.work_units.append( WorkUnit(0, self) )
 
 	def finish_work_unit(self, filename):
 		for unit in self.work_units:
@@ -438,10 +460,13 @@ class Job(object):
 
 class WorkUnit(object):
 	
-	def __init__(self, job, filename = None):
+	def __init__(self, work_unit_id, job, filename = None):
 		self.job = job
-		self.process_id = None
+		
+		self.work_unit_id = work_unit_id
+		self.task_id = None
 		self.node_id = None
+
 		self.status = "QUEUED"
 		self.filename = filename
 		self.created_ts = int(time.time())
@@ -455,8 +480,9 @@ class WorkUnit(object):
 	def command(self):
 		return "%s %s" % (self.job.executable, self.job.flags)
 
-	def running(self, node_id):
+	def running(self, node_id, task_id):
 		self.node_id = node_id
+		self.task_id = task_id
 		self.status = "RUNNING"
 		
 		if not self.job.is_running():
@@ -471,6 +497,7 @@ class WorkUnit(object):
 
 	def to_dict(self):
 		d = {
+			'work_unit_id': self.work_unit_id,
 			'job_id': self.job.job_id,
 			'executable': self.job.executable,
 			'flags': self.job.flags,

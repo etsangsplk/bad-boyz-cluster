@@ -100,9 +100,8 @@ class NodeServer(object):
 			sys.exit(1)
 	
 		# This will be horrible with large files
-		task.create_file_paths(task.filename)
 
-		fp = open(task.file_path, 'w+')
+		fp = open(task.input_path, 'w+')
 		fp.write(request.response)
 		fp.close()
 
@@ -206,6 +205,8 @@ class Task(object):
 		self.outfile = None
 		self.errfile = None
 
+		self.create_file_paths()
+
 	@property
 	def command(self):
 		return "%s %s" % (self.executable, self.flags)
@@ -252,7 +253,7 @@ class Task(object):
 		return os.path.join("www", "tasks", str(self.task_id), "output")
 
 	@property
-	def file_path(self):
+	def input_path(self):
 		return os.path.join(self.input_dir, self.filename)
 
 	@property
@@ -263,24 +264,24 @@ class Task(object):
 	def error_path(self):
 		return os.path.join(self.output_dir, self.output_name + ".e")
 
-	def create_file_paths(self, file_path):
-		dir_path = os.path.dirname(self.file_path)
-		if not os.path.exists(dir_path):
-			dir_path = os.makedirs(dir_path)
+	def create_file_paths(self):
+		self.create_file_path(self.input_path)
+		self.create_file_path(self.output_path)
 
-		dir_path = os.path.dirname(self.output_path)
+	def create_file_path(self, file_path):
+		dir_path = os.path.dirname(file_path)
 		if not os.path.exists(dir_path):
-			dir_path = os.makedirs(dir_path)
+			os.makedirs(dir_path)
 
 	def execute(self):
 		if not os.path.exists(self.executable):
 			raise ExecutableNotFoundException("Executable %s not found." % self.executable)
 
 		if self.filename:
-			if not os.path.exists(self.file_path):
+			if not os.path.exists(self.input_path):
 				raise InputFileNotFoundException("Input file %s not found." % self.filename)
 			else:
-				self.infile = open(self.file_path, "r+")
+				self.infile = open(self.input_path, "r+")
 
 		self.outfile = open(self.output_path, "w+")
 		self.errfile = open(self.error_path, "w+")

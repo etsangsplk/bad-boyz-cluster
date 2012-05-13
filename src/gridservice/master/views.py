@@ -97,7 +97,12 @@ def job_files_PUT(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	file_path = job.create_file_path(v['path'])
+	if v['type'] == "files":
+		file_path = job.input_path(v['path'])
+	else:
+		file_path = job.output_path(v['path'])
+
+	job.create_file_path(file_path)
 	request.raw_to_file(file_path)
 	job.add_file(v['path'])
 	
@@ -115,10 +120,11 @@ def job_files_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	file_path = job.create_file_path(v['path'])
+	if v['type'] == "files":
+		file_path = job.input_path(v['path'])
+	else:
+		file_path = joib.output_path(v['path'])
 
-	print file_path
-	
 	return FileResponse(file_path)
 
 #
