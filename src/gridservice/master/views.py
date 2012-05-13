@@ -99,9 +99,27 @@ def job_files_PUT(request, v):
 
 	file_path = job.create_file_path(v['path'])
 	request.raw_to_file(file_path)
-	job.add_file(file_path)
+	job.add_file(v['path'])
 	
 	return JSONResponse(v)
+
+#
+# job_files_GET(request, v)
+# 
+# Returns a FileResponse of the file at the given URI
+#
+
+def job_files_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+	file_path = job.create_file_path(v['path'])
+
+	print file_path
+	
+	return FileResponse(file_path)
 
 #
 # job_workunit_POST(request, v)
@@ -194,7 +212,7 @@ def node_id_POST(request, v):
 #
 
 def index_GET(request):
-	return FileResponse("console/console.html")
+	return FileResponse(os.path.join("www", "console/console.html"))
 
 #
 # file_GET(request, v)
@@ -203,7 +221,7 @@ def index_GET(request):
 #
 
 def file_GET(request, v):
-	return FileResponse(v["file"])
+	return FileResponse(os.path.join("www", v["file"]))
 
 #
 # node_GET(request)

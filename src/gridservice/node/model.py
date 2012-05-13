@@ -9,7 +9,7 @@ from threading import Thread
 import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
-from gridservice.http import JSONHTTPRequest, JSONResponse
+from gridservice.http import HTTPRequest, JSONHTTPRequest, JSONResponse
 from gridservice.grid import WorkUnit 
 
 from urllib2 import HTTPError, URLError
@@ -67,23 +67,44 @@ class NodeServer(object):
 				'cost': self.cost,
 			})
 		except (HTTPException, URLError) as e:
-			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
+			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
 			sys.exit(1)
 	
 		return request.response['node_id']
 
-	def add_task(self, job_id, executable, flags, filename, wall_time):
+	def add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time):
+		
 		task = Task(
 			task_id = self.next_task_id, 
 			job_id = job_id,
+			work_unit_id = work_unit_id,
 			executable = executable, 
+			filename = filename,
 			flags = flags, 
 			wall_time = wall_time
 		)
+		self.get_task_file(task)
+		task.ready()
+	
 		self.tasks.append(task)
 		self.next_task_id += 1
 
 		return task
+
+	def get_task_file(self, task):
+		try:
+			url = "%s/job/%s/files/%s" % (self.grid_url, task.job_id, task.filename)
+			request = HTTPRequest( 'GET', url, "")
+		except (HTTPException, URLError) as e:
+			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
+			sys.exit(1)
+	
+		# This will be horrible with large files
+		task.create_file_paths(task.filename)
+
+		fp = open(task.file_path, 'w+')
+		fp.write(request.response)
+		fp.close()
 
 	def get_task(self, task_id):
 		if isinstance(task_id, str) and task_id.isdigit():
@@ -97,7 +118,7 @@ class NodeServer(object):
 	def finish_task(self, task):
 		task.finish()
 
-		url = self.grid_url + '/job/' + str(task.job_id) + '/workunit'
+		url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
 		request = JSONHTTPRequest( 'POST', url, { 
 			'job_id': task.job_id,
 			'filename': task.filename,
@@ -164,14 +185,15 @@ class NodeServer(object):
 
 class Task(object):
 	
-	def __init__(self, task_id, job_id, executable, flags, wall_time):
+	def __init__(self, task_id, job_id, work_unit_id, executable, flags, filename, wall_time):
 		self.task_id = task_id
 
 		self.job_id = job_id
+		self.work_unit_id = work_unit_id
 		self.status = "PENDING"
 		self.executable = executable
 		self.flags = flags
-		self.filename = None
+		self.filename = filename
 		self.wall_time = wall_time
 
 		self.created_ts = int(time.time())
@@ -191,6 +213,8 @@ class Task(object):
 	def ready(self):
 		self.status = "READY"
 		self.ready_ts = int(time.time())
+
+		self.execute()
 
 	def running(self):
 		self.status = "RUNNING"
@@ -215,35 +239,51 @@ class Task(object):
 		else:
 			return False
 
-	def create_file_path(self, file_path):
-		file_dir = os.path.join("tasks", str(self.task_id), "files", "input")
-		path = os.path.join( file_dir, os.path.dirname(file_path) )
+	@property
+	def output_name(self):
+		return "%s_%s" % (self.job_id, self.work_unit_id)
 
-		if not os.path.exists(path):
-			path = os.makedirs(path)
+	@property
+	def input_dir(self):
+		return os.path.join("www", "tasks", str(self.task_id), "input")
 
-		return os.path.join( file_dir, file_path ) 
+	@property
+	def output_dir(self):
+		return os.path.join("www", "tasks", str(self.task_id), "output")
 
-	def add_file(self, filename):
-		self.filename = filename
+	@property
+	def file_path(self):
+		return os.path.join(self.input_dir, self.filename)
+
+	@property
+	def output_path(self):
+		return os.path.join(self.output_dir, self.output_name + ".o")
+	
+	@property
+	def error_path(self):
+		return os.path.join(self.output_dir, self.output_name + ".e")
+
+	def create_file_paths(self, file_path):
+		dir_path = os.path.dirname(self.file_path)
+		if not os.path.exists(dir_path):
+			dir_path = os.makedirs(dir_path)
+
+		dir_path = os.path.dirname(self.output_path)
+		if not os.path.exists(dir_path):
+			dir_path = os.makedirs(dir_path)
 
 	def execute(self):
 		if not os.path.exists(self.executable):
 			raise ExecutableNotFoundException("Executable %s not found." % self.executable)
 
 		if self.filename:
-			if not os.path.exists(self.filename):
+			if not os.path.exists(self.file_path):
 				raise InputFileNotFoundException("Input file %s not found." % self.filename)
 			else:
-				self.infile = open(self.filename, "r+")
+				self.infile = open(self.file_path, "r+")
 
-			executable_name = os.path.basename(self.executable)
-			filename_name = os.path.basename(self.filename)
-
-			prefix = executable_name + "_" + filename_name
-
-		self.outfile = open(prefix + ".o", "w+")
-		self.errfile = open(prefix + ".e", "w+")
+		self.outfile = open(self.output_path, "w+")
+		self.errfile = open(self.error_path, "w+")
 
 		# A bug in shlex causes it to spaz out on non-ascii strings
 		# in Python 2.6, so we convert the string to ascii and ignore

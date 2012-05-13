@@ -10,7 +10,6 @@ import gridservice.node.model as model
 routes = [
 	(('/node/{id:\d+}', 'GET'), views.node_GET),
 	(('/task', 'POST'), views.task_POST),
-	(('/task/{id:\d+}/status', 'PUT'), views.task_status_PUT),
 ]
 
 if __name__ == '__main__':

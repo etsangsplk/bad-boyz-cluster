@@ -53,8 +53,8 @@ class FileResponse(Response):
 			headers = []
 
 		root = "www"
-		path = os.path.join(root, filename)
-		
+		path = filename
+
 		# Check for file injection and existance
 		if not os.path.normpath(path).startswith(root) or not os.path.exists(path):	
 			status = 404
