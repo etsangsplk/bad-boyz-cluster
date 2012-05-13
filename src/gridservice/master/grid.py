@@ -111,6 +111,15 @@ class Grid(object):
 			for work_unit in job.work_units:
 				self.queue.append(work_unit)
 
+	def finish_work_unit(self, job, filename):
+		unit = job.finish_work_unit(filename)
+		node = self.nodes[ unit.node_id ]
+		for key, work_unit in enumerate(node['work_units']):
+			if work_unit == unit:
+				del node['work_units'][ key ]
+
+		return unit
+
 	#
 	# add_node(self, node)
 	#

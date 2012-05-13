@@ -147,7 +147,7 @@ def job_workunit_POST(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	unit = job.finish_work_unit(request.json['filename'])
+	unit = model.grid.finish_work_unit(job, request.json['filename'])
 
 	return JSONResponse(unit.to_dict(), http.OK)
 
