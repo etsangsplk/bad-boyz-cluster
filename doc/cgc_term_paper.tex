@@ -44,7 +44,7 @@
 % Document revision/release number
 \def \revision  {0.1}
 \def \vdate {\today}
-\def \authors {Terence McNarkis (\#),
+\def \authors {Terence Siganakis (\#),
 Scott Ritchie (330975),
 Andrew Vadnal (326558),
 Adam Whiteside (\#)}
@@ -110,7 +110,7 @@ The purpose of this document is to...
 % ============================
 % Start of main body of the document
 % ============================
-
+\include{content/footnotes}
 \include{content/introduction}
 \include{content/related_works}
 \include{content/azure}
@@ -120,12 +120,18 @@ The purpose of this document is to...
 \include{content/system_comparisons}
 \include{content/success_stories}
 \include{content/paper_summary}
-\include{content/references}
 % ============================
 % Start of appendices
 % ============================
 \appendix
 
+% ============================
+% References
+% ============================
+\clearpage
+
+\bibliographystyle{plain}
+\bibliography{cgc_term_paper}
 % ============================
 % End of document
 % ============================
