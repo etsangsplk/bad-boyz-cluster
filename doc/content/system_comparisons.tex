@@ -1,19 +1,30 @@
 \chapter{System Comparisons}
-The following table compares each of the cloud grid services explored in the previous sections.
+The following table compares each of the cloud computing services explored in the previous sections.
 
-\begin{center}
-\begin{tabular}{c||cccc}
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{3.5cm}||p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm}|}
 \hline 
 \textbf{Properties} & \textbf{Google App Engine} & \textbf{Microsoft Azure} & \textbf{Amazon EC2} & \textbf{Aneka}\tabularnewline
 \hline 
 \hline 
 \textbf{Service Type} & PaaS \& IaaS & PaaS \& IaaS & IaaS & PaaS \tabularnewline
-\textbf{Scaling} & Automatic & & & \tabularnewline
-\textbf{Relative Cost} & & & & \tabularnewline
-\hline 
+\hline
+\textbf{Supported Services} & Compute (Web Applications) & Compute & Compute/Storage & Compute \tabularnewline
+\hline
+\textbf{Deployment} & Web Applications & Azure Services & Customisable VM & Applications \tabularnewline
+\hline
+\textbf{Scaling} & Automatic & Automatic & Manual & Manual \tabularnewline
+\hline
+\textbf{Cost} & & & & \tabularnewline
+\hline
+\textbf{Abstraction of Parallelism} & Full & Full & None & Some\tabularnewline
+\hline
+\textbf{Deploy on third party infrastructure?} & No & No & No & Yes \tabularnewline
+\hline
 \end{tabular}
-\texttt{Table 2: Comparison of each of the cloud grid services} % Terminology?
-\end{center}
+\caption{Comparison of each of the cloud computing services}
+\end{table}
 
-``Weakness of current systems and briefly mention about what can be done about it, which can help for your project itself.''
+
 
