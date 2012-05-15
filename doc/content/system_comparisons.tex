@@ -1,30 +1,33 @@
 \chapter{System Comparisons}
 The following table compares each of the cloud computing services explored in the previous sections.
 
-\begin{table}[h]
+\begin{table}[h]\footnotesize
 \centering
-\begin{tabular}{|p{3.5cm}||p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm}|}
+\hyphenpenalty=5000
+\tolerance=1000
+\begin{tabular}{|p{4cm}||p{2.5cm} p{2.5cm} p{2.5cm} p{2.5cm}|}
 \hline 
-\textbf{Properties} & \textbf{Google App Engine} & \textbf{Microsoft Azure} & \textbf{Amazon EC2} & \textbf{Aneka}\tabularnewline
+\tebf{Properties} & \tebf{Google App Engine} & \tebf{Microsoft Azure} & \tebf{Amazon EC2} & \tebf{Aneka}\\
 \hline 
 \hline 
-\textbf{Service Type} & PaaS \& IaaS & PaaS \& IaaS & IaaS & PaaS \tabularnewline
+\tebf{Service Type} & \te{PaaS \& IaaS} & \te{PaaS \& IaaS} & \te{IaaS} & \te{PaaS} \\
 \hline
-\textbf{Supported Services} & Compute (Web Applications) & Compute & Compute/Storage & Compute \tabularnewline
+\tebf{Supported Services} & \te{Deploy (Web Applications)} & \te{Deploy/Storage} & \te{Deploy/Storage} & \te{Deploy} \\
 \hline
-\textbf{Deployment} & Web Applications & Azure Services & Customisable VM & Applications \tabularnewline
+\tebf{Deployment} & \te{Web Applications} & \te{Azure Services} & \te{Customisable VM} & \te{Applications} \\
 \hline
-\textbf{Scaling} & Automatic & Automatic & Manual & Manual \tabularnewline
+\tebf{Scaling} & \te{Automatic} & \te{Automatic} & \te{Manual} & \te{Manual} \\
 \hline
-\textbf{Cost} & & & & \tabularnewline
+\tebf{Abstraction \mbox{of Parallelism}} & \te{Full} & \te{Full} & \te{None} & \te{Some}\\
 \hline
-\textbf{Abstraction of Parallelism} & Full & Full & None & Some\tabularnewline
+\tebf{Deploy on third party infrastructure?} & \te{No} & \te{No} & \te{No} & \te{Yes} \\
 \hline
-\textbf{Deploy on third party infrastructure?} & No & No & No & Yes \tabularnewline
+\tebf{Page Delivery Time\ftSCspeed{} (seconds)} & \te{7.307} & \te{8.039} & \te{9.849} & \te{System \mbox{Dependent}} \\
 \hline
 \end{tabular}
 \caption{Comparison of each of the cloud computing services}
 \end{table}
+\ftSCspeedText
 
 
 
