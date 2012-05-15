@@ -36,12 +36,12 @@ These are not the standard runtime environments typically used for development i
 In addition to this restricted standard library, Google also provides a number of services:
 \begin{itemize}
 \item APIs for authenticating users through Google Accounts.
-\item An admin console for mantaining existing applications
+\item An admin console for maintaining existing applications
 \item Image manipulation
 \end{itemize}
 
 \section{Data Storage}
-While Google restricts the standard libraries of its runtime environments to prevent reading and writing to file, two main methods are provided for persisent concurrent data storage; Memcache and the Datastore.
+While Google restricts the standard libraries of its runtime environments to prevent reading and writing to file, two main methods are provided for persistent concurrent data storage; Memcache and the Datastore.
 
 \subsection{Memcache}
 Memcache is a service provided by Google which provides a high performance, in memory key-value store. This is stored in cache and can be accessed across multiple instances of an application\ftGAETwo.
@@ -51,7 +51,7 @@ One of \gae{}'s features is its automatically scaling datastore, a database-like
 
 Objects in the datastore are entities with a \emph{kind} and a set of a properties. Using Java as an example, objects can be persistently stored in the datastore; the class is the entity's \emph{kind} and its properties are the object's attributes. These can be stored and accessed using either JDO or JPA's persistence managers and query engines\ftGAETwo.
 
-The Datastore is based on the \emph{High Replication Datastore} design: a system based on the \emph{Paxos algorithm} is used to replicated data across multiple servers. The datastore is strongly consistent and uses optimistic concurrency control\ftGAEThree. This means that transactions can proceed without locking because it assumes that multiple transactions can be completed without affecting each other. When a commit is made to the datastore each transaction checks that no others have modified the relevant part of the datastore since the transaction started. If changes are found, the commiting transaction is rolled back\ftGAEFour.\ftGAEThreeText\ftGAEFourText
+The Datastore is based on the \emph{High Replication Datastore} design: a system based on the \emph{Paxos algorithm} is used to replicated data across multiple servers. The datastore is strongly consistent and uses optimistic concurrency control\ftGAEThree. This means that transactions can proceed without locking because it assumes that multiple transactions can be completed without affecting each other. When a commit is made to the datastore each transaction checks that no others have modified the relevant part of the datastore since the transaction started. If changes are found, the committing transaction is rolled back\ftGAEFour.\ftGAEThreeText\ftGAEFourText
  
 \subsection{External Services}
 While the datastore is automatically scalable and provides high performance, it does not guarantee, and in some cases allow for atomic transactions where relations between objects exist. Some situations require relational algebra, so Google also provides access to its relational SQL database service known as \emph{Cloud SQL} from within \gae{}\ftGAETwo. 
