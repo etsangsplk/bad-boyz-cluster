@@ -30,4 +30,19 @@ Since foursquare has a ``base load'' of activity that they require, they purchas
 Mattew Rathbone, a software engineer explains the benefits of AWS over hosting servers internally: ``By expanding our clusters with Reserved Instances and On-Demand Instances, plus the Amazon EC2 price reductions, we have reduced our analytics costs by over 50\% when compared to hosting it ourselves. Additionally, we have decreased the processing time for urgent data-analysis, all without requiring additional application development or adding risk to our analytics.''\ftSAmTwo
 \ftSAmTwoText
 
-\section{Aneka -- }
+\section{Aneka -- GoFront}
+
+The GoFront Group was established in 1936 and is one of the 512 state run enterprises in China. 
+GoFront is China's largest manufacturer of rail electric traction equipment. In addition to the production of locomotives, motor train sets and other urban transportation vehicles; GoFront also is the largest researcher into the development of rail related technologies. It has over 3000 science and technology staff of an overall employee base of over 10,000[1][2][3]. 
+
+The development of new high speed electric locomotives and other transportaion vehicles is a large part of the research that occurs at GoFront. The prototypes for new designs are developed in AutoDesk, however part of the design process requires the rendering of these protoypes into high quality 3D images using the AutoDesk rendering software, Maya. 
+
+These images are used in the identification of potential design flaws in the prototypes. As such, images are required from many different camera angles and over 2000 frames from more than 5 different angles is required to generate the final 3D rendered image. Each frame is of such high quality, that it can take up to 2 minutes to render. This can lead to the complete set of images taking over 3 days to finish, a process which must be completed after every modification to the prototype is made. 
+
+Through the combined effort of Manjrasoft and the GoFront IT department, ANEKA was deployed to take advantage of 20 desktop machines that were being under utilised. These machines were used for nothing other than the processing of word documents, and as such were turned into a private cluster with the use of the ANEKA platform. The system was setup in a simple Master-Slave configuration, with 1 master computer distributing the frames to the 20 slave computers.
+
+A custom GUI was developed in C# using the Aneka Task Model API, that enabled the disribution of the Maya tasks to the ANEKA Grid and then collecting the rendered images. Through its use, the runtime of 3 days has been reduced to 3 hours, over 20 times faster. This was with the use of only 20 of 50 computers that were identified as suitable to being added to the ANEKA Grid. Through the use of otherwise wasted cycles on existing hardware, the ANEKA Platform was able to fully utilise the resources available to GoFront and drastically improved the rending time of an important part of their product development process. 
+
+[1]http://www.manjrasoft.com/GoFront-Aneka-Use_Case.pdf
+[2]http://www.manjrasoft.com/flyers/Manjrasoft%20Solutions%20-%20Rendering%20-%20Case%20Study.pdf
+[3]The Aneka Paper (Second in the .bib)
