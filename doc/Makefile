@@ -7,18 +7,21 @@ PDFTOPSFIG = $(WPDFFIG:.pdf=.ps)
 
 PDFTOPS=pdftops
 
-default: $(TARGET).pdf
+default: all
 pdf: $(TARGET).pdf
 ps: $(TARGET).ps
 dvi: $(TARGET).dvi
 
-$(TARGET).pdf: $(TARGET).tex $(INCLUDES) 
+all:
+	pdflatex $(TARGET).tex $(INCLUDES); bibtex $(TARGET); pdflatex $(TARGET).tex $(INCLUDES); pdflatex $(TARGET).tex $(INCLUDES);
+
+$(TARGET).pdf: $(TARGET).tex $(INCLUDES);
 
 $(TARGET).dvi: $(TARGET).tex $(INCLUDES) $(PDFTOPSFIG)
 
-%.pdf : %.tex
-	pdflatex $<
-	pdflatex $<
+#%.pdf : %.tex
+#	pdflatex $<
+#	pdflatex $<
 
 %.dvi: %.tex 
 	latex $<
@@ -31,8 +34,8 @@ $(TARGET).dvi: $(TARGET).tex $(INCLUDES) $(PDFTOPSFIG)
 	$(PDFTOPS) $<
 
 clean:
-	rm -f *.lof *.aux *.log *.toc *.lot *.bbl *.blg *.plg *.dvi *.bak *.out
-	rm -f content/*.aux
+	rm -f *.lof *.aux *.log *.toc *.lot *.bbl *.blg *.plg *.dvi *.bak *.out *~ 
+	rm -f content/*.aux content/*~
 
 CLEAN: clean
 	rm -f $(TARGET).dvi

@@ -44,9 +44,9 @@
 % Document revision/release number
 \def \revision  {0.1}
 \def \vdate {\today}
-\def \authors {Terence Signakis (\#),
+\def \authors {Terence Siganakis (134860),
 Scott Ritchie (330975),
-Andrew Vadnal (326558),
+Andrew Vadnal (326558), and
 Adam Whiteside (327705)}
 
 \addtolength{\oddsidemargin}{-.2in}
@@ -110,22 +110,28 @@ Adam Whiteside (327705)}
 % ============================
 % Start of main body of the document
 % ============================
-
+\include{content/footnotes}
 \include{content/introduction}
 \include{content/related_works}
+\include{content/google_app}
 \include{content/azure}
 \include{content/amazon_ec2}
-\include{content/sge}
-\include{content/google_app}
+\include{content/aneka}
 \include{content/system_comparisons}
 \include{content/success_stories}
 \include{content/paper_summary}
-\include{content/references}
 % ============================
 % Start of appendices
 % ============================
 \appendix
 
+% ============================
+% References
+% ============================
+\clearpage
+
+\bibliographystyle{plain}
+\bibliography{cgc_term_paper}
 % ============================
 % End of document
 % ============================

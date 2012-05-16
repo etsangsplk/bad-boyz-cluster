@@ -1,1 +1,33 @@
 \chapter{System Comparisons}
+The following table compares each of the cloud computing services explored in the previous sections.
+
+\begin{table}[h]\footnotesize
+\centering
+\hyphenpenalty=5000
+\tolerance=1000
+\begin{tabular}{|p{4cm}||p{2.5cm} p{2.5cm} p{2.5cm} p{2.5cm}|}
+\hline 
+\tebf{Properties} & \tebf{Google App Engine} & \tebf{Microsoft Azure} & \tebf{Amazon EC2} & \tebf{Aneka}\\
+\hline 
+\hline 
+\tebf{Service Type} & \te{PaaS \& IaaS} & \te{PaaS \& IaaS} & \te{IaaS} & \te{PaaS} \\
+\hline
+\tebf{Supported Services} & \te{Deploy (Web Applications)} & \te{Deploy/Storage} & \te{Deploy/Storage} & \te{Deploy} \\
+\hline
+\tebf{Deployment} & \te{Web Applications} & \te{Azure Services} & \te{Customisable VM} & \te{Applications} \\
+\hline
+\tebf{Scaling} & \te{Automatic} & \te{Automatic} & \te{Manual} & \te{Manual} \\
+\hline
+\tebf{Abstraction \mbox{of Parallelism}} & \te{Full} & \te{Full} & \te{None} & \te{Some}\\
+\hline
+\tebf{Deploy on third party infrastructure?} & \te{No} & \te{No} & \te{No} & \te{Yes} \\
+\hline
+\tebf{Page Delivery Time\ftSCspeed{} (seconds)} & \te{7.307} & \te{8.039} & \te{9.849} & \te{System \mbox{Dependent}} \\
+\hline
+\end{tabular}
+\caption{Comparison of each of the cloud computing services}
+\end{table}
+\ftSCspeedText
+
+
+
