@@ -1,9 +1,11 @@
 \chapter{Aneka}
 \section{Introduction}
-Aneka is a Platform-as-a-Service (PaaS) that enables the development of distributed applications for use across a broad range of cloud, grid and cluster platforms. Originally developed as part of the Gridbus Project, Aneka was later commercialised by Manjrasoft and is developed on top of .NET technology. It is available freely for a trial period[4], however additional arrangements must be made for commercial use. Aneka allows for applications to be developed in any language that is supported by the .NET runtime, such as VB.NET and C\#, and through the use of Mono, allows applications to run on Linux and OSX as well as Windows infrastructures\cite{Aneka}.
+Aneka is a Platform-as-a-Service (PaaS) that enables the development of distributed applications for use across a broad range of cloud, grid and cluster platforms. Originally developed as part of the Gridbus Project, Aneka was later commercialised by Manjrasoft and is developed on top of .NET technology. It is available freely for a trial period\ftAnone, however additional arrangements must be made for commercial use. Aneka allows for applications to be developed in any language that is supported by the .NET runtime, such as VB.NET and C\#, and through the use of Mono, allows applications to run on Linux and OSX as well as Windows infrastructures\cite{Aneka}.
+\ftAnoneText
 
 \begin{center}
 \includegraphics[scale=0.6]{figs/Aneka.png} \\
+\texttt{Architecture of Aneka Platform}\ftAntwo\ftAntwoText
 \end{center}
 
 
@@ -13,11 +15,14 @@ PaaS solutions, such as Aneka, provide a platform from which distributed applica
 \section{Programming Models}
 One of the key strengths of Aneka is its flexibility, providing three different programming models (Task, Thread and MapReduce), which has enabled the use of Aneka in a broad range of applications in the fields of Engineering, Education and the Life Sciences.
 \begin{itemize}
-\item The Task Programming Model is best suited to programs that are ``embarrassingly-parallel'' as tasks are handled entire independently with no restriction on their execution order[1].
+\item The Task Programming Model is best suited to programs that are ``embarrassingly-parallel'' as tasks are handled entire independently with no restriction on their execution order\ftAnthree.
+\ftAnthreeText
 
-\item The Thread Programming Model is best suited to porting existing threaded applications to a distributed computing environment, treating each thread as a task that is distributed across the available resources in the Aneka network[2].
+\item The Thread Programming Model is best suited to porting existing threaded applications to a distributed computing environment, treating each thread as a task that is distributed across the available resources in the Aneka network\ftAnfour.
+\ftAnfourText
 
-\item The MapReduce Programming Model is best suited to applications working on large datasets. Through the definition of \emph{map} and \emph{reduce} functions, Aneka will distribute the data across available resources, apply the map function and then reduce the output[3].
+\item The MapReduce Programming Model is best suited to applications working on large datasets. Through the definition of \emph{map} and \emph{reduce} functions, Aneka will distribute the data across available resources, apply the map function and then reduce the output\ftAnfive.
+\ftAnfiveText
 \end{itemize}
 
 In addition to a broad range of existing functionality, Aneka has a layered and modular software architecture which enables additional programming models and services to be developed and plugged into Aneka easily.
@@ -37,7 +42,7 @@ Aneka provides a number of additional features including handling of billing, dy
 
 Image Source: http://www.manjrasoft.com/images/aneka\_cloud\_computing\_schema.png
 
-[1] http://www.manjrasoft.com/download/TaskModel.pdf
-[2] http://www.manjrasoft.com/download/ThreadModel.pdf
-[3] http://www.manjrasoft.com/download/MapReduceModel.pdf
-[4] http://www.manjrasoft.com/manjrasoft\_downloads.html
+\ftAnthree http://www.manjrasoft.com/download/TaskModel.pdf
+\ftAnfour http://www.manjrasoft.com/download/ThreadModel.pdf
+\ftAnfive http://www.manjrasoft.com/download/MapReduceModel.pdf
+\ftAnone http://www.manjrasoft.com/manjrasoft\_downloads.html
