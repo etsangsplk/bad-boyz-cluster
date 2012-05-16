@@ -2,12 +2,13 @@
 \section{Introduction}
 Aneka is a Platform-as-a-Service (PaaS) that enables the development of distributed applications for use across a broad range of cloud, grid and cluster platforms. Originally developed as part of the Gridbus Project, Aneka was later commercialised by Manjirasoft and is developed on top of .NET technology. It is available freely for a trial period[4], however additional arrangements must be made for commercial use. Aneka allows for applications to be developed in any language that is supported by the .NET runtime, such as VB.NET and C\#, and through the use of Mono, allows applications to run on Linux and OSX as well as Windows infrastructures\cite{Aneka}.
 
-\section{Platform as a Service}
-PaaS solutions, such as Aneka, provide a platform from which distributed applications can be developed that scale on demand\cite{CloudBus}. Aneka is a pure PaaS in that it does not provide an underlying hardware infrastructure. This differs from other PaaS solutions such as Google AppEngine and Microsoft Azure, which are both PaaS and Infrastructure-as-a-Service (IaaS) solutions. Instead, Aneka is designed to work as a platform layer on top of a variety of infrastructures, including combinations of multiple different options. This allows for the use of local resources when available, with the added ability for the provision of additional cloud resources from a service such as Amazon EC2 when the required job is unable to be completed on the local infrastructure within the required deadline. The other combined PaaS/IaaS solutions are also tied to their respective IaaS, giving Aneka the added benefit of being able to more freely swap between IaaS providers to meet changing resource demands.
-
 \begin{center}
 \includegraphics[scale=0.6]{figs/Aneka.png} \\
 \end{center}
+
+
+\section{Platform as a Service}
+PaaS solutions, such as Aneka, provide a platform from which distributed applications can be developed that scale on demand\cite{CloudBus}. Aneka is a pure PaaS in that it does not provide an underlying hardware infrastructure. This differs from other PaaS solutions such as Google AppEngine and Microsoft Azure, which are both PaaS and Infrastructure-as-a-Service (IaaS) solutions. Instead, Aneka is designed to work as a platform layer on top of a variety of infrastructures, including combinations of multiple different options. This allows for the use of local resources when available, with the added ability for the provision of additional cloud resources from a service such as Amazon EC2 when the required job is unable to be completed on the local infrastructure within the required deadline. The other combined PaaS/IaaS solutions are also tied to their respective IaaS, giving Aneka the added benefit of being able to more freely swap between IaaS providers to meet changing resource demands.
 
 \section{Programming Models}
 One of the key strengths of Aneka is its flexibility, providing three different programming models (Task, Thread and MapReduce), which has enabled the use of Aneka in a broad range of applications in the fields of Engineering, Education and the Life Sciences.
@@ -31,6 +32,8 @@ Both programs that are specifically written to work with Aneka and existing appl
 \section{Quality of Service / Service Level Agreements}
 An important component of distributed computing is the ability to define requirements of Quality of Service (QoS) and Service Level Agreements (SLA)\cite{CloudBus}. Aneka provides an easy to use management tool that can negotiate specified QoS and SLA requirements with the system, and can be used to bring in additional resources in order to meet these agreements. Aneka additionally has a counter-offer service, whereby if a job cannot be completed within the requested resource limitations, an offer will be made by the system stating the minimum resources it can complete the job it.
 
+\section{Additional Services}
+Aneka provides a number of additional features including handling of billing, dynamic scheduling, workload managment and advanced reporting. Reporting allows users of Aneka to closely monitor what is going on within the system, as well as providing billing functionality to charge each user of the system for their usage. The use of dynamic scheduling and workload managment allows for the automatic scaling of the Aneka system as workload calls for it, providing flexible and automatic scaling to external cloud services such as Amazon EC2, Windows Azure and GoGrid Cloud Service.  
 
 Image Source: http://www.manjrasoft.com/images/aneka\_cloud\_computing\_schema.png
 
