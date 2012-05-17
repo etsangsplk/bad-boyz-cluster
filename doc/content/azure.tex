@@ -42,24 +42,18 @@ When accessing stored content on the Azure cloud, users require an account-speci
 The Windows Azure platform must provide fundamental security concepts on its cloud service, in order for consumers to acknowledge that their data is stored safely on the Microsoft cloud. Confidentiality, integrity, availability and accountability are the terms used to describe how security is approached on the Azure platform. Notable features pertaining to each of these terms are as follows~\cite{AzureSecurity}:
 
 \begin{itemize}
-\item Confidentiality
-\begin{itemize}
-\item Encryption -- Used internally within Windows Azure for protecting control channels and is provided optionally for customers who need rigorous data protection capabilities. 
+\item Confidentiality. Encryption is used internally within Windows Azure for protecting control channels and is provided optionally for customers who need rigorous data protection capabilities. 
+
+\item Integrity. Each Virtual Machine (VM) is connected to three local Virtual Hard Drives (VHD). The first VHD contains one of several versions of the Guest OS. The consumer selects the new patches they wish to apply, ensuring that the OS is always at the most recent version. The second VHD contains an image constructed by the Fabric Controller (FC). The last VHD contains configuration data, all paging files and storage. 
+
+\item Availability. The Azure platform ensures that stored data will not be compromised by employing rigorous backup techniques. These techniques include Data replication and Geo-replication.\ftAfour\ftAfourText \\ 
+\\
+\\ %extra line breaks to ensure that 'available' in the following paragraph does not appear by itself on the next page.
+
+Data replication involves replicating the data three times in the same data centre as a precaution against hardware failure – in turn ensuring that data is always available. \\
+
+Geo-replication involves replicating data between data centres that are not situated within geographic vicinity. This approach safeguards against any natural disasters.
 \end{itemize}
-\item Integrity
-\begin{itemize}
-\item Each Virtual Machine (VM) is connected to three local Virtual Hard Drives (VHD)
-\begin{itemize}
-\item The first VHD contains one of several versions of the Guest OS. The consumer selects the new patches they wish to apply, ensuring that the OS is always at the most recent version.
-\item The second VHD contains an image constructed by the Fabric Controller (FC).
-\item The last VHD contains configuration data, all paging files and storage. 
-\end{itemize}
-\end{itemize}
-\item Availability \\ The Azure platform ensures that stored data will not be compromised by employing rigorous backup techniques. These techniques include, but are not limited to\ftAfour:\ftAfourText
-\begin{itemize}
-\item Data replication -- replicating data three times in the same data centre as a precaution against hardware failure – in turn ensuring that data is always available.
-\item Geo-replication -- Data is replicated between data centres that are not situated within geographic vicinity. This approach safeguards against any natural disasters.
-\end{itemize}
-\end{itemize}
+
 
 Adopting the Microsoft Windows Azure software is a viable solution for both a personal or business need to utilise a distributed cloud computing service to store and maintain developed applications. As with moving towards any new software, it is up to the consumer to adequately research many factors such as cost, security, data storage capabilities and data availability when making use of a cloud based hosting service. The consumption and subscription based pricing packages are ideal for consumers who are both unsure of how much data they will need and consumers who wish to move to the Microsoft cloud for a defined month period.
