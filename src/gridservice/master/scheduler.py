@@ -1,5 +1,7 @@
 import threading
+from collections import defaultdict
 import time
+import sys
 
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
@@ -156,8 +158,39 @@ class RoundRobinScheduler(Scheduler):
 		print "Using RoundRobin"
 		super(RoundRobinScheduler, self).__init__(grid)
 
+	def next_work_unit(self):
+		pass
+
+# 
+# FCFSScheduler
+#
+# First Come First Serve (Batch Scheduler):
+# Assigns jobs as they come.
+#
+
 class FCFSScheduler(Scheduler):
-	pass
+	def __init__(self, grid):
+		print "Using FCFS"
+		super(FCFSScheduler, self).__init__(grid)
+
+	def next_work_unit(self):
+		job_queue = defaultdict(list) 
+
+		for unit in self.grid.get_queued():
+			job_queue[unit.job.job_id].append(unit)
+
+		# Find Job with the earliest creation time
+		earliest_time = int(time.time())
+		earliest_job = None
+		for job_id, units in job_queue.items():
+			for unit in units:
+				sys.stderr.write(str(unit.work_unit_id) + " ")
+
+			if units[0].job.created_ts < earliest_time:
+				earliest_time = units[0].job.created_ts
+				earliest_job = job_id
+
+		return job_queue[earliest_job][0]
 
 class DeadlineScheduler(Scheduler):
 	pass

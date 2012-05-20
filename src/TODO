@@ -8,3 +8,8 @@ Nice to Have:
 attempting to send the Task
 - Tidy up the Node Model
 - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
+
+Scott Things:
+  - Gracefully handle incorrect Wall time on client.py
+  - Add correct format of Wall time to client.py help output
+  - Throw error message when invalid scheduler name is passed to client
