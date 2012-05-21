@@ -8,7 +8,7 @@ from httplib import HTTPException
 
 from gridservice.http import JSONHTTPRequest
 from gridservice.utils import validate_request
-#from gridservice.master.grid import NodeUnavailableException
+from gridservice.master.grid import NodeUnavailableException
 
 #
 # Scheduler
@@ -92,7 +92,7 @@ class Scheduler(object):
 				self.write_to_log("Allocating work unit " + 
 							   str(unit.work_unit_id) + " of job " + 
 							   str(unit.job.job_id) + " on node " + 
-							   str(node.node_id) + ".\n")
+							   str(node['node_id']) + ".\n")
 
 				# If allocating the work unit has failed,
 				# we break to avoid death.
@@ -144,6 +144,7 @@ class Scheduler(object):
 		# Write following lines with padding 
 		for line in lines[1:-1]:
 			self.log.write(blank + line + "\n")
+		self.log.flush()
 
 	#
 	# next_work_unit(self)
