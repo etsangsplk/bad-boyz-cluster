@@ -14,7 +14,7 @@ import gridservice.client.utils as client_utils
 
 # Parse the arguments from the CLI
 
-parser = OptionParser(usage="./client.py --gh HOSTNAME --gh PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
+parser = OptionParser(usage="./client.py --gh HOSTNAME --gp PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the node should listen on", 
