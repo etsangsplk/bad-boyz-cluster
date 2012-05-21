@@ -7,7 +7,8 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, FileResponse, JSONResponse
-from gridservice.master.grid import NodeUnavailableException, NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
+from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
+from gridservice.master.scheduler import NodeUnavailableException
 
 #
 # schduler_PUT
