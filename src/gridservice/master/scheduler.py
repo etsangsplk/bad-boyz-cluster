@@ -139,11 +139,11 @@ class Scheduler(object):
 		blank = " "*27 # Blank space equivalent to space taken by timestamp
 
 		# Write first line with timestamp
-		self.log.write("[" + time.asctime() + "] " + lines[0] + "\n")
+		self.log.write("[{0}] {1}\n".format(time.asctime(), lines[0]))
 
 		# Write following lines with padding 
 		for line in lines[1:-1]:
-			self.log.write(blank + line + "\n")
+			self.log.write("{0}{1}\n".format(blank, line))
 		self.log.flush()
 
 	#
@@ -177,8 +177,9 @@ class Scheduler(object):
 class BullshitScheduler(Scheduler):
 
 	def __init__(self, grid):
-		print "Using Bullshit"
 		super(BullshitScheduler, self).__init__(grid)
+		self.write_to_log("Using Bullshit Scheduler")
+		print "Using Bullshit"
 
 	# Are you ready for the worlds most advanced 
 	# scheduling algorithm?
@@ -215,9 +216,9 @@ class RoundRobinScheduler(Scheduler):
 
 class FCFSScheduler(Scheduler):
 	def __init__(self, grid):
-		print "Using FCFS"
-		self.write_to_log("Using First Come First Serve\n")
 		super(FCFSScheduler, self).__init__(grid)
+		print "Using FCFS" # Prints to Server stdout
+		self.write_to_log("Using First Come First Serve Scheduler")
 
 	def next_work_unit(self):
 		job_queue = defaultdict(list) 
@@ -225,25 +226,40 @@ class FCFSScheduler(Scheduler):
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
 
+		# No work units to allocate!
 		if len(job_queue) == 0:
 			return None
 
 		self.write_queue_to_log(job_queue)
 
-		# Find Job with the earliest creation time
-		earliest_time = int(time.time())
+		# Find Job with earliest creation time	
+		
+		# Add 1 second to current time to stop server crashing for jobs
+		# submitted that second.
+		earliest_time = int(time.time()) + 1 
 		earliest_job = None
+
 		for job_id, units in job_queue.items():
 			if units[0].job.created_ts < earliest_time:
 				earliest_time = units[0].job.created_ts
 				earliest_job = job_id
 
+		# Return its first work unit
 		return job_queue[earliest_job][0]
 
 	def write_queue_to_log(self, queue):
+	    # Ex:
+		#   Job: 0
+		#   Created Time: Day Month Date HH:MM:SS Year
+		#   Work Units: [0, 1, ...]
+		# 
+		#   Jobs should be allocated by creation time
+		#
 		queue_string = ""
 		for job_id, units in queue.items():
-			queue_string += "Job " + str(job_id) + "\n"
+			created_ts = time.asctime(time.localtime(units[0].job.created_ts))
+			queue_string += "Job: {0}.\n".format(job_id)
+			queue_string += "Creation Time: {0}.\n".format(created_ts)
 			queue_string += "Work Units: ["
 			for unit in units:
 				queue_string += str(unit.work_unit_id) + ", "
