@@ -13,3 +13,11 @@ Scott Things:
   - Gracefully handle incorrect Wall time on client.py
   - Add correct format of Wall time to client.py help output
   - Throw error message when invalid scheduler name is passed to client
+ 
+Adam Things (From Meeting on Monday):
+ - Send executables
+ - Allocate nodes by type
+ - Add type to work units and jobs
+ - Allow selection of node by type
+ - Allow selection of job by type
+
