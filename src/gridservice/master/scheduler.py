@@ -216,6 +216,7 @@ class RoundRobinScheduler(Scheduler):
 class FCFSScheduler(Scheduler):
 	def __init__(self, grid):
 		print "Using FCFS"
+		self.write_to_log("Using First Come First Serve\n")
 		super(FCFSScheduler, self).__init__(grid)
 
 	def next_work_unit(self):
@@ -223,6 +224,9 @@ class FCFSScheduler(Scheduler):
 
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
+
+		if len(job_queue) == 0:
+			return None
 
 		self.write_queue_to_log(job_queue)
 
