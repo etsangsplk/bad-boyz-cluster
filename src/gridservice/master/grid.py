@@ -346,9 +346,3 @@ class JobNotFoundException(Exception):
 class InvalidJobStatusException(Exception):
 	pass
 
-#
-# NodeUnavailableException
-#
-
-class NodeUnavailableException(Exception):
-	pass

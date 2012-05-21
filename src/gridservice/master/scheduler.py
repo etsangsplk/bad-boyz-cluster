@@ -250,3 +250,11 @@ class DeadlineScheduler(Scheduler):
 
 class DeadlineCostScheduler(Scheduler):
 	pass
+
+
+#
+# NodeUnavailableException
+#
+
+class NodeUnavailableException(Exception):
+	pass
