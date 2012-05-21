@@ -8,7 +8,7 @@ from httplib import HTTPException
 
 from gridservice.http import JSONHTTPRequest
 from gridservice.utils import validate_request
-from gridservice.master.grid import NodeUnavailableException
+#from gridservice.master.grid import NodeUnavailableException
 
 #
 # Scheduler
@@ -238,7 +238,7 @@ class FCFSScheduler(Scheduler):
 
 	def write_queue_to_log(self, queue):
 		queue_string = ""
-		for job_id, units in job_queue.items():
+		for job_id, units in queue.items():
 			queue_string += "Job " + str(job_id) + "\n"
 			queue_string += "Work Units: ["
 			for unit in units:
