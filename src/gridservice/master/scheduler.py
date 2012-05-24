@@ -237,8 +237,8 @@ class FCFSScheduler(Scheduler):
 			job_queue[unit.job.job_id].append(unit)
 
 		# No work units to allocate!
-		"""if len(job_queue) == 0:
-			return None"""
+		if len(job_queue) == 0:
+			return None
 
 		self.write_queue_to_log(job_queue)
 
