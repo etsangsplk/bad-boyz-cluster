@@ -18,11 +18,11 @@ import gridservice.client.utils as client_utils
 parser = OptionParser(usage="./client.py --gh HOSTNAME --gp PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
-	help="The hostname the node should listen on", 
+	help="The hostname the client should listen on", 
 	metavar="HOSTNAME", default = "127.0.0.1")
 
 parser.add_option("--gp", "--grid_port", dest="gport",
-	help="The port the node should listen on", 
+	help="The port the client should listen on", 
 	metavar="PORT", default = 8051)
 
 parser.add_option("-e", "--executable", dest="executable",
