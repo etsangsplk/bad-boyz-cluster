@@ -29,7 +29,7 @@ parser.add_option("-e", "--executable", dest="executable",
 	metavar="EXECUTABLE")
 
 parser.add_option("-w", "--wall_time", dest="wall_time",
-	help="The length of time expected for your program to complete on your longest file", 
+	help="The length of time expected for your program to complete on your longest file. Format: HH:MM:SS", 
 	metavar="WALL_TIME", default="1:00:00")
 
 parser.add_option("-d", "--deadline", dest="deadline",
@@ -101,7 +101,7 @@ except (TypeError, ValueError):
 try:
 	time.strptime(options.wall_time, "%H:%M:%S")
 except ValueError:
-	print "Invalid Wall Time specified: %s" % options.walltime
+	print "Invalid Wall Time specified: %s.\nFormat: HH:MM:SS" % options.walltime
 	sys.exit(1)
 
 # Check for a valid deadline
@@ -109,7 +109,7 @@ except ValueError:
 try:
 	time.strptime(options.deadline, "%Y-%m-%d %H:%M:%S")
 except ValueError:
-	print "Invalid Deadline specified: %s" % options.deadline
+	print "Invalid Deadline specified: %s\nFormat: YYYY-MM-DD HH:MM:SS" % options.deadline
 	sys.exit(1)
 
 # Create the Job on The Grid
