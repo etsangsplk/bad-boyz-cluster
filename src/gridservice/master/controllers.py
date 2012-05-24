@@ -7,7 +7,7 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, FileResponse, JSONResponse
-from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException
+from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException
 from gridservice.master.scheduler import NodeUnavailableException
 
 #
@@ -23,8 +23,15 @@ def scheduler_PUT(request):
 	if not validate_request(d, ['scheduler']):
 		return JSONResponse({ 'error_msg': 'Invalid Scheduler JSON Received' }, http.BAD_REQUEST)
 	
-	model.grid.scheduler = request.json['scheduler']
-
+	try:
+		model.grid.scheduler = request.json['scheduler']
+	except InvalidSchedulerException as e:
+		return JSONResponse({ 
+			'error_msg': "Invalid Scheduler %s. Valid Schedulers: %s" %
+			(request.json['scheduler'], ", ".join(model.grid.SCHEDULERS))
+		}, 
+		http.BAD_REQUEST)
+	
 	return JSONResponse({ 'success': 'Scheduler changed.' }, http.OK)
 
 #

@@ -63,10 +63,13 @@ class Grid(object):
 
 	@scheduler.setter
 	def scheduler(self, scheduler):
+		if scheduler in self.SCHEDULERS:
+			scheduler_func = self.SCHEDULERS[scheduler]
+		else:
+			raise InvalidSchedulerException("Scheduler %s not found." % scheduler)
+		
 		if hasattr(self, '_scheduler'):
 			self._scheduler.stop()
-
-		scheduler_func = self.SCHEDULERS.get(scheduler, BullshitScheduler)
 
 		self._scheduler = scheduler_func(self)
 		self._scheduler.start()
@@ -346,3 +349,9 @@ class JobNotFoundException(Exception):
 class InvalidJobStatusException(Exception):
 	pass
 
+#
+# InvalidSchedulerException
+#
+
+class InvalidSchedulerException(Exception):
+	pass
