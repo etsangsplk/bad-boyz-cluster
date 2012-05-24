@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import datetime
+import json
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
@@ -61,6 +62,10 @@ if options.scheduler:
 		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler } )
 
 	except (HTTPError, URLError) as e:
+		if isinstance(e, HTTPError) and e.code == 400:
+			request = json.loads(e.read())
+			if 'error_msg' in request:
+				print "%s" % request['error_msg']
 		client_utils.request_error(e, "Could not update the scheduler of The Grid.")
 
 	sys.exit(1)
