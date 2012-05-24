@@ -152,5 +152,5 @@ try:
 	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY'})
 
 except (HTTPError, URLError) as e:
-	client_utils.request_error(e, "Could send READY status to The Grid.")
+	client_utils.request_error(e, "Could not send READY status to The Grid.")
 	sys.exit(1)
