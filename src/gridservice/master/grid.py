@@ -27,7 +27,7 @@ class Grid(object):
 	SCHEDULERS = {
 		'Bullshit': BullshitScheduler,
 		'RoundRobin': RoundRobinScheduler,
-		'FCFSScheduler': FCFSScheduler,
+		'FCFS': FCFSScheduler,
 		'Deadline': DeadlineScheduler,
 		'DeadlineCost': DeadlineCostScheduler,
 	}
