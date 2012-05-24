@@ -160,7 +160,7 @@ class Grid(object):
 			for work_unit in job.work_units:
 				self.queue.append(work_unit)
 	#
-	# finish_work_unit(self, jobm filename)
+	# finish_work_unit(self, job, filename)
 	#
 	#
 	#
