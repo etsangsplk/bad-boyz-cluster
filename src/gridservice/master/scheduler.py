@@ -83,7 +83,9 @@ class Scheduler(object):
 
 	def allocate_work_units(self):
 		with self.grid.queue_lock:
+			free_nodes = False
 			for node in self.grid.get_free_node():
+				free_nodes = True
 				try:
 					unit = self.next_work_unit()
 				except Exception as e:
@@ -96,13 +98,16 @@ class Scheduler(object):
 					os._exit(1)
 				
 				if unit == None:
+					self.write_to_log("Waiting for tasks to schedule.\n")
 					break
+
+				self.write_queue_to_log()
 
 				# Output to log file
 				self.write_to_log("Allocating work unit " + 
 							   str(unit.work_unit_id) + " of job " + 
 							   str(unit.job.job_id) + " on node " + 
-							   str(node['node_id']) + ".\n")
+							   str(node['node_id']) + ".\n\n")
 
 				# If allocating the work unit has failed,
 				# we break to avoid death.
@@ -111,6 +116,11 @@ class Scheduler(object):
 				except NodeUnavailableException as e:
 					self.write_to_log("Failed to allocated job!\n")
 					self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+			
+			# Find a cleaner way to do this!
+			if not free_nodes:
+				self.write_to_log("Waiting for free nodes")
+
 
 	#
 	# allocate_work_unit(self, node, work_unit)
@@ -167,16 +177,47 @@ class Scheduler(object):
 
 	def next_work_unit(self):
 		raise NotImplementedError()
-
+	
 	#
 	# write_queue_to_log(self, queue) 
 	# 
-	# Writes a schedulers internal queue to the log for debugging
-	# purposes. Called from within next_work_unit().
+	# Writes out the current queue of jobs with relevant information to the
+	# log file. Useful for determining if schedulers are functioning correctly
 	#
-
+	# Ex:
+	#   Job: 0
+	#   Created Time: Day Month Date HH:MM:SS Year
+	#	Wall Time:
+	#   Budget:
+	#   Deadline:
+	#   Work Units: [0, 1, ...]
+	#
+	
 	def write_queue_to_log(self):
-		raise NotImplementedError()
+		job_queue = defaultdict(list)
+
+		# Build Queue by Job ID
+		for unit in self.grid.get_queued():
+			job_queue[unit.job.job_id].append(unit)
+
+		# Print out relevant information for each job
+		queue_string = "Current jobs waiting for allocation:\n"
+		for job_id, units in job_queue.items():
+			# Print information about the job
+			created_ts = time.asctime(time.localtime(units[0].job.created_ts))
+			queue_string += "Job: %s.\n" % (job_id)
+			queue_string += "Creation Time: %s.\n" % (created_ts)
+			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
+			queue_string += "Deadline: %s.\n" % (units[0].job.deadline)
+			queue_string += "Budget: %s.\n" % (units[0].job.budget)
+			# Print out a job's currently queued work units
+			queue_string += "Work Units: ["
+			for unit in units:
+				queue_string += "%s, " % (unit.work_unit_id)
+			queue_string = "%s]\n\n" % (queue_string[0:-2]) # -2 drops the last ", "
+		
+		# Write out to log
+		self.write_to_log(queue_string)
 
 #
 # BullshitScheduler
@@ -201,9 +242,6 @@ class BullshitScheduler(Scheduler):
 			return self.grid.get_queued()[0]
 		else:
 			return None
-	
-	def write_queue_to_log(self, queue):
-		pass
 
 class RoundRobinScheduler(Scheduler):
 	
@@ -214,9 +252,6 @@ class RoundRobinScheduler(Scheduler):
 	def next_work_unit(self):
 		pass
 	
-	def write_queue_to_log(self, queue):
-		pass
-
 # 
 # FCFSScheduler
 #
@@ -240,8 +275,6 @@ class FCFSScheduler(Scheduler):
 		if len(job_queue) == 0:
 			return None
 
-		self.write_queue_to_log(job_queue)
-
 		# Find Job with earliest creation time	
 		
 		# Add 1 second to current time to stop server crashing for jobs
@@ -257,24 +290,6 @@ class FCFSScheduler(Scheduler):
 		# Return its first work unit
 		return job_queue[earliest_job][0]
 
-	def write_queue_to_log(self, queue):
-	    # Ex:
-		#   Job: 0
-		#   Created Time: Day Month Date HH:MM:SS Year
-		#   Work Units: [0, 1, ...]
-		# 
-		#   Jobs should be allocated by creation time
-		#
-		queue_string = ""
-		for job_id, units in queue.items():
-			created_ts = time.asctime(time.localtime(units[0].job.created_ts))
-			queue_string += "Job: {0}.\n".format(job_id)
-			queue_string += "Creation Time: {0}.\n".format(created_ts)
-			queue_string += "Work Units: ["
-			for unit in units:
-				queue_string += str(unit.work_unit_id) + ", "
-			queue_string = queue_string[0:-2] + "]\n"
-		self.write_to_log(queue_string)
 
 class DeadlineScheduler(Scheduler):
 	pass
