@@ -101,7 +101,7 @@ except (TypeError, ValueError):
 try:
 	time.strptime(options.wall_time, "%H:%M:%S")
 except ValueError:
-	print "Invalid Wall Time specified: %s.\nFormat: HH:MM:SS" % options.walltime
+	print "Invalid Wall Time specified: %s.\nFormat: HH:MM:SS" % options.wall_time
 	sys.exit(1)
 
 # Check for a valid deadline
