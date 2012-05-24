@@ -2,6 +2,8 @@ import threading
 from collections import defaultdict
 import time
 import sys
+import os
+import traceback
 
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
@@ -69,7 +71,6 @@ class Scheduler(object):
 	def work_unit_allocator(self):
 		self.write_to_log("Work Unit Allocator Started\n")
 		while self.killed == False:
-			self.write_to_log("Work Unit Allocator Alive\n")
 			self.allocate_work_units()
 			time.sleep(self.WORK_UNIT_ALLOCATOR_INTERVAL)
 
@@ -83,8 +84,17 @@ class Scheduler(object):
 	def allocate_work_units(self):
 		with self.grid.queue_lock:
 			for node in self.grid.get_free_node():
-				unit = self.next_work_unit()
-
+				try:
+					unit = self.next_work_unit()
+				except Exception as e:
+					self.write_to_log("Work unit allocator crashed\n")
+					exc_type, exc_value, exc_tb = sys.exc_info()
+					traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+					self.log.write(traceback_msg)
+					self.log.close()
+					print "Error in Scheduler. Shutting down Server."
+					os._exit(1)
+				
 				if unit == None:
 					break
 
@@ -227,8 +237,8 @@ class FCFSScheduler(Scheduler):
 			job_queue[unit.job.job_id].append(unit)
 
 		# No work units to allocate!
-		if len(job_queue) == 0:
-			return None
+		"""if len(job_queue) == 0:
+			return None"""
 
 		self.write_queue_to_log(job_queue)
 
