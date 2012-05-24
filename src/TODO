@@ -9,9 +9,6 @@ attempting to send the Task
 - Tidy up the Node Model
 - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
 
-Scott Things:
-  - Detect crash in scheduler and abort server
-
 Adam Things (From Meeting on Monday):
  - Send executables
  - Allocate nodes by type
