@@ -10,7 +10,6 @@ attempting to send the Task
 - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
 
 Scott Things:
-  - Throw error message when invalid scheduler name is passed to client
   - Detect crash in scheduler and abort server
 
 Adam Things (From Meeting on Monday):
