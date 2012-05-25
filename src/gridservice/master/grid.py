@@ -341,18 +341,23 @@ class Grid(object):
 	def get_free_node(self, node_type=None):
 
 		self.remove_timed_out_nodes()
-		if node_type is "DEFAULT":
-			pass
-		elif node_type is "BATCH":
-			pass
-		elif node_type is "FAST":
-			pass
-		elif node_type is None:
-			for node in self.nodes.values():
-				if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
-					yield node
+			
+		# Get the list of nodes to check
+		if node_type is None:
+			node_list = self.nodes.values()
+		elif node_type in self.node_queue.keys():
+			node_list = self.node_queue[node_type][1]
+
+			# If there's no nodes in that queue assign to the DEFAULT queue
+			if len(node_list) is 0:
+				node_list = self.node_queue["DEFAULT"][1]
 		else:
 			raise InvalidNodeTypeException("%s is not a valid priority queue type.\n" % node_type)
+
+		# Check for node with at least 1 core free
+		for node in self.nodes.values():
+			if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
+				yield node
 
 	# 
 	# remove_timed_out_nodes
