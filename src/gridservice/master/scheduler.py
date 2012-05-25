@@ -297,6 +297,8 @@ class DeadlineScheduler(Scheduler):
 class DeadlineCostScheduler(Scheduler):
 	pass
 
+class PriorityQueueScheduler(Scheduler):
+	pass
 
 #
 # NodeUnavailableException

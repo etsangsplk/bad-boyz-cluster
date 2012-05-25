@@ -11,8 +11,7 @@ attempting to send the Task
 
 Adam Things (From Meeting on Monday):
  - Send executables
- - Allocate nodes by type
- - Add type to work units and jobs
+ - Add type to job
  - Allow selection of node by type
  - Allow selection of job by type
 

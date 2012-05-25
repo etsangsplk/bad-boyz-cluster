@@ -1,3 +1,4 @@
+from __future__ import division
 import threading
 import time 
 import json
@@ -11,7 +12,7 @@ from httplib import HTTPException
 from gridservice.http import JSONHTTPRequest
 from gridservice.utils import validate_request
 
-from gridservice.master.scheduler import BullshitScheduler, RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler
+from gridservice.master.scheduler import BullshitScheduler, RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
 from gridservice.master.job import Job
 
 #
@@ -30,6 +31,7 @@ class Grid(object):
 		'FCFS': FCFSScheduler,
 		'Deadline': DeadlineScheduler,
 		'DeadlineCost': DeadlineCostScheduler,
+		'PriorityQueue': PriorityQueueScheduler,
 	}
 
 	#
@@ -44,6 +46,13 @@ class Grid(object):
 		
 		self.nodes = {}
 		self.node_ids = {}
+
+		self.node_queue = {
+			'DEFAULT': (0.4, []),
+			'BATCH': (0.3, []),
+			'FAST': (0.3, [])
+		}
+
 		self.next_node_id = 0
 
 		self.queue_lock = threading.Lock()
@@ -197,6 +206,9 @@ class Grid(object):
 		node['node_id'] = node_id
 		node['status'] = "ONLINE"
 		node['work_units'] = []
+		node['type'] = self.get_node_type(node_id)
+
+		self.add_to_node_queues(node_id, node['type'])
 
 		self.nodes[ node_id ] = node
 
@@ -253,6 +265,51 @@ class Grid(object):
 	def get_node_url(self, node):
 		return "http://%s" % (self.get_node_ident(node))
 
+	#
+	# get_node_type(self, node_id)
+	# 
+	# 
+	#
+
+	def get_node_type(self, node_id):
+		total_nodes = len(self.nodes) + 1
+		min_type = "NONE"
+		min_dist = 1
+
+		# Find the queue whos distance from its desired proportion is
+		# minimized by adding the current node
+		for key, (proportion, nodes) in self.node_queue.items():
+			new_proportion = (len(nodes) + 1)/total_nodes
+
+			# Apply the l2-norm penalty to distance between proportions 
+			# to penalise larger distances over shorter ones.
+			dist = (abs(new_proportion - proportion))**(1/2)
+			if dist < min_dist:
+				min_dist = dist
+				min_type = key
+		return min_type
+	
+	#
+	# add_to_node_queues(self, node_id, node_type):
+	#
+	# Adds a node to the specified queue
+	#
+
+	def add_to_node_queues(self, node_id, node_type):
+		self.node_queue[node_type][1].append(node_id)
+
+	#
+	# remove_from_node_queues(self, node_id)
+	#
+	# Removes a node from the node_queues
+	#
+
+	def remove_from_node_queues(self, node_id):
+		for key, (proportion, nodes) in self.node_queue.items():
+			if node_id in nodes:
+				nodes.remove(node_id)
+				break
+
 	# 
 	# update_node(self, node_id, update)
 	#
@@ -281,19 +338,28 @@ class Grid(object):
 	# A generator of node that have at least 1 core free
 	#
 
-	def get_free_node(self):
+	def get_free_node(self, node_type=None):
 
 		self.remove_timed_out_nodes()
-
-		for node in self.nodes.values():
-			if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
-				yield node
+		if node_type is "DEFAULT":
+			pass
+		elif node_type is "BATCH":
+			pass
+		elif node_type is "FAST":
+			pass
+		elif node_type is None:
+			for node in self.nodes.values():
+				if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
+					yield node
+		else:
+			raise InvalidNodeTypeException("%s is not a valid priority queue type.\n" % node_type)
 
 	# 
 	# remove_timed_out_nodes
 	#
 	# Looks for nodes that have not had their heartbeat within
-	# NODE_TIMEOUT and removes them from the nodes list.
+	# NODE_TIMEOUT and removes them from the nodes list and the 
+	# different node queues.
 	#
 	
 	def remove_timed_out_nodes(self):
@@ -303,6 +369,9 @@ class Grid(object):
 
 				# Remove the node by setting status to DEAD
 				node['status'] = "DEAD"
+
+				# Remove the node_id from the node queues
+				self.remove_from_node_queues(node_id)
 
 				# Requeue orphaned work units
 				for unit in node['work_units']:
@@ -354,4 +423,11 @@ class InvalidJobStatusException(Exception):
 #
 
 class InvalidSchedulerException(Exception):
+	pass
+
+#
+# InvalidNodeTypeException
+#
+
+class InvalidNodeTypeException(Exception):
 	pass
