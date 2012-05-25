@@ -7,7 +7,7 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, FileResponse, JSONResponse
-from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException
+from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobTypeException
 from gridservice.master.scheduler import NodeUnavailableException
 
 #
@@ -60,16 +60,24 @@ def job_POST(request):
 	d = request.json
 
 	if not validate_request(d, 
-		['executable', 'wall_time', 'deadline', 'flags', 'budget']):
+		['executable', 'wall_time', 'deadline', 'flags', 'budget', 'job_type']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
-
-	job = model.grid.add_job(
-		executable = d['executable'], 
-		flags = d['flags'], 
-		wall_time = d['wall_time'], 
-		deadline = d['deadline'], 
-		budget = d['budget']
-	)
+	try:
+		job = model.grid.add_job(
+			executable = d['executable'], 
+			flags = d['flags'], 
+			wall_time = d['wall_time'], 
+			deadline = d['deadline'], 
+			budget = d['budget'],
+			job_type = d['job_type']
+		)
+	except InvalidJobTypeException as e:
+		return JSONResponse({ 
+			'error_msg': "Invalid Job Type %s. Valid Job Types: %s" %
+			(d['job_type'], ", ".join(model.grid.node_queue.keys()))
+		}, 
+		http.BAD_REQUEST)
+		pass
 
 	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, http.OK)
 

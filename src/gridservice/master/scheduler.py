@@ -298,8 +298,11 @@ class DeadlineCostScheduler(Scheduler):
 	pass
 
 class PriorityQueueScheduler(Scheduler):
-	pass
+	def allocate_work_units(self):
+		pass
 
+	def next_work_unit(self):
+		pass
 #
 # NodeUnavailableException
 #

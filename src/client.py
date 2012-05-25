@@ -15,7 +15,9 @@ import gridservice.client.utils as client_utils
 
 # Parse the arguments from the CLI
 
-parser = OptionParser(usage="./client.py --gh HOSTNAME --gp PORT -e EXECUTABLE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES")
+parser = OptionParser(
+			usage="./client.py --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES"
+		)
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on", 
@@ -28,6 +30,10 @@ parser.add_option("--gp", "--grid_port", dest="gport",
 parser.add_option("-e", "--executable", dest="executable",
 	help="The executable you wish to run from The Grid", 
 	metavar="EXECUTABLE")
+
+parser.add_option("-t", "--job_type", dest="job_type",
+	help="The type of Job you wish to run on The Grid",
+	metavar="TYPE")
 
 parser.add_option("-w", "--wall_time", dest="wall_time",
 	help="The length of time expected for your program to complete on your longest file. Format: HH:MM:SS", 
@@ -128,10 +134,15 @@ try:
 		'wall_time': options.wall_time,
 		'deadline': options.deadline,
 		'flags': options.flags,
-		'budget': budget
+		'budget': budget,
+		'job_type': options.job_type
 	})
 
 except (HTTPError, URLError) as e:
+	if isinstance(e, HTTPError) and e.code == 400:
+		request = json.loads(e.read())
+		if 'error_msg' in request:
+			print "%s" % request['error_msg']
 	client_utils.request_error(e, "Could not add a new job to The Grid.")
 	sys.exit(1)
 

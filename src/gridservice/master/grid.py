@@ -89,15 +89,22 @@ class Grid(object):
 	# Adds a new job to the Grid
 	#
 		
-	def add_job(self, executable, flags, wall_time, deadline, budget):
-		
+	def add_job(self, executable, flags, wall_time, deadline, budget, job_type):
+	
+		# Need to check job_type is a valid queue
+		if job_type is None:
+			job_type = "DEFAULT"
+		elif job_type not in self.node_queue.keys():
+			raise InvalidJobTypeException("Job Type %s not found." % job_type)
+
 		job = Job(
 			job_id = self.next_job_id,
 			executable = executable, 
 			flags = flags, 
 			wall_time = wall_time, 
 			deadline = deadline, 
-			budget = budget
+			budget = budget,
+			job_type = job_type
 		)
 
 		self.jobs[ self.next_job_id ] = job
@@ -436,3 +443,9 @@ class InvalidSchedulerException(Exception):
 
 class InvalidNodeTypeException(Exception):
 	pass
+
+#
+# InvalidJobTypeException
+class InvalidJobTypeException(Exception):
+	pass
+#
