@@ -1,6 +1,19 @@
-Must Do:
+Adam TODO:
 - Authentication Layer
 - Merge in Terrence code
+
+Scott TODO:
+ - Send executables
+ - Debug incorrect job finishing for jobs with multiple input files
+
+Vadnal TODO:
+ - RoundRobinScheduler
+ - DeadlineScheduler
+ - DeadlineCostScheduler
+ - PriorityQueueScheduler
+
+Terence TODO:
+ - GUI
 
 Nice to Have:
 - Clean up output files on Node once they have been sent to the Server
@@ -8,8 +21,4 @@ Nice to Have:
 attempting to send the Task
 - Tidy up the Node Model
 - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
-
-Adam Things (From Meeting on Monday):
- - Send executables
- - Allow selection of job by type
-
+- Clean up Scheduler logging to use the logging module
