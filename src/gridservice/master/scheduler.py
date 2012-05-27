@@ -150,6 +150,18 @@ class Scheduler(object):
 		node['work_units'].append(work_unit)
 	
 	#
+	# next_work_unit(self)
+	# 
+	# This is the workhorse of the scheduler, this function will
+	# look through the list of queued work units and decide what
+	# needs to be allocated next. It returns a dict which is
+	# the node that the work unit is going to be allocated to.
+	#
+
+	def next_work_unit(self):
+		raise NotImplementedError()
+
+	#
 	# self.write_to_log(self, log_string)
 	#
 	# Write the log_string to the log file with a preceeding timestamp
@@ -166,18 +178,6 @@ class Scheduler(object):
 			self.log.write("{0}{1}\n".format(blank, line))
 		self.log.flush()
 
-	#
-	# next_work_unit(self)
-	# 
-	# This is the workhorse of the scheduler, this function will
-	# look through the list of queued work units and decide what
-	# needs to be allocated next. It returns a dict which is
-	# the node that the work unit is going to be allocated to.
-	#
-
-	def next_work_unit(self):
-		raise NotImplementedError()
-	
 	#
 	# write_queue_to_log(self, queue) 
 	# 

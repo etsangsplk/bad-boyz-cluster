@@ -3,6 +3,7 @@ import json
 import urllib
 import urllib2
 import mimetypes
+import base64
 from urlparse import parse_qs
 
 import BaseHTTPServer
@@ -11,6 +12,38 @@ OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 METHOD_NOT_ALLOWED = 405
+
+#
+# @authenticate decorator
+#
+
+class authenticate(object):
+	def __init__(self, users):
+		self.users = users
+
+	def __call__(self, func):
+		def decorator_func(request, *args, **kwargs):
+			try:
+				auth_header = request.env['HTTP_AUTHORIZATION']
+			except KeyError:
+				return AuthResponse()
+
+			try:
+				auth_string = base64.b64decode(auth_header.partition('Basic ')[2])
+			except ValueError:
+				return AuthResponse()
+
+			try:
+				(username, password) = auth_string.split(':', 1)
+			except ValueError:
+				return AuthResponse()
+
+			if (username, password) not in self.users:
+				return AuthResponse()
+
+			return func(request, *args, **kwargs)
+
+		return decorator_func
 
 class Response(object):
 	
@@ -73,6 +106,14 @@ class FileResponse(Response):
 			])
 
 		super(FileResponse, self).__init__(body, status, headers)
+
+class AuthResponse(Response):
+	
+	status = 401
+	headers = [('WWW-Authenticate', 'Basic realm="default"')]
+
+	def __init__(self):
+		super(AuthResponse, self).__init__('', self.status, self.headers)
 
 class JSONResponse(Response):
 

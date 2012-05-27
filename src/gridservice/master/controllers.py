@@ -6,9 +6,24 @@ import gridservice.master.model as model
 
 from gridservice import http
 from gridservice.utils import validate_request
-from gridservice.http import require_json, FileResponse, JSONResponse
+from gridservice.http import require_json, authenticate, FileResponse, JSONResponse
 from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobTypeException
 from gridservice.master.scheduler import NodeUnavailableException
+
+def auth_admin(func):
+	def decorator_func(*args, **kwargs):
+		return authenticate(model.ADMINS)(func)(*args, **kwargs)
+	return decorator_func
+
+def auth_client(func):
+	def decorator_func(*args, **kwargs):
+		return authenticate(model.CLIENTS)(func)(*args, **kwargs)
+	return decorator_func
+
+def auth_node(func):
+	def decorator_func(*args, **kwargs):
+		return authenticate(model.NODES)(func)(*args, **kwargs)
+	return decorator_func
 
 #
 # schduler_PUT
@@ -17,6 +32,7 @@ from gridservice.master.scheduler import NodeUnavailableException
 #
 
 @require_json
+@auth_admin
 def scheduler_PUT(request):
 	d = request.json
 
@@ -40,7 +56,8 @@ def scheduler_PUT(request):
 # Returns a list of all jobs
 #
 
-def job_GET(request):
+@auth_client
+def job_GET(request):	
 	jobs = model.grid.jobs
 	
 	safe_jobs = {}
@@ -56,6 +73,7 @@ def job_GET(request):
 #
 
 @require_json
+@auth_client
 def job_POST(request):
 	d = request.json
 
@@ -87,6 +105,7 @@ def job_POST(request):
 # Get a job by the id in the URI
 #
 
+@auth_client
 def job_id_GET(request, v):
 	try:
 		job = model.grid.get_job(v['id'])
@@ -101,6 +120,7 @@ def job_id_GET(request, v):
 # Kills the job running with ID
 #
 
+@auth_client
 def job_id_DELETE(request, v):
 	try:
 		job = model.grid.get_job(v['id'])
@@ -121,6 +141,7 @@ def job_id_DELETE(request, v):
 #
 
 @require_json
+@auth_client
 def job_status_PUT(request, v):
 	d = request.json
 
@@ -142,6 +163,7 @@ def job_status_PUT(request, v):
 # Returns a FileResponse of the file at the given URI
 #
 
+@auth_node
 def job_files_GET(request, v):
 	try:
 		job = model.grid.get_job(v['id'])
@@ -164,6 +186,7 @@ def job_files_GET(request, v):
 # the local disk based on the id and path of the file
 #
 
+@auth_node
 def job_files_PUT(request, v):
 	try:
 		job = model.grid.get_job(v['id'])
@@ -190,6 +213,7 @@ def job_files_PUT(request, v):
 #
 
 @require_json
+@auth_node
 def job_workunit_POST(request, v):
 	if not validate_request(request.json, ['filename']): 
 		return JSONResponse({ 'error_msg': 'Invalid Work Unit JSON received.' }, http.BAD_REQUEST)
@@ -209,6 +233,7 @@ def job_workunit_POST(request, v):
 # Get a list of all nodes
 #
 
+@auth_admin
 def node_GET(request):
 	nodes = model.grid.nodes
 
@@ -226,6 +251,7 @@ def node_GET(request):
 #
 
 @require_json
+@auth_node
 def node_POST(request):
 	if not validate_request(request.json, ['host', 'port', 'cores', 'programs', 'cost']): 
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
@@ -241,6 +267,7 @@ def node_POST(request):
 # Returns the node at the given URI
 #
 
+@auth_node
 def node_id_GET(request, v):
 	try:
 		node = model.grid.get_node(v['id'])
@@ -256,6 +283,7 @@ def node_id_GET(request, v):
 #
 
 @require_json
+@auth_node
 def node_id_POST(request, v):
 	if not validate_request(request.json, []): 
 		return JSONResponse({ 'error_msg': 'Invalid Node JSON received.' }, http.BAD_REQUEST)
