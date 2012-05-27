@@ -6,10 +6,16 @@ import gridservice.node.model as model
 import gridservice.node.utils as node_utils
 
 from gridservice import http
-from gridservice.http import require_json, JSONResponse
+from gridservice.http import require_json, authenticate, JSONResponse
 from gridservice.node.model import TaskNotFoundException, InputFileNotFoundException, ExecutableNotFoundException
 
+def auth_server(func):
+	def decorator_func(*args, **kwargs):
+		return authenticate(model.SERVERS)(func)(*args, **kwargs)
+	return decorator_func
+
 @require_json
+@auth_server
 def task_POST(request):
 	d = request.json
 
@@ -31,6 +37,7 @@ def task_POST(request):
 
 	return JSONResponse({ 'success': 'Task created.', 'task_id': task.task_id }, 200)
 
+@auth_server
 def task_id_DELETE(request, v):
 	
 	try:

@@ -9,7 +9,7 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from optparse import OptionParser
-from gridservice.http import auth, HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
 import gridservice.client.utils as client_utils
 
@@ -69,7 +69,7 @@ parser.add_option("-s", "--scheduler", dest="scheduler",
 
 (options, args) = parser.parse_args()
 
-auth_header = auth(options.username, options.password)
+auth_header = auth_header(options.username, options.password)
 
 if options.scheduler:
 	

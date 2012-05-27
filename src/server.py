@@ -39,6 +39,14 @@ if __name__ == '__main__':
 	# Parse the argument from the CLI
 	parser = OptionParser()
 	
+	parser.add_option("--username", dest="username",
+		help="The client username", 
+		metavar="USERNAME", default = "default")
+
+	parser.add_option("--password", dest="password",
+		help="The client password", 
+		metavar="PASSWORD", default = "default")
+	
 	parser.add_option("-l", "--hostname", dest="host",
 		help="The hostname the server should listen on", 
 		metavar="HOSTNAME", default = "127.0.0.1")
@@ -54,7 +62,7 @@ if __name__ == '__main__':
 	(options, args) = parser.parse_args()
 
 	# Bring the Grid online
-	model.grid = Grid(options.scheduler)
+	model.grid = Grid(options.username, options.password, options.scheduler)
 
 	# Initalise the WSGI Server
 	reloader.install()

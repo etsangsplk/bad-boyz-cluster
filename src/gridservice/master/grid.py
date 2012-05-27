@@ -9,7 +9,7 @@ import os
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
-from gridservice.http import JSONHTTPRequest
+from gridservice.http import auth_header, JSONHTTPRequest
 from gridservice.utils import validate_request
 
 from gridservice.master.scheduler import BullshitScheduler, RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
@@ -40,12 +40,14 @@ class Grid(object):
 	# Initialises The Grid using the given Scheduler
 	#
 
-	def __init__(self, scheduler):
+	def __init__(self, username, password, scheduler):
 		self.jobs = {}
 		self.next_job_id = 0
 		
 		self.nodes = {}
 		self.node_ids = {}
+
+		self.auth_header = auth_header(username, password)
 
 		self.node_queue = {
 			'DEFAULT': (0.4, []),
@@ -141,7 +143,7 @@ class Grid(object):
 				try:
 					node = self.nodes[ unit.node_id ]
 					url = '%s/task/%s' % (self.get_node_url(node), unit.task_id)
-					request = JSONHTTPRequest( 'DELETE', url, "" )
+					request = JSONHTTPRequest( 'DELETE', url, "", self.auth_header )
 				except (HTTPException, URLError) as e:
 					print "The node at %s is unavailable. Couldn't kill work unit." % self.get_node_url(node)
 

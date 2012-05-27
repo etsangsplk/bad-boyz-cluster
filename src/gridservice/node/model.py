@@ -14,7 +14,11 @@ from httplib import HTTPException
 import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
-from gridservice.http import auth, HTTPRequest, FileHTTPRequest, JSONHTTPRequest
+from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest
+
+SERVERS = [
+	('server', 'server')
+]
 
 class NodeServer(object):
 	
@@ -39,6 +43,8 @@ class NodeServer(object):
 
 		self.programs = programs
 		self.cost = int(cost)
+
+		self.auth_header = auth_header(self.username, self.password)
 	
 		if cores <= 0:
 			try:
@@ -72,11 +78,7 @@ class NodeServer(object):
 	def grid_url(self):
 		return "http://%s:%s" % (self.ghost, self.gport)
 
-	@property
-	def auth_header(self):
-		return auth(self.username, self.password)
-
-	#
+#
 	# reset_node_state(self)
 	#
 	# In the case of Server failure, all tasks on the Node

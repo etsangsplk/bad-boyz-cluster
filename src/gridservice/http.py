@@ -13,6 +13,10 @@ BAD_REQUEST = 400
 NOT_FOUND = 404
 METHOD_NOT_ALLOWED = 405
 
+def auth_header(username, password):
+	base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+	return { "Authorization": "Basic %s" % base64string }  
+
 #
 # @authenticate decorator
 #
@@ -176,10 +180,6 @@ class Request(object):
 	@property
 	def query(self):
 		return parse_qs(self.query_string)
-
-def auth(username, password):
-	base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-	return { "Authorization": "Basic %s" % base64string }  
 
 class HTTPRequest(object):
 
