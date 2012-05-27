@@ -83,11 +83,10 @@ def job_POST(request):
 	d = request.json
 
 	if not validate_request(d, 
-		['executable', 'wall_time', 'deadline', 'flags', 'budget', 'job_type']):
+		['wall_time', 'deadline', 'flags', 'budget', 'job_type']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 	try:
 		job = model.grid.add_job(
-			executable = d['executable'], 
 			flags = d['flags'], 
 			wall_time = d['wall_time'], 
 			deadline = d['deadline'], 
@@ -178,7 +177,9 @@ def job_files_GET(request, v):
 	if v['type'] == "files":
 		file_path = job.input_path(v['path'])
 	elif v['type'] == "output":
-		file_path = joib.output_path(v['path'])
+		file_path = job.output_path(v['path'])
+	elif v['type'] == "executable":
+		file_path = job.executable_path(v['path'])
 	else:
 		return JSONResponse({ 'error_msg': "Invalid file type." }, http.BAD_REQUEST)
 
@@ -202,12 +203,18 @@ def job_files_PUT(request, v):
 		file_path = job.input_path(v['path'])
 	elif v['type'] == "output":
 		file_path = job.output_path(v['path'])
+	elif v['type'] == "executable":
+		file_path = job.executable_path(v['path'])
 	else:
 		return JSONResponse({ 'error_msg': "Invalid file type." }, http.BAD_REQUEST)
 
 	job.create_file_path(file_path)
 	request.raw_to_file(file_path)
-	job.add_file(v['path'])
+	
+	if v['type'] == "executable":
+		job.add_executable(v['path'])
+	else:
+		job.add_file(v['path'])
 	
 	return JSONResponse(v)
 

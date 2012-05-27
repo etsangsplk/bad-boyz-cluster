@@ -16,9 +16,8 @@ import json
 
 class Job(object):
 
-	def __init__(self, job_id, executable, flags, wall_time, deadline, budget, job_type):
+	def __init__(self, job_id, flags, wall_time, deadline, budget, job_type):
 		self.job_id = job_id
-		self.executable = executable
 		self.status = "PENDING"
 		self.wall_time = wall_time
 		self.deadline = deadline
@@ -51,6 +50,10 @@ class Job(object):
 	@property
 	def num_work_units(self):
 		return len(self.work_units)
+
+	@property
+	def command(self):
+		return "./%s %s" % (self.executable, self.flags)
 
 	# 
 	# Status Setters
@@ -98,6 +101,16 @@ class Job(object):
 	#
 	#
 	#
+
+	@property
+	def executable_dir(self):
+		return os.path.join("www", "jobs", str(self.job_id), "executable")
+
+	def executable_path(self, executable):
+		return os.path.join(self.executable_dir, executable)
+
+	def add_executable(self, executable):
+		self.executable = executable
 	
 	@property
 	def input_dir(self):
@@ -198,10 +211,6 @@ class WorkUnit(object):
 	def cost(self):
 		return self.job.budget_per_node_hour
 
-	@property
-	def command(self):
-		return "%s %s" % (self.job.executable, self.job.flags)
-
 	def running(self, node_id, task_id):
 		self.node_id = node_id
 		self.task_id = task_id
@@ -231,6 +240,7 @@ class WorkUnit(object):
 			'work_unit_id': self.work_unit_id,
 			'job_id': self.job.job_id,
 			'executable': self.job.executable,
+			'command': "%s %s" % (self.job.command, self.filename),
 			'flags': self.job.flags,
 			'filename': self.filename,
 			'wall_time': self.job.wall_time,

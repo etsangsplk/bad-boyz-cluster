@@ -109,6 +109,10 @@ for filename in args:
 		print "Could not find file: %s" % filename
 		sys.exit(1)
 
+if not os.path.exists(options.executable):
+	print "Could not find executable file: %s" % options.executable
+	sys.exit(1)
+
 # Check for valid budget
 
 try:
@@ -140,7 +144,6 @@ grid_url = "http://%s:%s" % (options.ghost, options.gport)
 try:
 	url = '%s/job' % grid_url
 	request = JSONHTTPRequest( 'POST', url, { 
-		'executable': options.executable,
 		'wall_time': options.wall_time,
 		'deadline': options.deadline,
 		'flags': options.flags,
@@ -156,9 +159,19 @@ except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not add a new job to The Grid.")
 	sys.exit(1)
 
-# Send the input files for the Job to The Grid
+# Send the input files and executable for the Job to The Grid
 
 job_id = str(request.response['id'])
+
+try:
+	url = grid_url + '/job/' + job_id + '/executable/' + options.executable
+	request = FileHTTPRequest( 'PUT', url, options.executable, auth_header )
+except (IOError) as e:
+	print "Could not find executable file: %s" % filename
+	sys.exit(1)
+except (HTTPError, URLError) as e:
+	client_utils.request_error(e, "Could not upload executable to The Grid.")
+	sys.exit(1)
 
 for filename in args:
 	try:

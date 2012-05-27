@@ -138,8 +138,8 @@ class Scheduler(object):
 				'work_unit_id': work_unit.work_unit_id,
 				'job_id': work_unit.job.job_id,
 				'executable': work_unit.job.executable,
-				'flags': work_unit.job.flags,
 				'filename': work_unit.filename,
+				'flags': work_unit.job.flags,
 				'wall_time': work_unit.job.wall_time,
 			}, self.grid.auth_header)
 		except (HTTPException, URLError) as e:

@@ -18,18 +18,17 @@ def auth_server(func):
 @auth_server
 def task_POST(request):
 	d = request.json
-
 	if not gridservice.utils.validate_request(d, 
-		['executable', 'flags', 'work_unit_id', 'job_id', 'wall_time']):
+		['work_unit_id', 'job_id', 'executable', 'filename', 'flags', 'wall_time']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
 	try:
 		task = model.server.add_task(
+			work_unit_id = d['work_unit_id'],
+			job_id = d['job_id'],
 			executable = d['executable'],
 			filename = d['filename'],
 			flags = d['flags'],
-			job_id = d['job_id'],
-			work_unit_id = d['work_unit_id'],
 			wall_time = d['wall_time']
 		)
 	except (InputFileNotFoundException, ExecutableNotFoundException) as e:

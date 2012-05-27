@@ -6,6 +6,7 @@ import shlex
 import shutil
 import multiprocessing
 import thread
+import stat
 
 from threading import Thread
 from urllib2 import HTTPError, URLError
@@ -78,7 +79,7 @@ class NodeServer(object):
 	def grid_url(self):
 		return "http://%s:%s" % (self.ghost, self.gport)
 
-#
+	#
 	# reset_node_state(self)
 	#
 	# In the case of Server failure, all tasks on the Node
@@ -135,8 +136,7 @@ class NodeServer(object):
 	# in turn executes the task.
 	#
 
-	def add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time):
-		
+	def add_task(self, job_id, work_unit_id, executable, filename, flags, wall_time):
 		task = Task(
 			task_id = self.next_task_id, 
 			job_id = job_id,
@@ -146,6 +146,7 @@ class NodeServer(object):
 			flags = flags, 
 			wall_time = wall_time
 		)
+		self.get_task_executable(task)
 		self.get_task_file(task)
 		task.ready()
 	
@@ -153,6 +154,25 @@ class NodeServer(object):
 		self.next_task_id += 1
 
 		return task
+	
+	#
+	# get_task_executable(self, task)
+	#
+	# Requests the executable file required by the given task from the
+	# server and saves the file to disk
+	#
+
+	def get_task_executable(self, task):
+		try:
+			url = "%s/job/%s/executable/%s" % (self.grid_url, task.job_id, task.executable)
+			request = HTTPRequest( 'GET', url, "", self.auth_header)
+		except(HTTPException, URLError) as e:
+			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
+			sys.exit(1)
+
+		fp = open(task.executable_path, 'w+')
+		fp.write(request.response)
+		fp.close()
 
 	#
 	# get_task_file(self, task)
@@ -330,7 +350,7 @@ class NodeServer(object):
 
 class Task(object):
 	
-	def __init__(self, task_id, job_id, work_unit_id, executable, flags, filename, wall_time):
+	def __init__(self, task_id, job_id, work_unit_id, executable, filename, flags, wall_time):
 		self.task_id = task_id
 
 		self.job_id = job_id
@@ -355,7 +375,7 @@ class Task(object):
 
 	@property
 	def command(self):
-		return "%s %s" % (self.executable, self.flags)
+		return "./%s %s" % (self.executable_path, self.flags)
 
 	def ready(self):
 		self.status = "READY"
@@ -399,6 +419,10 @@ class Task(object):
 		return os.path.join("www", "tasks", str(self.task_id), "output")
 
 	@property
+	def executable_dir(self):
+		return os.path.join("www", "tasks", str(self.task_id), "executable")
+
+	@property
 	def input_path(self):
 		return os.path.join(self.input_dir, self.filename)
 
@@ -410,9 +434,14 @@ class Task(object):
 	def error_path(self):
 		return os.path.join(self.output_dir, self.output_name + ".e")
 
+	@property
+	def executable_path(self):
+		return os.path.join(self.executable_dir, self.executable)
+
 	def create_file_paths(self):
 		self.create_file_path(self.input_path)
 		self.create_file_path(self.output_path)
+		self.create_file_path(self.executable_path)
 
 	def create_file_path(self, file_path):
 		dir_path = os.path.dirname(file_path)
@@ -426,7 +455,7 @@ class Task(object):
 			self.process.kill()
 
 	def execute(self):
-		if not os.path.exists(self.executable):
+		if not os.path.exists(self.executable_path):
 			raise ExecutableNotFoundException("Executable %s not found." % self.executable)
 
 		if self.filename:
@@ -437,13 +466,15 @@ class Task(object):
 
 		self.outfile = open(self.output_path, "w+")
 		self.errfile = open(self.error_path, "w+")
-
+		
+		# Change the permissions of the executable file to allow execution
+		subprocess.Popen(['chmod', '775', self.executable_path])
 		# A bug in shlex causes it to spaz out on non-ascii strings
 		# in Python 2.6, so we convert the string to ascii and ignore
 		# any special unicode characters that might be in the command
-
 		command = self.command.encode('ascii', 'ignore')
 		args = shlex.split(command)
+		print args
 
 		self.process = subprocess.Popen(args, 
 			stdout = self.outfile, stderr = self.errfile, stdin = self.infile)

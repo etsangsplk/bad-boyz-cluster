@@ -91,7 +91,7 @@ class Grid(object):
 	# Adds a new job to the Grid
 	#
 		
-	def add_job(self, executable, flags, wall_time, deadline, budget, job_type):
+	def add_job(self, flags, wall_time, deadline, budget, job_type):
 	
 		# Need to check job_type is a valid queue
 		if job_type is None:
@@ -101,7 +101,6 @@ class Grid(object):
 
 		job = Job(
 			job_id = self.next_job_id,
-			executable = executable, 
 			flags = flags, 
 			wall_time = wall_time, 
 			deadline = deadline, 
