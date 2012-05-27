@@ -1,6 +1,5 @@
 Adam TODO:
-- Authentication Layer
-- Merge in Terrence code
+ - Merge in Terrence code
 
 Scott TODO:
  - Send executables
@@ -16,9 +15,9 @@ Terence TODO:
  - GUI
 
 Nice to Have:
-- Clean up output files on Node once they have been sent to the Server
-- Properly handle the case of failing to connect to the Node when
+ - Clean up output files on Node once they have been sent to the Server
+ - Properly handle the case of failing to connect to the Node when
 attempting to send the Task
-- Tidy up the Node Model
-- See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
-- Clean up Scheduler logging to use the logging module
+ - Tidy up the Node Model
+ - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
+ - Clean up Scheduler logging to use the logging module
