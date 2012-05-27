@@ -30,10 +30,6 @@ class authenticate(object):
 
 			try:
 				auth_string = base64.b64decode(auth_header.partition('Basic ')[2])
-			except ValueError:
-				return AuthResponse()
-
-			try:
 				(username, password) = auth_string.split(':', 1)
 			except ValueError:
 				return AuthResponse()
@@ -181,6 +177,10 @@ class Request(object):
 	def query(self):
 		return parse_qs(self.query_string)
 
+def auth(username, password):
+	base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+	return { "Authorization": "Basic %s" % base64string }  
+
 class HTTPRequest(object):
 
 	content_type = 'text/plain'
@@ -200,6 +200,7 @@ class HTTPRequest(object):
 
 		request = urllib2.Request(url, self.data, headers)
 		request.get_method = lambda: method
+
 		response = urllib2.urlopen(request)
 
 		self.msg = response.msg

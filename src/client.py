@@ -9,15 +9,23 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from optparse import OptionParser
-from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.http import auth, HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
 
 import gridservice.client.utils as client_utils
 
 # Parse the arguments from the CLI
 
 parser = OptionParser(
-			usage="./client.py --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES"
+			usage="./client.py --username USERNAME --password PASSWORD --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES"
 		)
+
+parser.add_option("--username", "-u", dest="username",
+	help="The client username", 
+	metavar="USERNAME", default = "default")
+
+parser.add_option("--password", "-p", dest="password",
+	help="The client password", 
+	metavar="PASSWORD", default = "default")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on", 
@@ -61,11 +69,13 @@ parser.add_option("-s", "--scheduler", dest="scheduler",
 
 (options, args) = parser.parse_args()
 
+auth_header = auth(options.username, options.password)
+
 if options.scheduler:
 	
 	try:
 		url = 'http://%s:%s/scheduler' % (options.ghost, options.gport)
-		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler } )
+		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler }, auth_header )
 
 	except (HTTPError, URLError) as e:
 		if isinstance(e, HTTPError) and e.code == 400:
@@ -80,7 +90,7 @@ if options.job_id:
 
 	try:
 		url = 'http://%s:%s/job/%s' % (options.ghost, options.gport, options.job_id)
-		request = HTTPRequest( 'DELETE', url, "" )
+		request = HTTPRequest( 'DELETE', url, "", auth_header )
 
 	except (HTTPError, URLError) as e:
 		client_utils.request_error(e, "Could not delete the job %s from The Grid." % options.job_id)
@@ -136,7 +146,7 @@ try:
 		'flags': options.flags,
 		'budget': budget,
 		'job_type': options.job_type
-	})
+	}, auth_header)
 
 except (HTTPError, URLError) as e:
 	if isinstance(e, HTTPError) and e.code == 400:
@@ -153,7 +163,7 @@ job_id = str(request.response['id'])
 for filename in args:
 	try:
 		url = grid_url + '/job/' + job_id + '/files/' + filename
-		request = FileHTTPRequest( 'PUT', url, filename )
+		request = FileHTTPRequest( 'PUT', url, filename, auth_header )
 	except (IOError) as e:
 		print "Could not find file: %s" % filename
 		sys.exit(1)
@@ -165,7 +175,7 @@ for filename in args:
 
 try:
 	url = '%s/job/%s/status' % (grid_url, job_id)
-	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY'})
+	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY'}, auth_header)
 
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not send READY status to The Grid.")

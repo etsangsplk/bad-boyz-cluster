@@ -17,12 +17,12 @@ def auth_admin(func):
 
 def auth_client(func):
 	def decorator_func(*args, **kwargs):
-		return authenticate(model.CLIENTS)(func)(*args, **kwargs)
+		return authenticate(model.ADMINS + model.CLIENTS)(func)(*args, **kwargs)
 	return decorator_func
 
 def auth_node(func):
 	def decorator_func(*args, **kwargs):
-		return authenticate(model.NODES)(func)(*args, **kwargs)
+		return authenticate(model.ADMINS + model.NODES)(func)(*args, **kwargs)
 	return decorator_func
 
 #
