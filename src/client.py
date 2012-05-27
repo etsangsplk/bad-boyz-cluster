@@ -21,11 +21,11 @@ parser = OptionParser(
 
 parser.add_option("--username", dest="username",
 	help="The client username", 
-	metavar="USERNAME", default = "default")
+	metavar="USERNAME", default = "client")
 
 parser.add_option("--password", dest="password",
 	help="The client password", 
-	metavar="PASSWORD", default = "default")
+	metavar="PASSWORD", default = "client")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on", 

@@ -41,11 +41,11 @@ if __name__ == '__main__':
 	
 	parser.add_option("--username", dest="username",
 		help="The client username", 
-		metavar="USERNAME", default = "default")
+		metavar="USERNAME", default = "server")
 
 	parser.add_option("--password", dest="password",
 		help="The client password", 
-		metavar="PASSWORD", default = "default")
+		metavar="PASSWORD", default = "server")
 	
 	parser.add_option("-l", "--hostname", dest="host",
 		help="The hostname the server should listen on", 
