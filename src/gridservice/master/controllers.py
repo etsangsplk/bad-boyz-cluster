@@ -10,6 +10,11 @@ from gridservice.http import require_json, authenticate, FileResponse, JSONRespo
 from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobTypeException
 from gridservice.master.scheduler import NodeUnavailableException
 
+def auth_any(func):
+	def decorator_func(*args, **kwargs):
+		return authenticate(model.ADMINS + model.CLIENTS + model.NODES)(func)(*args, **kwargs)
+	return decorator_func
+
 def auth_admin(func):
 	def decorator_func(*args, **kwargs):
 		return authenticate(model.ADMINS)(func)(*args, **kwargs)
@@ -186,7 +191,7 @@ def job_files_GET(request, v):
 # the local disk based on the id and path of the file
 #
 
-@auth_node
+@auth_any
 def job_files_PUT(request, v):
 	try:
 		job = model.grid.get_job(v['id'])

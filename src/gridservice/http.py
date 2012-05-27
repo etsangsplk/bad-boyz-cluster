@@ -211,16 +211,20 @@ class HTTPRequest(object):
 
 class FileHTTPRequest(HTTPRequest):
 	
-	def __init__(self, method, url, filename):
+	def __init__(self, method, url, filename, headers = None):
+
+		if headers == None:
+			headers = {}
 
 		file_data = open(filename, "rb")
 		length = os.path.getsize(filename)
 
 		# Files need their content-length specified directly as 
 		# you cannot take the length() of a file pointer
-		super(FileHTTPRequest, self).__init__(method, url, file_data, { 
-			'Content-length': length 
-		})
+		self.headers = { 'Content-length': length }
+		self.headers.update(headers)
+
+		super(FileHTTPRequest, self).__init__(method, url, file_data, self.headers)
 
 		file_data.close()
 

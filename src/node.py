@@ -15,8 +15,16 @@ routes = [
 if __name__ == '__main__':
 
 	# Parse the argument from the CLI
-	parser = OptionParser(usage = "./node.py -l HOSTNAME -p PORT --gh GRID_HOST --gp GRID_PORT -c COST --co CORES PROGRAMS")
+	parser = OptionParser(usage = "./node.py --username USERNAME --password PASSWORD -l HOSTNAME -p PORT --gh GRID_HOST --gp GRID_PORT -c COST --co CORES PROGRAMS")
 	
+	parser.add_option("--username", dest="username",
+		help="The client username", 
+		metavar="USERNAME", default = "default")
+
+	parser.add_option("--password", dest="password",
+		help="The client password", 
+		metavar="PASSWORD", default = "default")
+
 	parser.add_option("-l", "--hostname", dest="host",
 		help="The hostname the node should listen on", 
 		metavar="HOSTNAME", default = "127.0.0.1")
@@ -43,7 +51,7 @@ if __name__ == '__main__':
 
 	(options, args) = parser.parse_args()
 	
-	model.server = model.NodeServer(options.host, options.port, options.ghost, options.gport, options.cost, options.cores, args)
+	model.server = model.NodeServer(options.username, options.password, options.host, options.port, options.ghost, options.gport, options.cost, options.cores, args)
 
 	# Initialise the WSGI Server
 	reloader.install()		

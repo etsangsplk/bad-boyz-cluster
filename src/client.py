@@ -19,11 +19,11 @@ parser = OptionParser(
 			usage="./client.py --username USERNAME --password PASSWORD --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES"
 		)
 
-parser.add_option("--username", "-u", dest="username",
+parser.add_option("--username", dest="username",
 	help="The client username", 
 	metavar="USERNAME", default = "default")
 
-parser.add_option("--password", "-p", dest="password",
+parser.add_option("--password", dest="password",
 	help="The client password", 
 	metavar="PASSWORD", default = "default")
 
@@ -175,7 +175,7 @@ for filename in args:
 
 try:
 	url = '%s/job/%s/status' % (grid_url, job_id)
-	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY'}, auth_header)
+	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY' }, auth_header)
 
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not send READY status to The Grid.")

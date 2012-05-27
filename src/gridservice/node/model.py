@@ -14,7 +14,7 @@ from httplib import HTTPException
 import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
-from gridservice.http import HTTPRequest, FileHTTPRequest, JSONHTTPRequest
+from gridservice.http import auth, HTTPRequest, FileHTTPRequest, JSONHTTPRequest
 
 class NodeServer(object):
 	
@@ -23,7 +23,10 @@ class NodeServer(object):
 	HEARTBEAT_INTERVAL = 5
 	MONITOR_INTERVAL = 1
 
-	def __init__(self, host, port, ghost, gport, cost, cores, programs):
+	def __init__(self, username, password, host, port, ghost, gport, cost, cores, programs):
+
+		self.username = username
+		self.password = password
 
 		self.host = host
 		self.port = port
@@ -69,6 +72,10 @@ class NodeServer(object):
 	def grid_url(self):
 		return "http://%s:%s" % (self.ghost, self.gport)
 
+	@property
+	def auth_header(self):
+		return auth(self.username, self.password)
+
 	#
 	# reset_node_state(self)
 	#
@@ -107,7 +114,7 @@ class NodeServer(object):
 				'cores': self.cores,
 				'programs': self.programs,
 				'cost': self.cost,
-			})
+			}, self.auth_header)
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
 			raise ServerUnavailableException("The Grid is currently unavailable.")
@@ -155,7 +162,7 @@ class NodeServer(object):
 	def get_task_file(self, task):
 		try:
 			url = "%s/job/%s/files/%s" % (self.grid_url, task.job_id, task.filename)
-			request = HTTPRequest( 'GET', url, "")
+			request = HTTPRequest( 'GET', url, "", self.auth_header)
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
 			sys.exit(1)
@@ -192,14 +199,14 @@ class NodeServer(object):
 		# Send the results of stdout
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
-			request = FileHTTPRequest( 'PUT', url, task.output_path )
+			request = FileHTTPRequest( 'PUT', url, task.output_path, self.auth_header )
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
 		# Send the results of stderr
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
-			request = FileHTTPRequest( 'PUT', url, task.error_path )
+			request = FileHTTPRequest( 'PUT', url, task.error_path, self.auth_header )
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
@@ -232,7 +239,7 @@ class NodeServer(object):
 			request = JSONHTTPRequest( 'POST', url, { 
 				'job_id': task.job_id,
 				'filename': task.filename,
-			})
+			}, self.auth_header)
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
@@ -264,7 +271,7 @@ class NodeServer(object):
 				url = '%s/node/%s' % (self.grid_url, str(self.node_id))
 				request = JSONHTTPRequest( 'POST', url, { 
 					'cpu': self.mon.cpu(),
-				})
+				}, self.auth_header)
 			except (HTTPException, URLError) as e:
 				
 				node_utils.request_error_cli(e, 
