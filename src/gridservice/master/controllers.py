@@ -187,7 +187,7 @@ def job_output_files_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	if job.status is not "FINISHED":
+	if job.status != "FINISHED":
 		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
 
 	files_list = []
@@ -209,7 +209,7 @@ def job_output_file_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	if job.status is not "FINISHED":
+	if job.status != "FINISHED":
 		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
 	
 	file_path = "%s/%s" % (job.output_dir, v['file_name'])
