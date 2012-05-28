@@ -77,6 +77,10 @@ auth_header = auth_header(options.username, options.password)
 
 grid_url = "http://%s:%s" % (options.ghost, options.gport)
 
+#
+# Change Scheduler
+#
+
 if options.scheduler:
 	
 	try:
@@ -92,6 +96,10 @@ if options.scheduler:
 
 	sys.exit(1)
 
+#
+# Kill a Job
+#
+
 if options.job_id:
 
 	try:
@@ -102,6 +110,10 @@ if options.job_id:
 		client_utils.request_error(e, "Could not delete the job %s from The Grid." % options.job_id)
 
 	sys.exit(1)
+
+#
+# Request the output of a job
+#
 
 if options.job_id_output:
 	try:
@@ -121,6 +133,12 @@ if options.job_id_output:
 			client_utils.request_error(e, "Could not get the list of output files for job %s from The Grid" % options.job_id_output)
 			sys.exit(1)
 		files_list = request.response['output_URIs']
+		
+		# Create directory to store results
+		results_dir = os.path.join("results", "jobs", options.job_id_output, "output")
+		if not os.path.exists(results_dir):
+			os.makedirs(results_dir)
+		
 		# Request each of the output files
 		for output_file in files_list:
 			try:
@@ -129,7 +147,14 @@ if options.job_id_output:
 			except (HTTPError, URLError) as e:
 				client_utils.request_error(
 					e, "Could not retrieve the file %s for job %s from The Grid" % (output_file, options.job_id_output))
-			# Write or print output files?
+			
+			# Write file to results directory
+			file_path = os.path.join(results_dir, output_file) 
+			f = open(file_path, "w")
+			f.write(request.response)
+			f.close()
+		sys.exit(1)
+			
 	elif status == "KILLED":
 		print "Job %s has been killed." % options.job_id_output
 	elif status == "RUNNING":
