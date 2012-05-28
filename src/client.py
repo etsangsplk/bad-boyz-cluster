@@ -67,14 +67,20 @@ parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The Scheduler to change The Grid to.",
 	metavar="SCHEDULER")
 
+parser.add_option("-o", "--job_output", dest="job_output",
+	help="The Job ID to request the output of.",
+	metavar="JOB_OUTPUT")
+
 (options, args) = parser.parse_args()
 
 auth_header = auth_header(options.username, options.password)
 
+grid_url = "http://%s:%s" % (options.ghost, options.gport)
+
 if options.scheduler:
 	
 	try:
-		url = 'http://%s:%s/scheduler' % (options.ghost, options.gport)
+		url = '%s/scheduler' % (grid_url)
 		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler }, auth_header )
 
 	except (HTTPError, URLError) as e:
@@ -89,12 +95,19 @@ if options.scheduler:
 if options.job_id:
 
 	try:
-		url = 'http://%s:%s/job/%s' % (options.ghost, options.gport, options.job_id)
+		url = '%s/job/%s' % (grid_url, options.job_id)
 		request = HTTPRequest( 'DELETE', url, "", auth_header )
 
 	except (HTTPError, URLError) as e:
 		client_utils.request_error(e, "Could not delete the job %s from The Grid." % options.job_id)
 
+	sys.exit(1)
+
+if options.job_output:
+	try:
+		pass
+	except:
+		pass
 	sys.exit(1)
 
 #
@@ -139,7 +152,6 @@ except ValueError:
 
 # Create the Job on The Grid
 
-grid_url = "http://%s:%s" % (options.ghost, options.gport)
 
 try:
 	url = '%s/job' % grid_url
@@ -193,3 +205,8 @@ try:
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not send READY status to The Grid.")
 	sys.exit(1)
+
+# Output Useful information
+
+print "Your Job has been created on The Grid. Please note your Job ID down for future reference."
+print "Your Job ID is: %s" % job_id
