@@ -2,7 +2,6 @@ Adam TODO:
  - Merge in Terrence code
 
 Scott TODO:
- - Throw error to client if executable passed fails to execute, or print to stderr
  - Debug incorrect job finishing for jobs with multiple input files
 
 Vadnal TODO:
