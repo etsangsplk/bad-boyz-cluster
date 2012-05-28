@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import time
 import json
@@ -45,11 +46,26 @@ class Job(object):
 
 	@property
 	def budget_per_node_hour(self):
-		return int(self.budget) / self.num_work_units / time.strptime(self.wall_time, "%H:%M:%S").tm_hour
+		return int(self.budget) / self.num_work_units / self.wall_hours
 
 	@property
 	def num_work_units(self):
 		return len(self.work_units)
+
+	@property
+	def wall_hours(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour) + (t.tm_min / 60) + (t.tm_sec / 3600)
+	
+	@property
+	def wall_minutes(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour * 60) + (t.tm_min) + (t.tm_sec / 60)
+
+	@property
+	def wall_seconds(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour * 3600) + (t.tm_min * 60) + (t.tm_sec)
 
 	@property
 	def command(self):
