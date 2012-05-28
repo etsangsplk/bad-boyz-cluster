@@ -232,6 +232,18 @@ class NodeServer(object):
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
 	#
+	# cleanup_task_files(self, task)
+	#
+	# Removes the files and directories on the node for the specified task
+	#
+
+	def cleanup_task_files(self, task):
+		cwd = os.getcwd()
+		os.chdir(os.path.join("www", "tasks"))
+		subprocess.Popen(['rm', '-rf', "%s/" % task.task_id])
+		os.chdir(cwd)
+	
+	#
 	# kill_task(self, task)
 	#
 	# Kills a running process and forces the immediate return
@@ -241,8 +253,8 @@ class NodeServer(object):
 	def kill_task(self, task):
 		
 		task.kill()
-		self.send_task_output(task)
-
+		self.finish_task(task)
+		del self.tasks[task.task_id]
 	#
 	# finish_task(self, task)
 	#
@@ -253,6 +265,7 @@ class NodeServer(object):
 	def finish_task(self, task):
 
 		self.send_task_output(task)
+		self.cleanup_task_files(task)
 
 		# Inform the server the task is complete
 		try:
