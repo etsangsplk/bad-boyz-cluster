@@ -6,7 +6,6 @@ import shlex
 import shutil
 import multiprocessing
 import thread
-import stat
 
 from threading import Thread
 from urllib2 import HTTPError, URLError
@@ -219,6 +218,7 @@ class NodeServer(object):
 	def send_task_output(self, task):
 	
 		# Send the results of stdout
+		task.outfile.close()
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
 			request = FileHTTPRequest( 'PUT', url, task.output_path, self.auth_header )
@@ -226,6 +226,7 @@ class NodeServer(object):
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
 		# Send the results of stderr
+		task.errfile.close()
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
 			request = FileHTTPRequest( 'PUT', url, task.error_path, self.auth_header )
@@ -401,7 +402,7 @@ class Task(object):
 		return self.status == "FINISHED"
 
 	def has_finished(self):
-		if self.is_running() and self.process.poll() != None:
+		if self.is_running() and (self.process == None or self.process.poll() != None):
 			return True
 		else:
 			return False
@@ -469,16 +470,18 @@ class Task(object):
 		
 		# Change the permissions of the executable file to allow execution
 		subprocess.Popen(['chmod', '775', self.executable_path])
+
 		# A bug in shlex causes it to spaz out on non-ascii strings
 		# in Python 2.6, so we convert the string to ascii and ignore
 		# any special unicode characters that might be in the command
 		command = self.command.encode('ascii', 'ignore')
 		args = shlex.split(command)
-		print args
-
-		self.process = subprocess.Popen(args, 
-			stdout = self.outfile, stderr = self.errfile, stdin = self.infile)
-
+		
+		try:
+			self.process = subprocess.Popen(args, 
+				stdout = self.outfile, stderr = self.errfile, stdin = self.infile)
+		except OSError as e:
+			self.errfile.write("Error: Provided Executable crashed at runtime.\n")
 		self.running()
 
 	def __repr__(self):

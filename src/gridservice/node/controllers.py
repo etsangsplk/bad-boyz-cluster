@@ -24,8 +24,8 @@ def task_POST(request):
 
 	try:
 		task = model.server.add_task(
-			work_unit_id = d['work_unit_id'],
 			job_id = d['job_id'],
+			work_unit_id = d['work_unit_id'],
 			executable = d['executable'],
 			filename = d['filename'],
 			flags = d['flags'],
