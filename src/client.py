@@ -124,7 +124,10 @@ if options.job_id_output:
 		sys.exit(1)
 
 	status = request.response['job_status']
-	if status == "FINISHED": 
+	if status == "FINISHED" or status == "KILLED":
+		if status == "KILLED":
+			print "Warning: Job %s has been killed. Output returned will be incomplete." % options.job_id_output
+			
 		# Get the file URIs
 		try:
 			url = '%s/job/%s/output/files' % (grid_url, options.job_id_output)
@@ -155,8 +158,6 @@ if options.job_id_output:
 			f.close()
 		sys.exit(1)
 			
-	elif status == "KILLED":
-		print "Job %s has been killed." % options.job_id_output
 	elif status == "RUNNING":
 		print "Job %s is still running." % options.job_id_output
 	elif status == "READY":

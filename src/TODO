@@ -3,6 +3,7 @@ Adam TODO:
 
 Scott TODO:
  - Debug incorrect job finishing for jobs with multiple input files
+ - Kill jobs which exceed Wall time
 
 Vadnal TODO:
  - RoundRobinScheduler
