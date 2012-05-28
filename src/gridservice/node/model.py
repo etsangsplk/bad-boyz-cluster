@@ -218,7 +218,6 @@ class NodeServer(object):
 	def send_task_output(self, task):
 	
 		# Send the results of stdout
-		task.outfile.close()
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".o")
 			request = FileHTTPRequest( 'PUT', url, task.output_path, self.auth_header )
@@ -226,7 +225,6 @@ class NodeServer(object):
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
 
 		# Send the results of stderr
-		task.errfile.close()
 		try:
 			url = '%s/job/%s/output/%s' % (self.grid_url, str(task.job_id), task.output_name + ".e")
 			request = FileHTTPRequest( 'PUT', url, task.error_path, self.auth_header )
@@ -482,6 +480,8 @@ class Task(object):
 				stdout = self.outfile, stderr = self.errfile, stdin = self.infile)
 		except OSError as e:
 			self.errfile.write("Error: Provided Executable crashed at runtime.\n")
+			self.errfile.close()
+			self.outfile.close()
 		self.running()
 
 	def __repr__(self):
