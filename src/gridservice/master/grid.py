@@ -276,10 +276,18 @@ class Grid(object):
 	#
 	# get_node_type(self, node_id)
 	# 
-	# 
+	# Get the type for a new node, determined by assigning the type that most
+	# correctly load balances queues.
 	#
 
 	def get_node_type(self, node_id):
+	    # First check remove the node_id from the queues if it exists already.
+		# This will happen if a node is shut down and rebooted before The Grid
+		# detects the node is dead from timing out.
+		for key, (proportion, nodes) in self.node_queue.items():
+			if node_id in nodes:
+				nodes.remove(node_id)
+
 		total_nodes = len(self.nodes) + 1
 		min_type = "NONE"
 		min_dist = 1

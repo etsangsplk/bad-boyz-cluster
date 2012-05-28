@@ -3,7 +3,6 @@ Adam TODO:
 
 Scott TODO:
  - Debug incorrect job finishing for jobs with multiple input files
- - Kill jobs which exceed Wall time
 
 Vadnal TODO:
  - RoundRobinScheduler
@@ -15,8 +14,10 @@ Terence TODO:
  - GUI
 
 Nice to Have:
- - Properly handle the case of failing to connect to the Node when
-attempting to send the Task
+ - Properly handle the case of failing to connect to the Node when attempting to send the Task
  - Tidy up the Node Model
  - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
  - Clean up Scheduler logging to use the logging module
+
+Known Bugs:
+ - Jobs with multiple input files wont be finished correctly on The Grid
