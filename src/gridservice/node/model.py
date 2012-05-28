@@ -343,10 +343,21 @@ class NodeServer(object):
 	
 	def monitor_tasks(self):
 		print self.tasks
+		
 		for i, task in list(self.tasks.items()):
+			# Check if a task has finished
 			if task.has_finished():
 				self.finish_task(task)
 				del self.tasks[i]
+			# Kill task if its exceeded it wall time
+			if (int(time.time()) - task.running_ts) > task.wall_seconds:
+				kill_msg = "Task Killed: Wall time exceeded."
+				task.outfile.write("%s\n" % kill_msg)
+				task.errfile.write("%s\n" % kill_msg)
+				task.outfile.close()
+				task.errfile.close()
+				print kill_msg
+				self.kill_task(task)
 
 #
 # Task
@@ -388,6 +399,21 @@ class Task(object):
 	@property
 	def command(self):
 		return "./%s %s" % (self.executable_path, self.flags)
+
+	@property
+	def wall_hours(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour) + (t.tm_min / 60) + (t.tm_sec / 3600)
+							
+	@property
+	def wall_minutes(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour * 60) + (t.tm_min) + (t.tm_sec / 60)
+
+	@property
+	def wall_seconds(self):
+		t = time.strptime(self.wall_time, "%H:%M:%S")
+		return (t.tm_hour * 3600) + (t.tm_min * 60) + (t.tm_sec)
 
 	def ready(self):
 		self.status = "READY"
