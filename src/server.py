@@ -23,6 +23,10 @@ routes = [
 	(('/job/{id:\d+}', 'GET'), controllers.job_id_GET),
 	(('/job/{id:\d+}', 'DELETE'), controllers.job_id_DELETE),
 	(('/job/{id:\d+}/status', 'PUT'), controllers.job_status_PUT),
+	(('/job/{id:\d+}/status', 'GET'), controllers.job_status_GET),
+
+	(('/job/{id:\d+}/output/files', 'GET'), controllers.job_output_files_GET),
+	(('/job/{id:\d+}/output/{file_name:[A-z0-9.]+}', 'GET'), controllers.job_output_file_GET), 
 
 	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'GET'), controllers.job_files_GET),
 	(('/job/{id:\d+}/{type:\w+}/{path:[A-z0-9./]+}', 'PUT'), controllers.job_files_PUT),

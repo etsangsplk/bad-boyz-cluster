@@ -162,6 +162,67 @@ def job_status_PUT(request, v):
 	return JSONResponse(job.to_dict(), http.OK)
 
 #
+# job_status_GET(request, v)
+#
+# Gets the status of a job
+#
+
+@auth_client
+def job_status_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+		return JSONResponse({ 'job_status': job.status }, http.OK)
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+#
+# job_output_files_GET(request, v)
+# 
+# Returns a list of filenames of a finished job
+#
+
+@auth_client
+def job_output_files_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+	if job.status is not "FINISHED":
+		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
+
+	files_list = []
+	for unit in job.work_units:
+		files_list.append("%s_%s.o" % (job.job_id, unit.work_unit_id))
+		files_list.append("%s_%s.e" % (job.job_id, unit.work_unit_id))
+	return JSONResponse({ 'output_URIs': files_list }, http.OK)
+
+#
+# job_output_file_GET(request, v)
+# 
+# Returns a FileResponse of the file at the given URI
+#
+
+@auth_client
+def job_output_file_GET(request, v):
+	try:
+		job = model.grid.get_job(v['id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+	if job.status is not "FINISHED":
+		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
+	
+	file_path = "%s/%s" % (job.output_dir, v['file_name'])
+
+	try:
+		f = open(file_path, "r")
+		f.close()
+	except IOError as e:
+		return JSONResponse({ 'error_msg': "Unable to open file %s for Job %s." % (v['file_name'], v['id'])}, http.BAD_REQUEST)
+
+	return FileResponse(file_path)
+
+#
 # job_files_GET(request, v)
 # 
 # Returns a FileResponse of the file at the given URI
