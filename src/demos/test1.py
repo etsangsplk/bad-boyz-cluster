@@ -30,16 +30,16 @@ os.system(
 	)
 
 os.system(
-	"./client.py --gh %s --gp %s -e ./test.py -b 500 testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt"
 	% (options.ghost, options.gport)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e ./test.py -b 500 testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt"
 	% (options.ghost, options.gport)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e ./test.py -b 500 testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt"
 	% (options.ghost, options.gport)
 	)
