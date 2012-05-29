@@ -8,7 +8,6 @@ import gridservice.master.controllers as controllers
 import gridservice.master.model as model
 
 from gridservice.master.grid import Grid
-from gridservice.master.scheduler import BullshitScheduler
 
 routes = [
 	(('/scheduler', 'PUT'), controllers.scheduler_PUT),
@@ -61,7 +60,7 @@ if __name__ == '__main__':
 
 	parser.add_option("-s", "--scheduler", dest="scheduler",
 		help="The scheduling algorithm to be used by The Grid", 
-		metavar="SCHEDULER", default = "Bullshit")
+		metavar="SCHEDULER", default = "FCFS")
 
 	(options, args) = parser.parse_args()
 

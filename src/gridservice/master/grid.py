@@ -12,7 +12,7 @@ from httplib import HTTPException
 from gridservice.http import auth_header, JSONHTTPRequest
 from gridservice.utils import validate_request
 
-from gridservice.master.scheduler import BullshitScheduler, RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
+from gridservice.master.scheduler import RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
 from gridservice.master.job import Job
 
 #
@@ -26,7 +26,6 @@ class Grid(object):
 	NODE_TIMEOUT = 10
 
 	SCHEDULERS = {
-		'Bullshit': BullshitScheduler,
 		'RoundRobin': RoundRobinScheduler,
 		'FCFS': FCFSScheduler,
 		'Deadline': DeadlineScheduler,

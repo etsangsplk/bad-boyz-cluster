@@ -219,30 +219,6 @@ class Scheduler(object):
 		# Write out to log
 		self.write_to_log(queue_string)
 
-#
-# BullshitScheduler
-#
-# A BullshitScheduling Algorithm
-#
-
-class BullshitScheduler(Scheduler):
-
-	def __init__(self, grid):
-		super(BullshitScheduler, self).__init__(grid)
-		self.write_to_log("Using Bullshit Scheduler")
-		print "Using Bullshit"
-
-	# Are you ready for the worlds most advanced 
-	# scheduling algorithm?
-
-	def next_work_unit(self):
-
-		# Get the first job you find.
-		if len(self.grid.get_queued()) > 0:
-			return self.grid.get_queued()[0]
-		else:
-			return None
-
 class RoundRobinScheduler(Scheduler):
 	
 	def __init__(self, grid):
