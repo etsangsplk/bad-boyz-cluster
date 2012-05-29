@@ -88,11 +88,13 @@ if options.scheduler:
 		request = JSONHTTPRequest( 'PUT', url, { 'scheduler': options.scheduler }, auth_header )
 
 	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not update the scheduler of The Grid.")
 		if isinstance(e, HTTPError) and e.code == 400:
 			request = json.loads(e.read())
 			if 'error_msg' in request:
 				print "%s" % request['error_msg']
-		client_utils.request_error(e, "Could not update the scheduler of The Grid.")
+		if isinstance(e, HTTPError) and e.code == 401:
+			print "Only an administrator can change The Grid's Scheduler."
 
 	sys.exit(1)
 
@@ -219,11 +221,11 @@ try:
 	}, auth_header)
 
 except (HTTPError, URLError) as e:
+	client_utils.request_error(e, "Could not add a new job to The Grid.")
 	if isinstance(e, HTTPError) and e.code == 400:
 		request = json.loads(e.read())
 		if 'error_msg' in request:
 			print "%s" % request['error_msg']
-	client_utils.request_error(e, "Could not add a new job to The Grid.")
 	sys.exit(1)
 
 # Send the input files and executable for the Job to The Grid
