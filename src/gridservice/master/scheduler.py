@@ -1,5 +1,5 @@
 import threading
-from collections import defaultdict
+from collections import defaultdict, deque
 import time
 import sys
 import os
@@ -219,15 +219,57 @@ class Scheduler(object):
 		# Write out to log
 		self.write_to_log(queue_string)
 
+# 
+# RoundRobinScheduler
+#
+# Process jobs incrementally. Works by processing one work unit from each
+# job at a time until all work units from all jobs have been processed.
+#
+
 class RoundRobinScheduler(Scheduler):
 	
 	def __init__(self, grid):
-		print "Using RoundRobin"
 		super(RoundRobinScheduler, self).__init__(grid)
+		print "Using RoundRobin"
+		self.write_to_log("Using Round Robin Scheduler")
+
+		# Use deque, faster than list (no element shifting)
+		self.job_id_queue = deque()
+
 
 	def next_work_unit(self):
-		pass
-	
+		job_queue = defaultdict(list)
+
+		if len(self.grid.get_queued()) > 0:
+
+			# Add all the jobs to the queue
+			for unit in self.grid.get_queued():
+
+				# Add unique job ids to local queue
+				if unit.job.job_id not in self.job_id_queue:
+					self.job_id_queue.append(unit.job.job_id)
+
+				job_queue[unit.job.job_id].append(unit)
+
+			work_unit_to_send = None
+
+			for job_id, units in job_queue.items():
+				if self.job_id_queue[0] == job_id:
+					work_unit_to_send = units[0]
+					
+					# Move job id to end of the queue
+					popped_job_id = self.job_id_queue.popleft()
+					self.job_id_queue.append(popped_job_id)
+
+				else:
+					continue
+
+			return work_unit_to_send
+			
+		else:
+
+	 		return None
+
 # 
 # FCFSScheduler
 #
