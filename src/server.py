@@ -44,11 +44,11 @@ if __name__ == '__main__':
 	parser = OptionParser()
 	
 	parser.add_option("--username", dest="username",
-		help="The client username", 
+		help="The server username", 
 		metavar="USERNAME", default = "server")
 
 	parser.add_option("--password", dest="password",
-		help="The client password", 
+		help="The server password", 
 		metavar="PASSWORD", default = "server")
 	
 	parser.add_option("-l", "--hostname", dest="host",

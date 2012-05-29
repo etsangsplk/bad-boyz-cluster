@@ -18,11 +18,11 @@ if __name__ == '__main__':
 	parser = OptionParser(usage = "./node.py --username USERNAME --password PASSWORD -l HOSTNAME -p PORT --gh GRID_HOST --gp GRID_PORT -c COST --co CORES PROGRAMS")
 	
 	parser.add_option("--username", dest="username",
-		help="The client username", 
+		help="The node username", 
 		metavar="USERNAME", default = "node")
 
 	parser.add_option("--password", dest="password",
-		help="The client password", 
+		help="The node password", 
 		metavar="PASSWORD", default = "node")
 
 	parser.add_option("-l", "--hostname", dest="host",
