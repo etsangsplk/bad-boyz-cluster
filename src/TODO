@@ -2,7 +2,6 @@ Adam TODO:
  - Merge in Terrence code
 
 Scott TODO:
- - Debug incorrect job finishing for jobs with multiple input files
 
 Vadnal TODO:
  - RoundRobinScheduler
@@ -20,4 +19,3 @@ Nice to Have:
  - Clean up Scheduler logging to use the logging module
 
 Known Bugs:
- - Jobs with multiple input files wont be finished correctly on The Grid

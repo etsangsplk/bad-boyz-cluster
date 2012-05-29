@@ -160,9 +160,9 @@ class Job(object):
 		else:
 			self.work_units.append( WorkUnit(0, self) )
 
-	def finish_work_unit(self, filename):
+	def finish_work_unit(self, work_unit_id):
 		for unit in self.work_units:
-			if unit.filename == filename:
+			if unit.work_unit_id == work_unit_id:
 				unit.finished()
 				return unit
 

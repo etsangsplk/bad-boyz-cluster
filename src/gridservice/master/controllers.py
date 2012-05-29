@@ -288,7 +288,7 @@ def job_files_PUT(request, v):
 @require_json
 @auth_node
 def job_workunit_POST(request, v):
-	if not validate_request(request.json, ['filename']): 
+	if not validate_request(request.json, ['work_unit_id']): 
 		return JSONResponse({ 'error_msg': 'Invalid Work Unit JSON received.' }, http.BAD_REQUEST)
 
 	try:
@@ -296,7 +296,7 @@ def job_workunit_POST(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	unit = model.grid.finish_work_unit(job, request.json['filename'])
+	unit = model.grid.finish_work_unit(job, request.json['work_unit_id'])
 
 	return JSONResponse(unit.to_dict(), http.OK)
 

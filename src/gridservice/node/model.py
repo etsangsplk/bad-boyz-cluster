@@ -272,7 +272,7 @@ class NodeServer(object):
 			url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
 			request = JSONHTTPRequest( 'POST', url, { 
 				'job_id': task.job_id,
-				'filename': task.filename,
+				'work_unit_id': task.work_unit_id,
 			}, self.auth_header)
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")

@@ -182,8 +182,8 @@ class Grid(object):
 	#
 	#
 
-	def finish_work_unit(self, job, filename):
-		unit = job.finish_work_unit(filename)
+	def finish_work_unit(self, job, work_unit_id):
+		unit = job.finish_work_unit(work_unit_id)
 		node = self.nodes[ unit.node_id ]
 		for key, work_unit in enumerate(node['work_units']):
 			if work_unit == unit:
