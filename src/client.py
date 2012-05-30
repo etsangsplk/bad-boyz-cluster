@@ -57,7 +57,7 @@ parser.add_option("-f", "--flags", dest="flags",
 
 parser.add_option("-b", "--budget", dest="budget",
 	help="The overall budget for the job (in cents)", 
-	metavar="BUDGET")
+	metavar="BUDGET", default=0)
 
 parser.add_option("-j", "--job_id", dest="job_id",
 	help="The Job ID of a job to be killed.", 
