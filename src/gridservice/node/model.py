@@ -135,7 +135,7 @@ class NodeServer(object):
 	# in turn executes the task.
 	#
 
-	def add_task(self, job_id, work_unit_id, executable, filename, flags, wall_time):
+	def add_task(self, job_id, work_unit_id, executable, filename, flags, wall_time, deadline):
 		task = Task(
 			task_id = self.next_task_id, 
 			job_id = job_id,
@@ -143,7 +143,8 @@ class NodeServer(object):
 			executable = executable, 
 			filename = filename,
 			flags = flags, 
-			wall_time = wall_time
+			wall_time = wall_time,
+			deadline = deadline
 		)
 		self.get_task_executable(task)
 		self.get_task_file(task)
@@ -244,14 +245,20 @@ class NodeServer(object):
 		os.chdir(cwd)
 	
 	#
-	# kill_task(self, task)
+	# kill_task(self, task, kill_msg)
 	#
 	# Kills a running process and forces the immediate return
-	# of any output files created.
+	# of any output files created. Appends an optional kill message
+	# to the output files.
 	#
 
-	def kill_task(self, task):
-		
+	def kill_task(self, task, kill_msg = ""):
+		task.outfile.write("%s\n" % kill_msg)
+		task.errfile.write("%s\n" % kill_msg)
+		task.outfile.close()
+		task.errfile.close()
+		print kill_msg
+
 		task.kill()
 		self.finish_task(task)
 		del self.tasks[task.task_id]
@@ -351,13 +358,10 @@ class NodeServer(object):
 				del self.tasks[i]
 			# Kill task if its exceeded it wall time
 			if (int(time.time()) - task.running_ts) > task.wall_seconds:
-				kill_msg = "Task Killed: Wall time exceeded."
-				task.outfile.write("%s\n" % kill_msg)
-				task.errfile.write("%s\n" % kill_msg)
-				task.outfile.close()
-				task.errfile.close()
-				print kill_msg
-				self.kill_task(task)
+				self.kill_task(task, "Task Killed: Exceeded Wall time.")
+			# Kill task if it exceeds its deadline (for fairness)
+			if int(time.time()) > task.deadline:
+				self.kill_task(task, "Task Killed: Exceeded deadline.")
 
 #
 # Task
@@ -373,7 +377,7 @@ class NodeServer(object):
 
 class Task(object):
 	
-	def __init__(self, task_id, job_id, work_unit_id, executable, filename, flags, wall_time):
+	def __init__(self, task_id, job_id, work_unit_id, executable, filename, flags, wall_time, deadline):
 		self.task_id = task_id
 
 		self.job_id = job_id
@@ -383,6 +387,7 @@ class Task(object):
 		self.flags = flags
 		self.filename = filename
 		self.wall_time = wall_time
+		self.deadline = deadline
 
 		self.created_ts = int(time.time())
 		self.ready_ts = None

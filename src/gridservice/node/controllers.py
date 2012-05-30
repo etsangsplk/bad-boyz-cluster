@@ -19,7 +19,7 @@ def auth_server(func):
 def task_POST(request):
 	d = request.json
 	if not gridservice.utils.validate_request(d, 
-		['work_unit_id', 'job_id', 'executable', 'filename', 'flags', 'wall_time']):
+		['work_unit_id', 'job_id', 'executable', 'filename', 'flags', 'wall_time', 'deadline']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 
 	try:
@@ -29,7 +29,8 @@ def task_POST(request):
 			executable = d['executable'],
 			filename = d['filename'],
 			flags = d['flags'],
-			wall_time = d['wall_time']
+			wall_time = d['wall_time'],
+			deadline = d['deadline']
 		)
 	except (InputFileNotFoundException, ExecutableNotFoundException) as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
@@ -44,6 +45,6 @@ def task_id_DELETE(request, v):
 	except (TaskNotFoundException) as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
-	model.server.kill_task(task)
+	model.server.kill_task(task, "Task Killed: Kill request from The Grid.")
 
 	return JSONResponse({ 'success': 'Task killed.' }, 200)

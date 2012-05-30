@@ -141,6 +141,7 @@ class Scheduler(object):
 				'filename': work_unit.filename,
 				'flags': work_unit.job.flags,
 				'wall_time': work_unit.job.wall_time,
+				'deadline': work_unit.job.deadline,
 			}, self.grid.auth_header)
 		except (HTTPException, URLError) as e:
 			raise NodeUnavailableException("The node at %s is unavailable." % self.grid.get_node_url(node))
