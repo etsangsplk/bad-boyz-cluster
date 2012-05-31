@@ -57,7 +57,7 @@ parser.add_option("-f", "--flags", dest="flags",
 
 parser.add_option("-b", "--budget", dest="budget",
 	help="The overall budget for the job (in cents)", 
-	metavar="BUDGET")
+	metavar="BUDGET", default=0)
 
 parser.add_option("-j", "--job_id", dest="job_id",
 	help="The Job ID of a job to be killed.", 
@@ -194,7 +194,7 @@ except (TypeError, ValueError):
 # Check for a valid wall time
 
 try:
-	time.strptime(options.wall_time, "%H:%M:%S")
+	wall_time = time.strptime(options.wall_time, "%H:%M:%S")
 except ValueError:
 	print "Invalid Wall Time specified: %s.\nFormat: HH:MM:SS" % options.wall_time
 	sys.exit(1)
@@ -202,10 +202,17 @@ except ValueError:
 # Check for a valid deadline
 
 try:
-	time.strptime(options.deadline, "%Y-%m-%d %H:%M:%S")
+	deadline_time = time.strptime(options.deadline, "%Y-%m-%d %H:%M:%S")
 except ValueError:
 	print "Invalid Deadline specified: %s\nFormat: YYYY-MM-DD HH:MM:SS" % options.deadline
 	sys.exit(1)
+
+# Check Wall time + current time is not later than the given deadline
+wall_secs = wall_time.tm_hour * 3600 + wall_time.tm_min * 60 + wall_time.tm_sec
+if (time.mktime(deadline_time) - wall_secs) < int(time.time()): 
+	print "Current time + Wall Time is later than the deadline."
+	print "Resubmit with a shorter Wall Time or later deadline."
+	sys.exit()
 
 # Create the Job on The Grid
 
@@ -214,7 +221,7 @@ try:
 	url = '%s/job' % grid_url
 	request = JSONHTTPRequest( 'POST', url, { 
 		'wall_time': options.wall_time,
-		'deadline': options.deadline,
+		'deadline': time.mktime(deadline_time),
 		'flags': options.flags,
 		'budget': budget,
 		'job_type': options.job_type

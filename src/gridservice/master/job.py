@@ -68,11 +68,11 @@ class Job(object):
 	def wall_seconds(self):
 		t = time.strptime(self.wall_time, "%H:%M:%S")
 		return (t.tm_hour * 3600) + (t.tm_min * 60) + (t.tm_sec)
-
+	
 	@property
 	def command(self):
 		return "./%s %s" % (self.executable, self.flags)
-
+	
 	# 
 	# Status Setters
 	#

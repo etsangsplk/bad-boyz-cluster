@@ -141,6 +141,7 @@ class Scheduler(object):
 				'filename': work_unit.filename,
 				'flags': work_unit.job.flags,
 				'wall_time': work_unit.job.wall_time,
+				'deadline': work_unit.job.deadline,
 			}, self.grid.auth_header)
 		except (HTTPException, URLError) as e:
 			raise NodeUnavailableException("The node at %s is unavailable." % self.grid.get_node_url(node))
@@ -208,7 +209,7 @@ class Scheduler(object):
 			queue_string += "Job: %s.\n" % (job_id)
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
-			queue_string += "Deadline: %s.\n" % (units[0].job.deadline)
+			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
 			queue_string += "Budget: %s.\n" % (units[0].job.budget)
 			# Print out a job's currently queued work units
 			queue_string += "Work Units: ["
@@ -241,7 +242,6 @@ class RoundRobinScheduler(Scheduler):
 		job_queue = defaultdict(list)
 
 		if len(self.grid.get_queued()) > 0:
-
 			# Add all the jobs to the queue
 			for unit in self.grid.get_queued():
 
@@ -251,19 +251,18 @@ class RoundRobinScheduler(Scheduler):
 
 				job_queue[unit.job.job_id].append(unit)
 
-			work_unit_to_send = None
+			# Want to send the first work unit of the first job in queue
+			work_unit_to_send = job_queue[self.job_id_queue[0]][0]
 
-			for job_id, units in job_queue.items():
-				if self.job_id_queue[0] == job_id:
-					work_unit_to_send = units[0]
-					
-					# Move job id to end of the queue
-					popped_job_id = self.job_id_queue.popleft()
-					self.job_id_queue.append(popped_job_id)
-
-				else:
-					continue
-
+			# If its the last work unit of the job we want to remove that job id
+			# from the internal queue.
+			# Otherwise move the job id to the end of the queue
+			if len(job_queue[self.job_id_queue[0]]) == 1:
+				self.job_id_queue.popleft()
+			else:
+				popped_job_id = self.job_id_queue.popleft()
+				self.job_id_queue.append(popped_job_id)
+			
 			return work_unit_to_send
 			
 		else:
