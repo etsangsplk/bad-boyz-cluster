@@ -118,15 +118,6 @@ if options.job_id:
 #
 
 if options.job_id_output:
-	try:
-		url = '%s/job/%s/status' % (grid_url, options.job_id_output)
-		request = JSONHTTPRequest( 'GET', url, "", auth_header )
-	except (HTTPError, URLError) as e:
-		client_utils.request_error(e, "Could not get the status of job %s from The Grid." % options.job_id_output)
-		sys.exit(1)
-
-	status = request.response['job_status']
-	
 	# Get the file URIs
 	try:
 		url = '%s/job/%s/output/files' % (grid_url, options.job_id_output)
