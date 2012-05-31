@@ -162,19 +162,6 @@ def job_status_PUT(request, v):
 	return JSONResponse(job.to_dict(), http.OK)
 
 #
-# job_status_GET(request, v)
-#
-# Gets the status of a job
-#
-
-@auth_client
-def job_status_GET(request, v):
-	try:
-		job = model.grid.get_job(v['id'])
-		return JSONResponse({ 'job_status': job.status }, http.OK)
-	except JobNotFoundException as e:
-		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
-#
 # job_output_files_GET(request, v)
 # 
 # Returns a list of filenames of a finished job
