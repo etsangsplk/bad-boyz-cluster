@@ -313,8 +313,9 @@ class FCFSScheduler(Scheduler):
 # 
 # DeadlineScheduler
 #
-# First Come First Serve (Batch Scheduler):
-# Assigns jobs as they come.
+# Process work units for the job with the earliest deadline.
+# If a new job arrives with an earlier deadline than a job that is
+# being processed, give priority to that job and its work units.
 #
 
 class DeadlineScheduler(Scheduler):
@@ -331,16 +332,22 @@ class DeadlineScheduler(Scheduler):
 			for unit in self.grid.get_queued():
 				job_queue[unit.job.job_id].append(unit)
 
+			# Point of differece from FCFS. Have to process
+			# jobs before we can see what the earliest deadline is
 			earliest_deadline = None
 			earliest_job = None
 
 			for job_id, units in job_queue.items():
 			
 				deadline = int(units[0].job.deadline)
+
+				# If we don't have a deadline, assign the
+				# first job's deadline as earliest
 				if earliest_deadline is None:
 					earliest_deadline = deadline
 					earliest_job = job_id
 
+				# Handle case of >1 jobs with varying deadlines
 				elif deadline < earliest_deadline:
 
 					earliest_deadline = deadline
