@@ -180,25 +180,23 @@ function console() {
 				for (ii=0; ii < j.files.length; ii++){
 					f = j.files[ii]
 
-					if (f.endsWith(".o") || f.endsWith(".e")){
 
-						fid = file_id(j, ii);
 
-						ft = $("#" + fid);
-						if (ft.length==0){
-							ft = $("#file-template").clone();
-							ft.attr("id", fid);
-							li.find(".output-files").append(ft);
+					if (f.endsWith(".o")){
+						var stdout = $("#work_unit_" + f.substring(0, f.length-2) + " a.stdout");
+						if (stdout!=null){
+							stdout.attr("href", "/job/"+j.job_id+"/output/"+f)
+
+							$("#work_unit_" + f.substring(0, f.length-2) + " .output").css("display", "block");
 						}
-						ft.removeClass("remove");
+					}
+					if (f.endsWith(".e")){
 
-						var link = $("<a>");
-						link.attr("href", "/job/"+j.job_id+"/output/"+f)
-						link.text(f);
-						ft.find(".file-filename").empty();
-						ft.find(".file-filename").append(link)
-
-
+						var stderr = $("#work_unit_" + f.substring(0, f.length-2) + " a.stderr");
+						if (stderr!=null){
+							stderr.attr("href", "/job/"+j.job_id+"/output/"+f)
+							$("#work_unit_" + f.substring(0, f.length-2) + " .output").css("display", "block");
+						}
 					}
 
 				}

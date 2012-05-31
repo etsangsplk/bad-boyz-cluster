@@ -43,6 +43,7 @@ def validate_request(req, fields):
 def route(routes, env):
 	request = Request(env)
 
+
 	print "Request: " + str( request.raw )
 
 	route = route_find(routes, env)

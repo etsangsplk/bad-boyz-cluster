@@ -381,6 +381,7 @@ def node_id_POST(request, v):
 # A nice alias for the console index
 #
 
+@auth_client
 def index_GET(request):
 	return FileResponse(os.path.join("www", "console/console.html"))
 

@@ -1,8 +1,8 @@
 a{
-	color:#41474a;;
+	color:#FF711C;
 }
 a:hover{
-	color:#FF711C;;
+	color:#ff8b0f;;
 }
 
 body{
@@ -91,8 +91,9 @@ td{
 }
 .value{
 	float:left;
-	font-size: 18pt;
+	font-size: 12pt;
 	color: #dddedf;
+	font-weight:bold;
 }
 .small-value{
 	float:left;
