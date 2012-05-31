@@ -297,6 +297,7 @@ class FCFSScheduler(Scheduler):
 		# Add 1 second to current time to stop server crashing for jobs
 		# submitted that second.
 		earliest_time = int(time.time()) + 1 
+		self.write_to_log("earliesttime = %s" %earliest_time)
 		earliest_job = None
 
 		for job_id, units in job_queue.items():
@@ -308,8 +309,54 @@ class FCFSScheduler(Scheduler):
 		return job_queue[earliest_job][0]
 
 
+
+# 
+# DeadlineScheduler
+#
+# Process work units for the job with the earliest deadline.
+# If a new job arrives with an earlier deadline than a job that is
+# being processed, give priority to that job and its work units.
+#
+
 class DeadlineScheduler(Scheduler):
-	pass
+	def __init__(self, grid):
+		super(DeadlineScheduler, self).__init__(grid)
+		print "Using Deadline" # Prints to Server stdout
+		self.write_to_log("Using Deadline Scheduler")
+
+	def next_work_unit(self):
+
+		job_queue = defaultdict(list) 
+		if len(self.grid.get_queued()) > 0:
+
+			for unit in self.grid.get_queued():
+				job_queue[unit.job.job_id].append(unit)
+
+			# Point of differece from FCFS. Have to process
+			# jobs before we can see what the earliest deadline is
+			earliest_deadline = None
+			earliest_job = None
+
+			for job_id, units in job_queue.items():
+			
+				deadline = int(units[0].job.deadline)
+
+				# If we don't have a deadline, assign the
+				# first job's deadline as earliest
+				if earliest_deadline is None:
+					earliest_deadline = deadline
+					earliest_job = job_id
+
+				# Handle case of >1 jobs with varying deadlines
+				elif deadline < earliest_deadline:
+
+					earliest_deadline = deadline
+					earliest_job = job_id
+
+			return job_queue[earliest_job][0]
+
+		else:
+			return None
 
 class DeadlineCostScheduler(Scheduler):
 	pass

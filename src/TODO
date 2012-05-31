@@ -4,8 +4,6 @@ Adam TODO:
 Scott TODO:
 
 Vadnal TODO:
- - RoundRobinScheduler (Done I think. ~Requires Testing~)
- - DeadlineScheduler
  - DeadlineCostScheduler
  - PriorityQueueScheduler
 
