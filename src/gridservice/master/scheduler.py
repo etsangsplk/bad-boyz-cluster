@@ -209,7 +209,7 @@ class Scheduler(object):
 			queue_string += "Job: %s.\n" % (job_id)
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
-			queue_string += "Deadline: %s.\n" % time.asctime(time.strptime(units[0].job.deadline, "%Y-%m-%d %H:%M:%S"))
+			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
 			queue_string += "Budget: %s.\n" % (units[0].job.budget)
 			# Print out a job's currently queued work units
 			queue_string += "Work Units: ["

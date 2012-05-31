@@ -96,7 +96,39 @@ class Grid(object):
 		if job_type is None:
 			job_type = "DEFAULT"
 		elif job_type not in self.node_queue.keys():
-			raise InvalidJobTypeException("Job Type %s not found." % job_type)
+			raise InvalidJobTypeException(
+				"Invalid Job Type specified: %s. Valid job types are: %s." % (job_type, ", ".join(self.node_queue.keys()))
+				)
+		
+		# Check for Valid budget
+		try:
+			budget = int(budget)
+		except (TypeError, ValueError):
+			raise InvalidJobBudgetException("Invalid Budget specified: %s. Format: amount in cents as a whole number." % budget)
+		if budget < 0:
+			raise InvalidJobBudgetException("Invalid Budget specified: %s. Budget must be greater than 0" % budget)
+		# Check that wall_time format is valid
+		try:
+			wall_time_stripped = time.strptime(wall_time, "%H:%M:%S")
+		except ValueError:
+			raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: HH:MM:SS." % wall_time)
+
+		# Check that deadline format is valid
+		try:
+			deadline = time.mktime(time.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
+		except ValueError:
+			raise InvalidJobDeadlineFormatException("Invalid Deadline specified: %s. Format: YYYY-MM-DD HH:MM:SS" % deadline)
+
+		# Check that deadline is valid
+		if deadline <= int(time.time()):
+			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past.")
+		
+		# Check that deadline is reasonable
+		wall_secs = (3600 * wall_time_stripped.tm_hour) + (60 * wall_time_stripped.tm_min) + wall_time_stripped.tm_sec
+		if (deadline - wall_secs) < int(time.time()):
+			raise InvalidJobDeadlineException(
+				"Error: Current time plus wall time is later than the specified deadline. Please adjust either and resubmit."
+				)
 
 		job = Job(
 			job_id = self.next_job_id,
@@ -420,32 +452,19 @@ class Grid(object):
 
 		return n
 
-#
-# NodeNotFoundException
-#
-
-class NodeNotFoundException(Exception):
-	pass
-
-#
-# JobNotFoundException
-#
-
-class JobNotFoundException(Exception):
-	pass
-
-#
-# InvalidJobStatusException
-#
-
-class InvalidJobStatusException(Exception):
-	pass
 
 #
 # InvalidSchedulerException
 #
 
 class InvalidSchedulerException(Exception):
+	pass
+
+#
+# NodeNotFoundException
+#
+
+class NodeNotFoundException(Exception):
 	pass
 
 #
@@ -456,7 +475,61 @@ class InvalidNodeTypeException(Exception):
 	pass
 
 #
-# InvalidJobTypeException
-class InvalidJobTypeException(Exception):
-	pass
+# JobNotFoundException
 #
+
+class JobNotFoundException(Exception):
+	pass
+
+
+#
+# InvalidJobParameterException
+#
+# Generic error class for job parameter exceptions
+# when adding jobs from a client.
+#
+
+class InvalidJobParameterException(Exception):
+	pass
+
+#
+# InvalidJobStatusException
+#
+
+class InvalidJobStatusException(InvalidJobParameterException):
+	pass
+
+#
+# InvalidJobTypeException
+#
+
+class InvalidJobTypeException(InvalidJobParameterException):
+	pass
+
+#
+# InvalidJobBudgetException
+#
+
+class InvalidJobBudgetException(InvalidJobParameterException):
+	pass
+
+#
+# InvalidJobWallTimeFormatException
+# 
+
+class InvalidJobWallTimeFormatException(InvalidJobParameterException):
+	pass
+
+#
+# InvalidJobDeadlineFormatException
+# 
+
+class InvalidJobDeadlineFormatException(InvalidJobParameterException):
+	pass
+
+#
+# InvalidJobDeadlineException
+#
+
+class InvalidJobDeadlineException(InvalidJobParameterException):
+	pass

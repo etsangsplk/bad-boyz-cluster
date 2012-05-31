@@ -360,7 +360,7 @@ class NodeServer(object):
 			if (int(time.time()) - task.running_ts) > task.wall_seconds:
 				self.kill_task(task, "Task Killed: Exceeded Wall time.")
 			# Kill task if it exceeds its deadline (for fairness)
-			if int(time.time()) > time.mktime(time.strptime(task.deadline, "%Y-%m-%d %H:%M:%S")):
+			if int(time.time()) > task.deadline:
 				self.kill_task(task, "Task Killed: Exceeded deadline.")
 
 #

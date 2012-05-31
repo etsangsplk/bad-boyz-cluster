@@ -7,7 +7,7 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, authenticate, FileResponse, JSONResponse
-from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobTypeException
+from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobParameterException
 from gridservice.master.scheduler import NodeUnavailableException
 
 def auth_any(func):
@@ -97,16 +97,8 @@ def job_POST(request):
 			job_type = d['job_type'],
 			name = name
 		)
-	except InvalidJobTypeException as e:
-		return JSONResponse({ 
-			'error_msg': "Invalid Job Type %s. Valid Job Types: %s" %
-			(d['job_type'], ", ".join(model.grid.node_queue.keys()))
-		}, 
-		http.BAD_REQUEST)
-		pass
-
-
-
+	except InvalidJobParameterException as e:
+		return JSONResponse({ 'error_msg': "%s" % str(e) }, http.BAD_REQUEST)
 
 	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, http.OK)
 
