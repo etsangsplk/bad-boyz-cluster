@@ -2,12 +2,13 @@
 
 from optparse import OptionParser
 from paste import httpserver, reloader
+import sys
 
 import gridservice.utils
 import gridservice.master.controllers as controllers
 import gridservice.master.model as model
 
-from gridservice.master.grid import Grid
+from gridservice.master.grid import Grid, InvalidSchedulerException
 
 routes = [
 	(('/scheduler', 'PUT'), controllers.scheduler_PUT),
@@ -77,7 +78,11 @@ if __name__ == '__main__':
 	(options, args) = parser.parse_args()
 
 	# Bring the Grid online
-	model.grid = Grid(options.username, options.password, options.scheduler)
+	try:
+		model.grid = Grid(options.username, options.password, options.scheduler)
+	except InvalidSchedulerException:
+		print "Invalid Scheduler %s. Valid schedulers: %s." % (options.scheduler, ", ".join(Grid.SCHEDULERS))
+		sys.exit(1)
 
 	# Initalise the WSGI Server
 	reloader.install()
