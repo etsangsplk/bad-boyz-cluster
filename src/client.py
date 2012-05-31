@@ -221,7 +221,7 @@ try:
 	url = '%s/job' % grid_url
 	request = JSONHTTPRequest( 'POST', url, { 
 		'wall_time': options.wall_time,
-		'deadline': time.mktime(deadline_time),
+		'deadline': options.deadline,
 		'flags': options.flags,
 		'budget': budget,
 		'job_type': options.job_type
