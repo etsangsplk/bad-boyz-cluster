@@ -88,10 +88,10 @@ class Scheduler(object):
 				free_nodes = True
 				
 				# Kill any work_units which have no chance of finishing before the deadline.
-				for unit in self.grid.get_queued():
-					if (int(time.time()) + unit.job.wall_time) > unit.job.deadline:
-						unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
-						unit.kill()
+				# for unit in self.grid.get_queued():
+				# 	if (int(time.time()) + unit.job.wall_time) > unit.job.deadline:
+				# 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
+				# 		unit.kill()
 
 				try:
 					unit = self.next_work_unit(node)
@@ -347,17 +347,20 @@ class DeadlineScheduler(Scheduler):
 			for job_id, units in job_queue.items():
 			
 				deadline = int(units[0].job.deadline)
+				wall_seconds = units[0].job.wall_seconds
+				time_left = deadline - wall_seconds
 
 				# If we don't have a deadline, assign the
 				# first job's deadline as earliest
 				if earliest_deadline is None:
-					earliest_deadline = deadline
+					earliest_deadline = time_left
 					earliest_job = job_id
 
 				# Handle case of >1 jobs with varying deadlines
-				elif deadline < earliest_deadline:
+				#elif deadline < earliest_deadline:
+				elif time_left < earliest_deadline:
 
-					earliest_deadline = deadline
+					earliest_deadline = time_left
 					earliest_job = job_id
 
 			return job_queue[earliest_job][0]
@@ -400,17 +403,19 @@ class DeadlineCostScheduler(Scheduler):
 				if budget_per_node_hour >= node_cost:
 			
 					deadline = int(units[0].job.deadline)
+					wall_seconds = units[0].job.wall_seconds
+					time_left = deadline - wall_seconds
 
 					# If we don't have a deadline, assign the
 					# first job's deadline as earliest
 					if earliest_deadline is None:
-						earliest_deadline = deadline
+						earliest_deadline = time_left
 						earliest_job = job_id
 
 					# Handle case of >1 jobs with varying deadlines
-					elif deadline < earliest_deadline:
+					elif time_left < earliest_deadline:
 
-						earliest_deadline = deadline
+						earliest_deadline = time_left
 						earliest_job = job_id
 
 					return job_queue[earliest_job][0]
