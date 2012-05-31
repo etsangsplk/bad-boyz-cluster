@@ -369,7 +369,7 @@ class DeadlineScheduler(Scheduler):
 # 
 # DeadlineCostScheduler
 #
-# Built upon DeadlineScheduler. Check that a job only runs
+# Built upon DeadlineScheduler.  Check that a job only runs
 # on nodes that are within the job's budget in addition to
 # giving preference to a job with the earliest deadline.
 #
