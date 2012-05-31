@@ -189,6 +189,7 @@ class Job(object):
 			'running_ts': self.running_ts,
 			'finished_ts': self.finished_ts,
 			'name': self.name,
+			'kill_msg': self.kill_msg,
 			'work_units': [],
 		}
 
@@ -269,6 +270,7 @@ class WorkUnit(object):
 			'filename': self.filename,
 			'wall_time': self.job.wall_time,
 			'job_type': self.job.job_type,
+			'kill_msg': self.kill_msg,
 			
 			'node_id': self.node_id,
 			'status': self.status,
