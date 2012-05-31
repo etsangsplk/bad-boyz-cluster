@@ -194,13 +194,16 @@ def job_output_files_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	if job.status != "FINISHED" and job.status != "KILLED":
-		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
 
 	files_list = []
 	for unit in job.work_units:
-		files_list.append("%s_%s.o" % (job.job_id, unit.work_unit_id))
-		files_list.append("%s_%s.e" % (job.job_id, unit.work_unit_id))
+		if unit.status == "FINISHED" or unit.status == "KILLED":
+			files_list.append("%s_%s.o" % (job.job_id, unit.work_unit_id))
+			files_list.append("%s_%s.e" % (job.job_id, unit.work_unit_id))
+	
+	if len(files_list) == 0:
+		return JSONResponse({ 'info_msg': "No output files yet: no portion of job %s has finished running." % v['id']}, http.OK)
+
 	return JSONResponse({ 'output_URIs': files_list }, http.OK)
 
 #
@@ -216,16 +219,14 @@ def job_output_file_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
-	if job.status != "FINISHED" and job.status != "KILLED":
-		return JSONResponse({ 'error_msg': "Job %s has not finished running." % v['id']}, http.BAD_REQUEST)
-	
 	file_path = "%s/%s" % (job.output_dir, v['file_name'])
 
 	try:
 		f = open(file_path, "r")
 		f.close()
 	except IOError as e:
-		return JSONResponse({ 'error_msg': "Unable to open file %s for Job %s." % (v['file_name'], v['id'])}, http.BAD_REQUEST)
+		return JSONResponse({ 'error_msg': "Unable to open file %s for Job %s; File does not exist" 
+								% (v['file_name'], v['id'])}, http.BAD_REQUEST)
 
 	return FileResponse(file_path)
 

@@ -126,9 +126,16 @@ if options.job_id_output:
 		sys.exit(1)
 
 	status = request.response['job_status']
-	if status == "FINISHED" or status == "KILLED":
+	
+	if status == "READY":
+		print "Job %s is waiting to be scheduled." % options.job_id_output
+	elif status == "PENDING":
+		print "The Grid is still initialising Job %s." % options.job_id_output
+	else:
 		if status == "KILLED":
 			print "Warning: Job %s has been killed. Output returned will be incomplete." % options.job_id_output
+		if status == "RUNNING":
+			print "Warning: Job %s is still running. Output returned will be incomplete." % options.job_id_output
 			
 		# Get the file URIs
 		try:
@@ -137,8 +144,13 @@ if options.job_id_output:
 		except (HTTPError, URLError) as e:
 			client_utils.request_error(e, "Could not get the list of output files for job %s from The Grid" % options.job_id_output)
 			sys.exit(1)
-		files_list = request.response['output_URIs']
-		
+	
+		try:
+			files_list = request.response['output_URIs']
+		except KeyError:
+			print request.response['info_msg']
+			sys.exit(1)
+
 		# Create directory to store results
 		results_dir = os.path.join("results", "jobs", options.job_id_output, "output")
 		if not os.path.exists(results_dir):
@@ -160,12 +172,6 @@ if options.job_id_output:
 			f.close()
 		sys.exit(1)
 			
-	elif status == "RUNNING":
-		print "Job %s is still running." % options.job_id_output
-	elif status == "READY":
-		print "Job %s is waiting to be scheduled." % options.job_id_output
-	elif status == "PENDING":
-		print "The Grid is still initialising Job %s." % options.job_id_output
 	sys.exit(1)
 #
 # Begin Client
