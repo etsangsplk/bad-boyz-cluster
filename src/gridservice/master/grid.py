@@ -90,7 +90,7 @@ class Grid(object):
 	# Adds a new job to the Grid
 	#
 		
-	def add_job(self, flags, wall_time, deadline, budget, job_type):
+	def add_job(self, flags, wall_time, deadline, budget, job_type, name):
 	
 		# Need to check job_type is a valid queue
 		if job_type is None:
@@ -104,7 +104,8 @@ class Grid(object):
 			wall_time = wall_time, 
 			deadline = deadline, 
 			budget = budget,
-			job_type = job_type
+			job_type = job_type,
+			name = name
 		)
 
 		self.jobs[ self.next_job_id ] = job
@@ -210,10 +211,12 @@ class Grid(object):
 
 		node_id = self.get_node_id(node_ident)
 
+		node['cores'] = node["cores"]
 		node['node_id'] = node_id
 		node['status'] = "ONLINE"
 		node['work_units'] = []
 		node['type'] = self.get_node_type(node_id)
+		node['node_ident']=node_ident
 
 		self.add_to_node_queues(node_id, node['type'])
 

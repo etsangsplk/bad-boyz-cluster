@@ -32,6 +32,19 @@ routes = [
 
 	(('/job/{id:\d+}/workunit', 'POST'), controllers.job_workunit_POST),
 	
+	# All my beautiful JSON for the UI
+
+	# Getting information
+	(('/json/nodes', 'GET'), controllers.nodes_GET),
+	(('/json/jobs', 'GET'), controllers.jobs_GET),
+
+	# Doing stuff
+	# No, just use (('/job', 'POST'), controllers.job_POST)
+	## (('/json/job/update/', 'POST'), controllers.job_update_POST),
+	(('/json/job/submit-file/{tmp_job_id:\d+}/', 'POST'), controllers.job_submit_file_POST),
+	(('/json/job/submit-executable/{tmp_job_id:\d+}/', 'POST'), controllers.job_submit_executable_POST),
+	(('/json/job/queue/', 'POST'), controllers.job_queue_POST),
+
 	# Serve files directly from disk 
 	(('/', 'GET'), controllers.index_GET),
 	(('/{file:[A-z0-9\.\-\/]+}', 'GET'), controllers.file_GET),
@@ -75,3 +88,6 @@ if __name__ == '__main__':
 
 	app = gridservice.utils.make_app(routes)
 	httpserver.serve(app, host = host, port = port)
+
+
+

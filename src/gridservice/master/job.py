@@ -17,7 +17,7 @@ import json
 
 class Job(object):
 
-	def __init__(self, job_id, flags, wall_time, deadline, budget, job_type):
+	def __init__(self, job_id, flags, wall_time, deadline, budget, job_type, name):
 		self.job_id = job_id
 		self.status = "PENDING"
 		self.wall_time = wall_time
@@ -25,11 +25,13 @@ class Job(object):
 		self.flags = flags
 		self.budget = budget
 		self.job_type = job_type
+		self.name = name
 
 		self.created_ts = int(time.time())
 		self.ready_ts = None
 		self.running_ts = None
 		self.finished_ts = None
+		self.executable = None
 		
 		self.files = []
 		self.work_units = []
@@ -185,6 +187,7 @@ class Job(object):
 			'ready_ts': self.ready_ts,
 			'running_ts': self.running_ts,
 			'finished_ts': self.finished_ts,
+			'name': self.name,
 			'work_units': [],
 		}
 

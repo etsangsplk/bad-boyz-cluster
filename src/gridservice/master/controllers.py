@@ -81,17 +81,21 @@ def job_GET(request):
 @auth_client
 def job_POST(request):
 	d = request.json
-
 	if not validate_request(d, 
 		['wall_time', 'deadline', 'flags', 'budget', 'job_type']):
 		return JSONResponse({ 'error_msg': 'Invalid Job JSON received.' }, http.BAD_REQUEST)
 	try:
+		name = "Unknown"
+		if d.has_key("name"):
+			name = d["name"]
+
 		job = model.grid.add_job(
 			flags = d['flags'], 
 			wall_time = d['wall_time'], 
 			deadline = d['deadline'], 
 			budget = d['budget'],
-			job_type = d['job_type']
+			job_type = d['job_type'],
+			name = name
 		)
 	except InvalidJobTypeException as e:
 		return JSONResponse({ 
@@ -100,6 +104,9 @@ def job_POST(request):
 		}, 
 		http.BAD_REQUEST)
 		pass
+
+
+
 
 	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, http.OK)
 
@@ -385,3 +392,94 @@ def index_GET(request):
 
 def file_GET(request, v):
 	return FileResponse(os.path.join("www", v["file"]))
+
+
+# Controller actions for the Console...
+@auth_client
+def nodes_GET(request):
+	nodeList = model.grid.nodes.values()
+
+	jsonNodes = []
+	for node in nodeList:
+		n = {
+			"node_id": node['node_id'],
+			"status": node['status'],
+			"work_units": [],
+			"type": node['type'],
+			"node_ident": node['node_ident'],
+			"cores": node['cores']
+		}
+		for unit in node["work_units"]:
+			n["work_units"].append(unit.to_dict())
+		
+		jsonNodes.append(n)
+
+
+	return  JSONResponse({ 'nodes': jsonNodes}, 200)
+
+
+@auth_client
+def jobs_GET(request):
+	queued_jobs = model.grid.get_queued()
+	queued_jobs = model.grid.jobs
+
+	ljobs=[]
+	for j in queued_jobs.values():
+		ljobs.append(j.to_dict())
+
+	# Now get running Jobs
+
+
+	# And finally, completed jobs...
+
+
+	return  JSONResponse({ 'jobs': ljobs}, 200)
+
+
+
+
+def job_submit_file_POST(request, v):
+	file_name = request.query["qqfile"][0]
+	try:
+		job = model.grid.get_job(v['tmp_job_id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+
+	file_path = job.input_path(file_name)
+
+	job.create_file_path(file_path)
+	request.raw_to_file(file_path)
+
+	job.add_file(file_name)
+
+
+
+	return JSONResponse( {'tmp_job_id': v['tmp_job_id'], 'filename': file_path} , 200)
+
+def job_submit_executable_POST(request, v):
+	file_name = request.query["qqfile"][0]
+	try:
+		job = model.grid.get_job(v['tmp_job_id'])
+	except JobNotFoundException as e:
+		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
+
+
+	file_path = job.executable_path(file_name)
+	
+	job.create_file_path(file_path)
+	request.raw_to_file(file_path)
+
+	job.add_executable(file_name)
+
+	return JSONResponse( {'tmp_job_id': v['tmp_job_id'], 'filename': file_path} , 200)
+
+
+@auth_client
+def job_queue_POST(request):
+	if request.post.has_key("tmp_job_id"):
+		tmp_job_id = int(request.post["tmp_job_id"][0])
+
+	job_id = model.grid.tmp_job_enqueue(tmp_job_id)
+
+	return JSONResponse( {'job_id': job_id} , 200)
