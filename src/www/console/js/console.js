@@ -101,6 +101,7 @@ function console() {
 		wtled = wt.find("img.unit-status-led");
 
 		if (w.status=="PENDING") wtled.attr("src", "/console/img/ledblue.png")
+		if (w.status=="READY") wtled.attr("src", "/console/img/ledblue.png")
 		if (w.status=="RUNNING") wtled.attr("src", "/console/img/ledpurple.png")
 		if (w.status=="FINISHED") wtled.attr("src", "/console/img/ledgreen.png")
 		if (w.status=="QUEUED") wtled.attr("src", "/console/img/ledorange.png")
@@ -151,12 +152,14 @@ function console() {
 			led = li.find("img.job-status-led");
 
 			if (j.status=="PENDING") led.attr("src", "/console/img/ledblue.png");
+			if (j.status=="READY") led.attr("src", "/console/img/ledblue.png");
 			if (j.status=="QUEUED") led.attr("src", "/console/img/ledorange.png");
 			if (j.status=="RUNNING") led.attr("src", "/console/img/ledpurple.png");
 			if (j.status=="FINISHED") led.attr("src", "/console/img/ledgreen.png");
 			if (j.status=="KILLED") led.attr("src", "/console/img/ledred.png");
 
 			if (j.status=="PENDING") li.find("button.cancel").show();
+			if (j.status=="READY") li.find("button.cancel").show();
 			if (j.status=="QUEUED") li.find("button.cancel").show();
 			if (j.status=="RUNNING") li.find("button.cancel").show();
 			if (j.status=="FINISHED") li.find("button.cancel").hide();
@@ -283,6 +286,7 @@ function console() {
 			data: JSON.stringify({	name: $("#text-job-name").val(), 
 					wall_time: $("#text-wall-time").val(), 
 					deadline: $("#text-deadline").val(), 
+					// deadline: new Date($("#text-deadline").val()).getTime()/1000, 
 					budget: $("#text-budget").val(), 
 					job_type: $("#text-job-type").val(), 
 					flags : ""}),
@@ -405,9 +409,9 @@ function console() {
 
 		month = d.getMonth() + 1;
 		day = d.getDate()+1;
-		if (d==32){
-			m++;
-			d=1
+		if (day==32){
+			month++;
+			day=1
 		}
 
 		return d.getFullYear() +

@@ -186,7 +186,7 @@ ul.workunits{
 
 }
 
-#jobs li.workunit{
+#jobs li.workunit, #nodes li.workunit{
 	border:none;
 	padding:2px;
 	margin:0px;
