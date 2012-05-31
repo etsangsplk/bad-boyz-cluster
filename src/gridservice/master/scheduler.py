@@ -297,6 +297,7 @@ class FCFSScheduler(Scheduler):
 		# Add 1 second to current time to stop server crashing for jobs
 		# submitted that second.
 		earliest_time = int(time.time()) + 1 
+		self.write_to_log("earliesttime = %s" %earliest_time)
 		earliest_job = None
 
 		for job_id, units in job_queue.items():
@@ -308,8 +309,47 @@ class FCFSScheduler(Scheduler):
 		return job_queue[earliest_job][0]
 
 
+
+# 
+# DeadlineScheduler
+#
+# First Come First Serve (Batch Scheduler):
+# Assigns jobs as they come.
+#
+
 class DeadlineScheduler(Scheduler):
-	pass
+	def __init__(self, grid):
+		super(DeadlineScheduler, self).__init__(grid)
+		print "Using Deadline" # Prints to Server stdout
+		self.write_to_log("Using Deadline Scheduler")
+
+	def next_work_unit(self):
+
+		job_queue = defaultdict(list) 
+		if len(self.grid.get_queued()) > 0:
+
+			for unit in self.grid.get_queued():
+				job_queue[unit.job.job_id].append(unit)
+
+			earliest_deadline = None
+			earliest_job = None
+
+			for job_id, units in job_queue.items():
+			
+				deadline = int(units[0].job.deadline)
+				if earliest_deadline is None:
+					earliest_deadline = deadline
+					earliest_job = job_id
+
+				elif deadline < earliest_deadline:
+
+					earliest_deadline = deadline
+					earliest_job = job_id
+
+			return job_queue[earliest_job][0]
+
+		else:
+			return None
 
 class DeadlineCostScheduler(Scheduler):
 	pass
