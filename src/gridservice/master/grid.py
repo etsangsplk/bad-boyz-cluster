@@ -168,7 +168,6 @@ class Grid(object):
 	#
 
 	def kill_job(self, job):
-
 		for unit in job.work_units:
 			if unit.status == "RUNNING":
 				try:

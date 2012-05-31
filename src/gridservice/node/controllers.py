@@ -45,6 +45,6 @@ def task_id_DELETE(request, v):
 	except (TaskNotFoundException) as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
-	model.server.kill_task(task, "Task Killed: Kill request from The Grid.")
+	model.server.kill_task(task)
 
 	return JSONResponse({ 'success': 'Task killed.' }, 200)

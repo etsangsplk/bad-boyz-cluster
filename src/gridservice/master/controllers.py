@@ -129,7 +129,8 @@ def job_id_DELETE(request, v):
 		job = model.grid.get_job(v['id'])
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
-	
+
+	job.kill_msg = "Killed on request by client."
 	try:
 		model.grid.kill_job(job)
 	except NodeUnavailableException as e:
@@ -186,17 +187,27 @@ def job_output_files_GET(request, v):
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
+	if job.status == "READY":
+		return JSONResponse({ 'error_msg': "Job %s is still waiting to be scheduled." % v['id']}, http.BAD_REQUEST)
+	elif job.status == "PENDING":
+		return JSONResponse({ 'error_msg': "The Grid is still initialising Job %s." % v['id']}, http.BAD_REQUEST)
+	elif job.status == "RUNNING":
+		info_msg = "Warning: Job %s is still running. Output files for running portions of the job will be missing." % v['id']
+	elif job.status == "KILLED":
+		info_msg = "Warning: Job %s has been killed: %s Output returned will be incomplete." % (v['id'], job.kill_msg)
+	else:
+		info_msg = ""
 
 	files_list = []
 	for unit in job.work_units:
 		if unit.status == "FINISHED" or unit.status == "KILLED":
 			files_list.append("%s_%s.o" % (job.job_id, unit.work_unit_id))
 			files_list.append("%s_%s.e" % (job.job_id, unit.work_unit_id))
-	
-	if len(files_list) == 0:
-		return JSONResponse({ 'info_msg': "No output files yet: no portion of job %s has finished running." % v['id']}, http.OK)
+		if unit.status == "KILLED" and job.status != "KILLED":
+			info_msg += "Warning: Work unit %s has been killed:" % unit.work_unit_id
+			info_msg += " %s Output returned will be incomplete for this work unit.\n" % unit.kill_msg
 
-	return JSONResponse({ 'output_URIs': files_list }, http.OK)
+	return JSONResponse({ 'output_URIs': files_list, 'info_msg': info_msg }, http.OK)
 
 #
 # job_output_file_GET(request, v)
@@ -288,7 +299,7 @@ def job_files_PUT(request, v):
 @require_json
 @auth_node
 def job_workunit_POST(request, v):
-	if not validate_request(request.json, ['work_unit_id']): 
+	if not validate_request(request.json, ['work_unit_id', 'kill_msg']): 
 		return JSONResponse({ 'error_msg': 'Invalid Work Unit JSON received.' }, http.BAD_REQUEST)
 
 	try:
@@ -297,6 +308,10 @@ def job_workunit_POST(request, v):
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
 	unit = model.grid.finish_work_unit(job, request.json['work_unit_id'])
+	
+	if request.json['kill_msg'] != "":
+		unit.kill_msg = request.json['kill_msg']
+		unit.kill()
 
 	return JSONResponse(unit.to_dict(), http.OK)
 

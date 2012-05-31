@@ -26,6 +26,7 @@ class Job(object):
 		self.budget = budget
 		self.job_type = job_type
 		self.name = name
+		self.kill_msg = ""
 
 		self.created_ts = int(time.time())
 		self.ready_ts = None
@@ -110,7 +111,7 @@ class Job(object):
 		# Assume the job is finished. Look for contradiction.
 		finished = True
 		for work_unit in self.work_units:
-			if work_unit.status != "FINISHED":
+			if work_unit.status != "FINISHED" and work_unit.status != "KILLED":
 				finished = False
 				break
 
@@ -220,6 +221,7 @@ class WorkUnit(object):
 		self.work_unit_id = work_unit_id
 		self.task_id = None
 		self.node_id = None
+		self.kill_msg = ""
 
 		self.status = "QUEUED"
 		self.filename = filename
@@ -253,6 +255,9 @@ class WorkUnit(object):
 	def kill(self):
 		self.status = "KILLED"
 		self.finished_ts = int(time.time())
+
+		if self.job.is_finished():
+			self.job.finish()
 
 	def to_dict(self):
 		d = {

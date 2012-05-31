@@ -248,28 +248,26 @@ class NodeServer(object):
 	# kill_task(self, task, kill_msg)
 	#
 	# Kills a running process and forces the immediate return
-	# of any output files created. Appends an optional kill message
-	# to the output files.
+	# of any output files created. Sends back reason for kill 
+	# to The Grid.
 	#
 
-	def kill_task(self, task, kill_msg = ""):
-		task.outfile.write("%s\n" % kill_msg)
-		task.errfile.write("%s\n" % kill_msg)
+	def kill_task(self, task, kill_msg=""):
 		task.outfile.close()
 		task.errfile.close()
-		print kill_msg
 
 		task.kill()
-		self.finish_task(task)
+		self.finish_task(task, kill_msg)
 		del self.tasks[task.task_id]
 	#
 	# finish_task(self, task)
 	#
 	# Send the .o and .e files from the process to the server
 	# and inform the server the task is completed.
+	# Optionally sends a message as to why the task was killed.
 	#
 
-	def finish_task(self, task):
+	def finish_task(self, task, kill_msg = ""):
 
 		self.send_task_output(task)
 		self.cleanup_task_files(task)
@@ -278,8 +276,8 @@ class NodeServer(object):
 		try:
 			url = '%s/job/%s/workunit' % (self.grid_url, str(task.job_id))
 			request = JSONHTTPRequest( 'POST', url, { 
-				'job_id': task.job_id,
 				'work_unit_id': task.work_unit_id,
+				'kill_msg': kill_msg,
 			}, self.auth_header)
 		except (HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to the grid")
@@ -358,10 +356,12 @@ class NodeServer(object):
 				del self.tasks[i]
 			# Kill task if its exceeded it wall time
 			if (int(time.time()) - task.running_ts) > task.wall_seconds:
-				self.kill_task(task, "Task Killed: Exceeded Wall time.")
+				self.kill_task(task, "Exceeded Wall time.")
+				print "Work unit %s of job %s killed: Exceeded Wall Time." % (task.job_id, task.work_unit_id)
 			# Kill task if it exceeds its deadline (for fairness)
 			if int(time.time()) > task.deadline:
-				self.kill_task(task, "Task Killed: Exceeded deadline.")
+				self.kill_task(task, "Exceeded deadline.")
+				print "Work unit %s of job %s killed: Exceeded Deadline." % (task.job_id, task.work_unit_id)
 
 #
 # Task
@@ -393,7 +393,7 @@ class Task(object):
 		self.ready_ts = None
 		self.running_ts = None
 		self.finished_ts = None
-	
+
 		self.process = None
 		self.infile = None
 		self.outfile = None
