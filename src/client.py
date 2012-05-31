@@ -217,9 +217,12 @@ for filename in args:
 try:
 	url = '%s/job/%s/status' % (grid_url, job_id)
 	request = JSONHTTPRequest( 'PUT', url, { 'status': 'READY' }, auth_header)
-
 except (HTTPError, URLError) as e:
 	client_utils.request_error(e, "Could not send READY status to The Grid.")
+	if isinstance(e, HTTPError) and e.code == 400:
+		request = json.loads(e.read())
+		if 'error_msg' in request:
+			print "%s" % request['error_msg']
 	sys.exit(1)
 
 # Output Useful information

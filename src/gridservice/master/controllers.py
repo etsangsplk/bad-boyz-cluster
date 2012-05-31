@@ -7,7 +7,7 @@ import gridservice.master.model as model
 from gridservice import http
 from gridservice.utils import validate_request
 from gridservice.http import require_json, authenticate, FileResponse, JSONResponse
-from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidJobStatusException, InvalidSchedulerException, InvalidJobParameterException
+from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidSchedulerException, InvalidJobParameterException
 from gridservice.master.scheduler import NodeUnavailableException
 
 def auth_any(func):
@@ -156,7 +156,7 @@ def job_status_PUT(request, v):
 		job = model.grid.update_job_status(v['id'], d['status'])
 	except JobNotFoundException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
-	except InvalidJobStatusException as e:
+	except InvalidJobParameterException as e:
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
 	return JSONResponse(job.to_dict(), http.OK)

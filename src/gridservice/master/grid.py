@@ -5,6 +5,7 @@ import json
 import copy
 import shutil
 import os
+from datetime import datetime, timedelta
 
 from urllib2 import HTTPError, URLError
 from httplib import HTTPException
@@ -48,10 +49,11 @@ class Grid(object):
 
 		self.auth_header = auth_header(username, password)
 
+		# (Proportion of nodes, max wall_time (hours), list of nodes)
 		self.node_queue = {
-			'DEFAULT': (0.4, []),
-			'BATCH': (0.3, []),
-			'FAST': (0.3, [])
+			'DEFAULT': (0.5, 168, []), # 7 days
+			'BATCH': (0.3, None, []),
+			'FAST': (0.2, 1, []) 
 		}
 
 		self.next_node_id = 0
@@ -115,30 +117,43 @@ class Grid(object):
 
 		# Check that deadline format is valid
 		try:
-			deadline = time.mktime(time.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
+			deadline_since_epoch = time.mktime(time.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
 		except ValueError:
 			raise InvalidJobDeadlineFormatException("Invalid Deadline specified: %s. Format: YYYY-MM-DD HH:MM:SS" % deadline)
 
 		# Check that deadline is valid
-		if deadline <= int(time.time()):
-			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past.")
+		if deadline_since_epoch <= int(time.time()):
+			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past." % deadline)
 		
 		# Check that deadline is reasonable
 		wall_secs = (3600 * wall_time_stripped.tm_hour) + (60 * wall_time_stripped.tm_min) + wall_time_stripped.tm_sec
-		if (deadline - wall_secs) < int(time.time()):
+		if (deadline_since_epoch - wall_secs) < int(time.time()):
 			raise InvalidJobDeadlineException(
 				"Error: Current time plus wall time is later than the specified deadline. Please adjust either and resubmit."
 				)
+		
+		# Check that wall time is within acceptable range for job queue placement
+		wall_hours = wall_secs / 3600
+		if self.node_queue[job_type][1] != None and wall_hours > self.node_queue[job_type][1]:
+			raise InvalidJobTypeException(
+				"Invalid Job Type specified: %s. Wall time %s is too large. Wall time must be shorter than %s for job type %s."
+				% (job_type, wall_time, "{:02}:00:00".format(max_wall_time),job_type)
+				)
+
+		#
+		# All tests passed, add to grid.
+		#
 
 		job = Job(
 			job_id = self.next_job_id,
 			flags = flags, 
 			wall_time = wall_time, 
-			deadline = deadline, 
+			deadline = deadline_since_epoch, 
 			budget = budget,
 			job_type = job_type,
 			name = name
 		)
+
 
 		self.jobs[ self.next_job_id ] = job
 		self.next_job_id += 1
@@ -194,6 +209,25 @@ class Grid(object):
 		if status == "READY":
 			job.ready()
 			self.add_to_queue(job)
+		
+		# Need to make sure that budget is acceptable for at least one node
+		min_node_cost = None
+		acceptable = False
+		for node in self.nodes.values():
+			if (min_node_cost == None) or (node['cost'] < min_node_cost):
+				min_node_cost = node['cost']
+			if node['cost'] <= job.budget_per_node_hour:
+				acceptable = True
+				break
+
+		if not acceptable:
+			min_budget = min_node_cost * job.wall_hours * job.num_work_units
+			job.kill_msg = "Killed by The Grid: Insufficient Budget."
+			job.kill()
+			raise InsufficientBudgetException(
+				"Budget %s is insufficient to run job on any nodes on The Grid. The current minimum budget for your job is: %s"
+				% (job.budget, min_budget)
+			)
 
 		return job
 		
@@ -317,7 +351,7 @@ class Grid(object):
 	    # First check remove the node_id from the queues if it exists already.
 		# This will happen if a node is shut down and rebooted before The Grid
 		# detects the node is dead from timing out.
-		for key, (proportion, nodes) in self.node_queue.items():
+		for key, (proportion, max_wall_time, nodes) in self.node_queue.items():
 			if node_id in nodes:
 				nodes.remove(node_id)
 
@@ -327,7 +361,7 @@ class Grid(object):
 
 		# Find the queue whos distance from its desired proportion is
 		# minimized by adding the current node
-		for key, (proportion, nodes) in self.node_queue.items():
+		for key, (proportion, max_wall_time, nodes) in self.node_queue.items():
 			new_proportion = (len(nodes) + 1)/total_nodes
 
 			# Apply the l2-norm penalty to distance between proportions 
@@ -345,7 +379,7 @@ class Grid(object):
 	#
 
 	def add_to_node_queues(self, node_id, node_type):
-		self.node_queue[node_type][1].append(node_id)
+		self.node_queue[node_type][2].append(node_id)
 
 	#
 	# remove_from_node_queues(self, node_id)
@@ -354,7 +388,7 @@ class Grid(object):
 	#
 
 	def remove_from_node_queues(self, node_id):
-		for key, (proportion, nodes) in self.node_queue.items():
+		for key, (proportion, max_wall_time, nodes) in self.node_queue.items():
 			if node_id in nodes:
 				nodes.remove(node_id)
 				break
@@ -531,4 +565,10 @@ class InvalidJobDeadlineFormatException(InvalidJobParameterException):
 #
 
 class InvalidJobDeadlineException(InvalidJobParameterException):
+	pass
+
+#
+# InsufficientBudgetException
+#
+class InsufficientBudgetException(InvalidJobParameterException):
 	pass
