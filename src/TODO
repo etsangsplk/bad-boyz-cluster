@@ -7,8 +7,15 @@ Vadnal TODO:
  - DeadlineCostScheduler
  - PriorityQueueScheduler
 
-Terence TODO:
- - GUI
+Terence GUI TODO:
+ - CPU usage for each node
+ - Cost of a node (cents per hour).
+ - Ability to change scheduler from console (if logged in as admin)
+ - If a job or work_unit is killed, display its kill message (stored in 'kill_msg')
+ - Handle errors thrown when adding a job:
+ 	- On call to grid_url/job, catch HTTPError with code 400 and print out its 'error_msg'
+	- On call to grid_url/job/job_id/status, PUTing READY, catch HTTPError with code 400 and print out its 'error_msg'
+ - Add a panel which displays the output from scheduler_log.txt
 
 Nice to Have:
  - Properly handle the case of failing to connect to the Node when attempting to send the Task

@@ -89,6 +89,8 @@ class Job(object):
 		self.running_ts = int(time.time())
 
 	def finish(self):
+		if self.status == "KILLED":
+			return
 		self.status = "FINISHED"
 		self.finished_ts = int(time.time())
 
