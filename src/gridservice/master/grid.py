@@ -429,11 +429,11 @@ class Grid(object):
 		if node_type is None:
 			node_list = self.nodes.values()
 		elif node_type in self.node_queue.keys():
-			node_list = self.node_queue[node_type][1]
+			node_list = self.node_queue[node_type][2]
 
 			# If there's no nodes in that queue assign to the DEFAULT queue
 			if len(node_list) is 0:
-				node_list = self.node_queue["DEFAULT"][1]
+				node_list = self.node_queue["DEFAULT"][2]
 		else:
 			raise InvalidNodeTypeException("%s is not a valid priority queue type.\n" % node_type)
 

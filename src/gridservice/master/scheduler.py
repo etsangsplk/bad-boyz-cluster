@@ -94,7 +94,6 @@ class Scheduler(object):
 						unit.kill()
 
 				try:
-					# Node arg added so a job can know which node it is on
 					unit = self.next_work_unit(node)
 				except Exception as e:
 					self.write_to_log("Work unit allocator crashed\n")
@@ -421,12 +420,76 @@ class DeadlineCostScheduler(Scheduler):
 
 
 class PriorityQueueScheduler(Scheduler):
-	pass
-	# def allocate_work_units(self):
-	# 	pass
+	def __init__(self, grid):
+		super(PriorityQueueScheduler, self).__init__(grid)
+		print "Using Multi-level Priority Queue Scheduler" # Prints to Server stdout
+		self.write_to_log("Using Multi-level Priority Queue Scheduler")
+	
+	def allocate_work_units(self):
+		with self.grid.queue_lock:
+			free_nodes = False
+			for queue in self.grid.node_queue.keys():
+				for node in self.grid.get_free_node(queue):
+					free_nodes = True
+					
+					# Kill any work_units which have no chance of finishing before the deadline.
+					for unit in self.grid.get_queued():
+						if (int(time.time()) + unit.job.wall_time) > unit.job.deadline:
+							unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
+							unit.kill()
 
-	# def next_work_unit(self):
-	# 	pass
+					try:
+						unit = self.next_work_unit(node, queue)
+					except Exception as e:
+						self.write_to_log("Work unit allocator crashed\n")
+						exc_type, exc_value, exc_tb = sys.exc_info()
+						traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+						self.log.write(traceback_msg)
+						self.log.close()
+						print "Error in Scheduler. Shutting down Server."
+						os._exit(1)
+					
+					if unit == None:
+						self.write_to_log("Waiting for tasks to schedule.\n")
+						break
+
+					self.write_queue_to_log()
+
+					# Output to log file
+					self.write_to_log("Allocating work unit " + 
+								   str(unit.work_unit_id) + " of job " + 
+								   str(unit.job.job_id) + " on node " + 
+								   str(node['node_id']) + ".\n\n")
+
+					# If allocating the work unit has failed,
+					# we break to avoid death.
+					try:
+						self.allocate_work_unit(node, unit)
+					except NodeUnavailableException as e:
+						self.write_to_log("Failed to allocated job!\n")
+						self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+				
+				# Find a cleaner way to do this!
+				if not free_nodes:
+					self.write_to_log("Waiting for free nodes")
+
+	def next_work_unit(self, node, queue_type):
+		if len(self.grid.get_queued()) == 0:
+			# No work units to allocate
+			return None
+		
+		# For each queue_type build a job list with jobs of the same type
+		# and allocate using different scheduling algorithms.
+		# Would suggest constraining all by cost.
+		if queue_type == "BATCH":
+			# Suggestion: FCFS for good throughput
+			pass
+		elif queue_type == "DEFAULT":
+			# Maybe earliest deadline?
+			pass
+		elif queue_type == "FAST":
+			# Suggestion: RoundRobin for good response time
+			pass
 #
 # NodeUnavailableException
 #
