@@ -87,7 +87,8 @@ class Scheduler(object):
 			for node in self.grid.get_free_node():
 				free_nodes = True
 				try:
-					unit = self.next_work_unit()
+					# Node arg added so a job can know which node it is on
+					unit = self.next_work_unit(node)
 				except Exception as e:
 					self.write_to_log("Work unit allocator crashed\n")
 					exc_type, exc_value, exc_tb = sys.exc_info()
@@ -238,7 +239,7 @@ class RoundRobinScheduler(Scheduler):
 		self.job_id_queue = deque()
 
 
-	def next_work_unit(self):
+	def next_work_unit(self, node):
 		job_queue = defaultdict(list)
 
 		if len(self.grid.get_queued()) > 0:
@@ -277,7 +278,7 @@ class RoundRobinScheduler(Scheduler):
 #
 
 class FCFSScheduler(Scheduler):
-	def __init__(self, grid):
+	def __init__(self, grid, node):
 		super(FCFSScheduler, self).__init__(grid)
 		print "Using FCFS" # Prints to Server stdout
 		self.write_to_log("Using First Come First Serve Scheduler")
@@ -324,7 +325,7 @@ class DeadlineScheduler(Scheduler):
 		print "Using Deadline" # Prints to Server stdout
 		self.write_to_log("Using Deadline Scheduler")
 
-	def next_work_unit(self):
+	def next_work_unit(self, node):
 
 		job_queue = defaultdict(list) 
 		if len(self.grid.get_queued()) > 0:
@@ -358,15 +359,67 @@ class DeadlineScheduler(Scheduler):
 		else:
 			return None
 
+# 
+# DeadlineCostScheduler
+#
+# Built upon DeadlineScheduler. Check that a job only runs
+# on nodes that are within the job's budget in addition to
+# giving preference to a job with the earliest deadline.
+#
+
 class DeadlineCostScheduler(Scheduler):
-	pass
+	def __init__(self, grid):
+		super(DeadlineCostScheduler, self).__init__(grid)
+		print "Using DeadlineCost" # Prints to Server stdout
+		self.write_to_log("Using DeadlineCost Scheduler")
+
+	def next_work_unit(self, node):
+
+		job_queue = defaultdict(list) 
+		if len(self.grid.get_queued()) > 0:
+			
+			for unit in self.grid.get_queued():
+				job_queue[unit.job.job_id].append(unit)
+
+			# Get the node's cost from the node JSON
+			node_cost = node['cost']
+			earliest_deadline = None
+			earliest_job = None
+
+			for job_id, units in job_queue.items():
+
+				# Check that job runs on node that is within
+				# the job's budget
+				budget_per_node_hour = units[0].job.budget_per_node_hour
+				if budget_per_node_hour >= node_cost:
+			
+					deadline = int(units[0].job.deadline)
+
+					# If we don't have a deadline, assign the
+					# first job's deadline as earliest
+					if earliest_deadline is None:
+						earliest_deadline = deadline
+						earliest_job = job_id
+
+					# Handle case of >1 jobs with varying deadlines
+					elif deadline < earliest_deadline:
+
+						earliest_deadline = deadline
+						earliest_job = job_id
+
+					return job_queue[earliest_job][0]
+
+		else:
+			return None
+
 
 class PriorityQueueScheduler(Scheduler):
-	def allocate_work_units(self):
-		pass
+	pass
+	# def allocate_work_units(self):
+	# 	pass
 
-	def next_work_unit(self):
-		pass
+	# def next_work_unit(self):
+	# 	pass
 #
 # NodeUnavailableException
 #
