@@ -398,6 +398,8 @@ def nodes_GET(request):
 	jsonNodes = []
 	for node in nodeList:
 		n = {
+			"host": node['host'],
+			"port": node['port'],
 			"node_id": node['node_id'],
 			"status": node['status'],
 			"work_units": [],
@@ -411,7 +413,6 @@ def nodes_GET(request):
 			n["work_units"].append(unit.to_dict())
 		
 		jsonNodes.append(n)
-
 
 	return  JSONResponse({ 'nodes': jsonNodes}, 200)
 

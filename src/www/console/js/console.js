@@ -6,7 +6,6 @@ String.prototype.endsWith = function(suffix) {
 function console() {
 	var _ = this;
 
-
 	// this.user = "client";
 	// this.pass = "client"
 
@@ -40,31 +39,28 @@ function console() {
 	} 
 
 	function headers(){
-
 		return {
 			// "Authorization": "Basic " + Base64.encode(_.user +":" + _.pass)
 		};
-
 	}
 
 	function update_cpu(li, new_cpu){
 		cpuh = li.data("cpu-history");
+		cores = li.data("cpu-cores");
 
 		// Update the list
 		cpuh=cpuh.splice(1, cpuh.length-1);
 		cpuh.push(new_cpu);
 		li.data("cpu-history", cpuh);
 
-
 		max_height =  parseFloat(li.find("div.cpu-chart").height());
 		bars = li.find("div.bar");
 		for (i =0; i < cpuh.length; i++){
-			h = parseInt(cpuh[i] / (100 / max_height));
+			h = parseInt(cpuh[i] / cores / (100 / max_height));
 			$(bars[i]).css("height", h);
 			$(bars[i]).css("margin-top", max_height - h );
 
 		}
-
 	}
 
 	function render_nodes(updates) {
@@ -74,9 +70,8 @@ function console() {
 			// Check to see if we already have a node here?
 			var n = updates[i];
 
-
 			var li = $("#" + node_id(n) );
-			if ( li.length==0){
+			if (li.length==0){
 				// Create a new list item for you please!
 				li = $("#node-template").clone();
 				li.attr("id", node_id(n));
@@ -88,11 +83,9 @@ function console() {
 					bar.addClass("bar");
 					li.find("div.cpu-chart").append(bar)
 					cpuh.push(3);
-					li.data("cpu-history", cpuh);
 				}
-
-
-
+				li.data("cpu-cores", n.cores);
+				li.data("cpu-history", cpuh);
 			}
 
 			li.removeClass("remove");
@@ -105,7 +98,6 @@ function console() {
 
 			// If its here, then its online YO!
 			li.find(".node-status-led").attr("src", "/console/img/ledgreen.png");
-			
 
 			if (n.work_units!=null){
 				for (ii=0; ii < n.work_units.length; ii++){
