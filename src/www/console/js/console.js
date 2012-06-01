@@ -131,7 +131,7 @@ function console() {
 		wt.removeClass("remove");
 
 		// Now actually set the Work Unit information...
-		if (w.kill_msg != null){
+		if (w.kill_msg != null && w.kill_msg.length > 0){
 			wt.find(".work-status").text(w.kill_msg);
 
 		}else{
