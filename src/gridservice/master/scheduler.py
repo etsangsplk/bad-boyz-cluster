@@ -89,9 +89,9 @@ class Scheduler(object):
 				
 				# Kill any work_units which have no chance of finishing before the deadline.
 				# for unit in self.grid.get_queued():
-				# 	if (int(time.time()) + unit.job.wall_time) > unit.job.deadline:
-				# 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
-				# 		unit.kill()
+				 	if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
+				 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
+				 		unit.kill()
 
 				try:
 					unit = self.next_work_unit(node)
@@ -439,7 +439,7 @@ class PriorityQueueScheduler(Scheduler):
 					
 					# Kill any work_units which have no chance of finishing before the deadline.
 					for unit in self.grid.get_queued():
-						if (int(time.time()) + unit.job.wall_time) > unit.job.deadline:
+						if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
 							unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
 							unit.kill()
 
