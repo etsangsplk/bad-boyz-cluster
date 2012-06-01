@@ -24,6 +24,7 @@ Terence GUI TODO:
  - Individual work units should also display their kill message if they have one.
     * For example a job can successfully run, but have 1 or more work
 	* units killed if they exceed wall_time/deadline.
+ - Add node type and node_id to the node display.
 
 Nice to Have:
  - Properly handle the case of failing to connect to the Node when attempting to send the Task
