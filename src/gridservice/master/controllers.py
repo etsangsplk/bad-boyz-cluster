@@ -403,7 +403,9 @@ def nodes_GET(request):
 			"work_units": [],
 			"type": node['type'],
 			"node_ident": node['node_ident'],
-			"cores": node['cores']
+			"cores": node['cores'],
+			"cpu": node['cpu'],
+			"cost": node['cost']
 		}
 		for unit in node["work_units"]:
 			n["work_units"].append(unit.to_dict())
@@ -423,15 +425,25 @@ def jobs_GET(request):
 	for j in queued_jobs.values():
 		ljobs.append(j.to_dict())
 
-	# Now get running Jobs
-
-
-	# And finally, completed jobs...
-
 
 	return  JSONResponse({ 'jobs': ljobs}, 200)
 
 
+
+@auth_client
+def log_GET(request):
+
+	# We also want to track an "id" so that we can make UI updates
+	# more efficiently (so we don't redraw stuff thats already drawn)
+	start = len(model.grid.scheduler.mem_log)-100
+	if start < 0:
+		start=0
+
+	logs=[]
+	for i in xrange(start, len(model.grid.scheduler.mem_log)):
+		logs.append( { "id": i, "log": model.grid.scheduler.mem_log[i]})
+
+	return  JSONResponse({ 'log': logs}, 200)
 
 
 def job_submit_file_POST(request, v):

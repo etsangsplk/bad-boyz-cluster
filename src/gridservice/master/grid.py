@@ -276,7 +276,6 @@ class Grid(object):
 
 		node_id = self.get_node_id(node_ident)
 
-		node['cores'] = node["cores"]
 		node['node_id'] = node_id
 		node['status'] = "ONLINE"
 		node['work_units'] = []

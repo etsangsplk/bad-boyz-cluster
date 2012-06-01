@@ -44,6 +44,7 @@ routes = [
 	(('/json/job/submit-file/{tmp_job_id:\d+}/', 'POST'), controllers.job_submit_file_POST),
 	(('/json/job/submit-executable/{tmp_job_id:\d+}/', 'POST'), controllers.job_submit_executable_POST),
 	(('/json/job/queue/', 'POST'), controllers.job_queue_POST),
+	(('/json/logs', 'GET'), controllers.log_GET),
 
 	# Serve files directly from disk 
 	(('/', 'GET'), controllers.index_GET),

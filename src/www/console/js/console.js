@@ -47,6 +47,26 @@ function console() {
 
 	}
 
+	function update_cpu(li, new_cpu){
+		cpuh = li.data("cpu-history");
+
+		// Update the list
+		cpuh=cpuh.splice(1, cpuh.length-1);
+		cpuh.push(new_cpu);
+		li.data("cpu-history", cpuh);
+
+
+		max_height =  parseFloat(li.find("div.cpu-chart").height());
+		bars = li.find("div.bar");
+		for (i =0; i < cpuh.length; i++){
+			h = parseInt(cpuh[i] / (100 / max_height));
+			$(bars[i]).css("height", h);
+			$(bars[i]).css("margin-top", max_height - h );
+
+		}
+
+	}
+
 	function render_nodes(updates) {
 		$("#nodes li").addClass("remove");
 
@@ -61,11 +81,26 @@ function console() {
 				li = $("#node-template").clone();
 				li.attr("id", node_id(n));
 				$("#nodes").append( li );
+
+				var cpuh = [];
+				for (var i=0; i < 60; i++){
+					bar = $("<div>");
+					bar.addClass("bar");
+					li.find("div.cpu-chart").append(bar)
+					cpuh.push(3);
+					li.data("cpu-history", cpuh);
+				}
+
+
+
 			}
+
 			li.removeClass("remove");
 			li.find(".node-name").text( n.node_ident);
-			li.find(".cpu-value").text( parseInt(n.cpu) + "%" );
-			li.find(".job-value").text( n.current_job );
+			li.find(".node-cpu").text( parseInt(n.cpu) + "%" );
+			li.find(".node-cost").text( "$"+ n.cost );
+
+			update_cpu(li, parseInt(n.cpu));
 
 			// If its here, then its online YO!
 			li.find(".node-status-led").attr("src", "/console/img/ledgreen.png");
@@ -108,6 +143,23 @@ function console() {
 		if (w.status=="KILLED") wtled.attr("src", "/console/img/ledred.png")
 	}
 
+	function render_logs(updates){
+		ul = $("#log");
+		for (i=0; i< updates.length; i++){
+			l = updates[i];
+
+			var li = $("#log-entry-" + l.id );
+
+			// You are new!
+			if (li.length==0){
+				li = $("<li>").attr("id", "log-entry-" + l.id );
+				li.text(l.log.toUpperCase());
+				ul.prepend(li);
+			}
+
+		}
+	} 
+
 	function render_jobs(updates) {
 		$("#jobs li").addClass("remove");
 
@@ -146,7 +198,13 @@ function console() {
 
 			li.removeClass("remove");
 			li.find(".job-name").text(j.name + " [" + j.job_id + "]");
-			li.find(".job-status").text( j.status );
+			if (j.kill_msg != null){
+				li.find(".job-status").text( j.kill_msg );
+
+			}else{
+				li.find(".job-status").text( j.status );
+			}
+
 			li.find(".job-command").text( j.executable );
 
 			led = li.find("img.job-status-led");
@@ -227,6 +285,15 @@ function console() {
 			error: function () {
 			}
 		});
+
+		$.ajax({
+			url: "/json/logs",
+			success: function (response) {
+				render_logs(response.log);
+			},
+			error: function () {
+			}
+		});
 	}
 
 	do_updates();
@@ -268,7 +335,9 @@ function console() {
 
 				// alert("Your job has been queued with JobId:" + response.job_id)
 			},
-			error: function () {
+			error: function (response) {
+				alert("Error starting job: " + JSON.parse(response.responseText).error_msg);
+				resetForm();
 			}
 		});
 
@@ -310,7 +379,8 @@ function console() {
 
 				}
 			},
-			error: function () {
+			error: function (response) {
+				alert("Error registering job: " + JSON.parse(response.responseText).error_msg);
 			}
 		});
 

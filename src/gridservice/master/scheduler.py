@@ -34,6 +34,8 @@ class Scheduler(object):
 	def __init__(self, grid):
 		self.grid = grid
 		self.killed = False
+		
+		self.mem_log = [];
 		self.log = open("scheduler_log.txt", "a")
 		self.write_to_log("Starting Scheduler.\n")
 
@@ -179,11 +181,20 @@ class Scheduler(object):
 		blank = " "*27 # Blank space equivalent to space taken by timestamp
 
 		# Write first line with timestamp
-		self.log.write("[{0}] {1}\n".format(time.asctime(), lines[0]))
+		l = "[{0}] {1}\n".format(time.asctime(), lines[0])
+
+		# We also wand to keep an in memory version of the log
+		# so that we can easily read the log from the UI without
+		# overloading the disk... (since we query it ever 1s)
+		self.log.write(l)
+		self.mem_log.append(l)
 
 		# Write following lines with padding 
 		for line in lines[1:-1]:
-			self.log.write("{0}{1}\n".format(blank, line))
+			l = "{0}{1}\n".format(blank, line)
+			self.log.write(l)
+			self.mem_log.append(l)
+
 		self.log.flush()
 
 	#

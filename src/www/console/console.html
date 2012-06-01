@@ -17,6 +17,14 @@
 		<h1>THE GRID</h1>
 
 
+
+		<div id="log-holder">
+			<h2> GRID LOG </h2>
+
+			<ul id="log">
+			</ul>
+		</div>
+
 		<ul id="columns">
 			<li class="column nodes">
 				<h2> AVAILABLE NODES </h2>
@@ -146,6 +154,24 @@
 				<li id="node-template">
 					<h3 class="name node-name"></h3>
 					<img class="node-status-led" />
+
+
+
+					<div class="current-job section">
+						<span class="label">COST:</span>
+						<span class="node-cost value"></span>
+					</div>
+					<div class="cpu section">
+						<span class="label">CPU:</span>
+						<span class="node-cpu value">
+
+						</span>
+
+					</div>
+
+						<div class="cpu-chart">
+						</div>
+
 
 					<ul class="workunits">
 
