@@ -88,7 +88,7 @@ class Scheduler(object):
 				free_nodes = True
 				
 				# Kill any work_units which have no chance of finishing before the deadline.
-				# for unit in self.grid.get_queued():
+				for unit in self.grid.get_queued():
 				 	if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
 				 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
 				 		unit.kill()
