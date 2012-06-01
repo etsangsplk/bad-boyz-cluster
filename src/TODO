@@ -12,6 +12,11 @@ Terence GUI TODO:
  	* as it requires that we restart the master node (and therefore
  	* lose all state within the system), and the UI is only designed 
  	* for use by Clients (there is no concept of an Admin role here).
+ - [Scott] Client side can already change the scheduler using the command:
+   ./client.py --username admin --password admin -s [SchedulerName]
+   Server already handles the restard and state persistence between schedulers when switched.
+   Consult further with Adam if you still disagree.
+
 
 Nice to Have:
  - Properly handle the case of failing to connect to the Node when attempting to send the Task
