@@ -27,6 +27,8 @@ h1{
 }
 h2{
 	padding:6px;
+	padding-bottom: 0;
+	margin-bottom: 0;
 }
 
 
@@ -42,13 +44,21 @@ td{
 	padding-top:0;
 }
 
-.column {
+.column{
 	background: #111314;
-	width:30%;
+	width:31%;
 	float:left;
 	margin:1%;
 	list-style-type:none;
+	border: solid 1px #212223;
 
+}
+#log-holder{
+	background: #111314;
+	margin:1%;
+	height: 200px;
+	overflow-y: scroll;
+	border: solid 1px #212223;
 }
 
 
@@ -66,9 +76,13 @@ td{
 	border: solid 1px #2e2f30;
 
 	margin:5%;
-	margin-bottom:0%;
+	margin-bottom:3%;
+	margin-top:1%;
 }
 
+#log-holder{
+
+}
 
 .name{
 	border-bottom: solid 1px #2e2f30;
@@ -254,4 +268,37 @@ ul.steps li.highlighted{
 ul.steps {
 	height:32px;
 	margin-left:32px;
+}
+
+div.cpu-chart{
+	width: 120px;
+	padding:4px;
+	padding-left:3px;
+	height: 30px;
+	background: #111;
+	float: right;
+	margin-top: -26px;
+	margin-right: 4px;
+	border: solid 1px #2E2F30;
+}
+
+
+div.cpu-chart div.bar{
+	margin-top: 29px;
+	height: 1px;
+	width: 1px;
+	background: #0c73ff;
+	margin-left:1px;
+	float:left;
+}
+
+
+ul#log li{
+	font-size: 11px;
+	color: #868788;
+	padding-left: 6px;
+	padding-bottom: 2px;
+	padding-top: 2px;
+	border-bottom: solid 1px #212223;
+
 }
