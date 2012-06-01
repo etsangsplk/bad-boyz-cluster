@@ -19,12 +19,20 @@ Terence GUI TODO:
 	* disagree.
  - Cost of node currently displayed as $[cost] should be $[cost/100] 
  	per hour
+ 	[Tez]: Done
+
  - Console currently allows multiple executable files to be uploaded. 
  	Consecutive uploads should overwrite previous uploads for executables.
+ 	[Tez]: Already implemented
+
  - Individual work units should also display their kill message if they have one.
     * For example a job can successfully run, but have 1 or more work
 	* units killed if they exceed wall_time/deadline.
+	[Tez]: Done, using "kill_msg" from work unit
+
  - Add node type and node_id to the node display.
+ 	[Tez]: Added [node_id] to heading, and new row for the type
+ 	
 
 Nice to Have:
  - Properly handle the case of failing to connect to the Node when attempting to send the Task

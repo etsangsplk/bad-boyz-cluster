@@ -96,9 +96,10 @@ function console() {
 			}
 
 			li.removeClass("remove");
-			li.find(".node-name").text( n.node_ident);
+			li.find(".node-name").text( n.node_ident + " [" + n.node_id + "]");
+			li.find(".node-type").text( n.type);
 			li.find(".node-cpu").text( parseInt(n.cpu) + "%" );
-			li.find(".node-cost").text( "$"+ n.cost );
+			li.find(".node-cost").text( "$"+ (parseFloat(n.cost)/100) );
 
 			update_cpu(li, parseInt(n.cpu));
 
@@ -130,7 +131,12 @@ function console() {
 		wt.removeClass("remove");
 
 		// Now actually set the Work Unit information...
-		wt.find(".work-status").text(w.status);
+		if (w.kill_msg != null){
+			wt.find(".work-status").text(w.kill_msg);
+
+		}else{
+			wt.find(".work-status").text(w.status);
+		}
 		wt.find(".work-file").text(w.filename);
 
 		wtled = wt.find("img.unit-status-led");
@@ -354,7 +360,7 @@ function console() {
 					wall_time: $("#text-wall-time").val(), 
 					deadline: $("#text-deadline").val(), 
 					// deadline: new Date($("#text-deadline").val()).getTime()/1000, 
-					budget: $("#text-budget").val(), 
+					budget: parseFloat($("#text-budget").val())*100, 
 					job_type: $("#text-job-type").val(), 
 					flags : ""}),
 			success: function (response) {
