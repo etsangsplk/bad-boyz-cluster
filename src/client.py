@@ -68,8 +68,12 @@ parser.add_option("-s", "--scheduler", dest="scheduler",
 	metavar="SCHEDULER")
 
 parser.add_option("-o", "--job_id_output", dest="job_id_output",
-	help="The Job ID to request the output of.",
+	help="The Job ID of a job to request the output of.",
 	metavar="JOB_OUTPUT")
+
+parser.add_option("-g", "--status", dest="job_id_status",
+	help="The Job ID of a job to request the status of.",
+	metavar="STATUS")
 
 (options, args) = parser.parse_args()
 
@@ -114,6 +118,37 @@ if options.job_id:
 	sys.exit(1)
 
 #
+# Request the status of a job
+#
+if options.job_id_status:
+	try:
+		url = '%s/job/%s' % (grid_url, options.job_id_status)
+		request = JSONHTTPRequest( 'GET', url, "", auth_header )
+	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not get the status of job %s from The Grid" % options.job_id_status)
+		sys.exit()
+
+	# Print out information about the job:
+	print "Job: %s" % options.job_id_status
+	print "Command: ./%s %s" % (request.response['executable'], request.response['flags'])
+	print "Wall Time: %s" % (request.response['walltime'])
+	print "Deadline: %s" % (time.asctime(time.localtime(request.response['deadline'])))
+	print "Status: %s." % (request.response['status'])
+	if request.response['kill_msg'] != "":
+		print "\t* %s" % request.response['kill_msg']
+
+	# Print out information about each work unit:
+	print
+	for unit in request.response['work_units']:
+		print "Work Unit: %s" % unit['work_unit_id']
+		print "file: %s" % unit['filename']
+		print "Status: %s." % (unit['status'])
+		if unit['kill_msg'] != "":
+			print "\t* %s" % unit['kill_msg']
+		print
+	sys.exit(1)
+
+#
 # Request the output of a job
 #
 
@@ -150,6 +185,7 @@ if options.job_id_output:
 		f.close()
 			
 	sys.exit(1)
+
 #
 # Begin Client
 #
