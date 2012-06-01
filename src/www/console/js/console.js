@@ -99,7 +99,7 @@ function console() {
 			li.find(".node-name").text( n.node_ident + " [" + n.node_id + "]");
 			li.find(".node-type").text( n.type);
 			li.find(".node-cpu").text( parseInt(n.cpu) + "%" );
-			li.find(".node-cost").text( "$"+ (parseFloat(n.cost)/100) );
+			li.find(".node-cost").text( "$"+ (parseFloat(n.cost)/100).toFixed(2) );
 
 			update_cpu(li, parseInt(n.cpu));
 
