@@ -89,12 +89,6 @@ class Scheduler(object):
 			for node in self.grid.get_free_node():
 				free_nodes = True
 				
-				# Kill any work_units which have no chance of finishing before the deadline.
-				# for unit in self.grid.get_queued():
-				 	if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
-				 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
-				 		unit.kill()
-
 				try:
 					unit = self.next_work_unit(node)
 				except Exception as e:
@@ -109,6 +103,13 @@ class Scheduler(object):
 				if unit == None:
 					self.write_to_log("Waiting for tasks to schedule.\n")
 					break
+
+
+				# Kill any work_units which have no chance of finishing before the deadline.
+				# for unit in self.grid.get_queued():
+				if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
+					unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
+				 	unit.kill()
 
 				self.write_queue_to_log()
 
