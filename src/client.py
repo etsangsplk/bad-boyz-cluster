@@ -11,6 +11,7 @@ from httplib import HTTPException
 
 from optparse import OptionParser
 from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
+from gridservice.utils import wall_secs, strp_wall_time
 
 import gridservice.client.utils as client_utils
 
@@ -60,21 +61,26 @@ parser.add_option("-b", "--budget", dest="budget",
 	help="The overall budget for the job (in cents)", 
 	metavar="BUDGET", default=100)
 
-parser.add_option("-j", "--job_id", dest="job_id",
+parser.add_option("--kj", "--kill_job", dest="job_id",
 	help="The Job ID of a job to be killed.", 
-	metavar="JOB_ID")
+	metavar="KILL_JOB_ID")
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The Scheduler to change The Grid to.",
 	metavar="SCHEDULER")
 
-parser.add_option("-o", "--job_id_output", dest="job_id_output",
+parser.add_option("-o", "--output", dest="job_id_output",
 	help="The Job ID of a job to request the output of.",
 	metavar="JOB_OUTPUT")
 
-parser.add_option("-g", "--status", dest="job_id_status",
+parser.add_option("--js", "--job_status", dest="job_id_status",
 	help="The Job ID of a job to request the status of.",
-	metavar="STATUS")
+	metavar="JOB_STATUS")
+
+parser.add_option("--gs", "--grid_status", dest="grid_status",
+	action="store_true", default = False,
+	help="Request the status of The Grid",
+	metavar="GRID_STATUS")
 
 (options, args) = parser.parse_args()
 
@@ -188,6 +194,39 @@ if options.job_id_output:
 		f.write(request.response)
 		f.close()
 			
+	sys.exit(1)
+
+if options.grid_status:
+	try:
+		url = '%s/node' % (grid_url)
+		request = JSONHTTPRequest( 'GET', url, "", auth_header )
+	except (HTTPError, URLError) as e:
+		client_utils.request_error(e, "Could not retrieve the status of The Grid")
+		sys.exit(1)
+	
+	for node_id in request.response:
+		node = request.response[node_id]
+		if node['status'] == "DEAD":
+			continue
+
+		print "Node: %s" % (node_id)
+		print "Status: %s" % node['status']
+		print "CPU: %s" % (float(node['cpu'])/int(node['cores']))
+		print "Cost: ${:.2f}".format(node['cost']/100)
+		print "Cores: %s" % node['cores']
+		print "Type: %s" % node['type']
+		print "Free Spots: %s" % (int(node['cores']) - len(node['work_units']))
+		if (int(node['cores']) - len(node['work_units'])) == 0:
+			earliest_end = None
+			for unit in node['work_units']:
+				end = int(unit['created_ts']) + wall_secs(strp_wall_time(unit['wall_time']))
+				if earliest_end == None:
+					earliest_end = end
+				if end < earliest_end:
+					earliest_end = end
+			print "Next free: %s" % time.asctime(time.localtime(earliest_end))
+		print
+
 	sys.exit(1)
 
 #
