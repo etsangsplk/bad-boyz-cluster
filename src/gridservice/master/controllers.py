@@ -308,7 +308,7 @@ def job_workunit_POST(request, v):
 # Get a list of all nodes
 #
 
-@auth_admin
+@auth_client
 def node_GET(request):
 	nodes = model.grid.nodes
 
