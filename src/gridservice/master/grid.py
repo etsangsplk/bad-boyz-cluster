@@ -116,7 +116,6 @@ class Grid(object):
 		except WallTimeFormatException:
 			raise InvalidWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
 
-
 		# Check that deadline format is valid
 		try:
 			deadline_since_epoch = time.mktime(time.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
