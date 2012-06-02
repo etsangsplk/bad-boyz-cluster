@@ -21,13 +21,14 @@ parser.add_option("--gp", "--grid_port", dest="gport",
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The scheduler The Grid should use.",
-	metavar="SCHEDULER", default = "Bullshit")
+	metavar="SCHEDULER")
 
 (options, args) = parser.parse_args()
 
-os.system(
-	"./client.py --gh %s --gp %s -s %s" % (options.ghost, options.gport, options.scheduler)
-	)
+if options.scheduler:
+	os.system(
+		"./client.py --gh %s --gp %s --username admin --password -admin -s %s" % (options.ghost, options.gport, options.scheduler)
+		)
 
 os.system(
 	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt"

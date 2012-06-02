@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# Client sends sleep(3) to be distributed across three processes three times
+# Client sends sleep(1) to be distributed across three processes three times
 # 1 second between requests
-# Good for demonstrating FCFS and RoundRobin
+# Good for demonstrating FCFS
 
 import os
 import time
@@ -31,16 +31,23 @@ if options.scheduler:
 		)
 
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f1.txt testfiles/f2.txt testfiles/f3.txt"
 	% (options.ghost, options.gport)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f4.txt testfiles/f5.txt"
 	% (options.ghost, options.gport)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f6.txt"
+	% (options.ghost, options.gport)
+	)
+
+time.sleep(1)
+os.system(
+	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f7.txt testfiles/f8.txt testfiles/f9.txt\
+	 	testfiles/f1.txt"
 	% (options.ghost, options.gport)
 	)

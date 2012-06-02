@@ -280,6 +280,8 @@ class RoundRobinScheduler(Scheduler):
 		if len(job_queue) == 0:
 			return None
 
+		self.write_to_log(str(self.job_id_queue))
+
 		# Want to send the first work unit of the first job in queue
 		work_unit_to_send = job_queue[self.job_id_queue[0]][0]
 
