@@ -3,35 +3,8 @@ Adam TODO:
 Scott TODO:
 
 Vadnal TODO:
- - PriorityQueueScheduler(Need to test)
 
 Terence GUI TODO:
- - Ability to change scheduler from console (if logged in as admin)
- 	* I don't think that this is wise to implement from the console,
- 	* as it requires that we restart the master node (and therefore
- 	* lose all state within the system), and the UI is only designed 
- 	* for use by Clients (there is no concept of an Admin role here).
- - [Scott] Client side can already change the scheduler using the command:
-    * ./client.py --username admin --password admin -s [SchedulerName]
-    * Server already handles the restard and state persistence between 
-	* schedulers when switched. Consult further with Adam if you still 
-	* disagree.
- - Cost of node currently displayed as $[cost] should be $[cost/100] 
- 	per hour
- 	[Tez]: Done
-
- - Console currently allows multiple executable files to be uploaded. 
- 	Consecutive uploads should overwrite previous uploads for executables.
- 	[Tez]: Already implemented
-
- - Individual work units should also display their kill message if they have one.
-    * For example a job can successfully run, but have 1 or more work
-	* units killed if they exceed wall_time/deadline.
-	[Tez]: Done, using "kill_msg" from work unit
-
- - Add node type and node_id to the node display.
- 	[Tez]: Added [node_id] to heading, and new row for the type
- 	
 
 Nice to Have:
  - Properly handle the case of failing to connect to the Node when attempting to send the Task
@@ -40,3 +13,9 @@ Nice to Have:
  - Clean up Scheduler logging to use the logging module
 
 Known Bugs:
+ - [Console] Cancel button isnt binding to the correct job on the console. Will do one of three things:
+ 	* KILL the correct job
+	* KILL a different job
+	* Do nothing.
+ - [Console] Console isnt detecting which nodes are running jobs correctly. Running work units only appear
+    on the first node displayed.
