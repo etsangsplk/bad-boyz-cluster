@@ -3,8 +3,7 @@ Adam TODO:
 Scott TODO:
 
 Vadnal TODO:
- - DeadlineCostScheduler
- - PriorityQueueScheduler
+ - PriorityQueueScheduler(Need to test)
 
 Terence GUI TODO:
  - Ability to change scheduler from console (if logged in as admin)
