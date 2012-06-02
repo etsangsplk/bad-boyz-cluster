@@ -41,6 +41,6 @@ os.system(
 	)
 
 os.system(
-	"./client.py --gj %s --gp %s -e test.py -t BATCH -b 500 -w 10:00:00:00 testfiles/f1000.txt"
+	"./client.py --gh %s --gp %s -e test.py -t BATCH -b 500 -w 10:00:00:00 testfiles/f1000.txt"
 	% (options.ghost, options.gport)
 	)
