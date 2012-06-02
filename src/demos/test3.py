@@ -9,7 +9,7 @@ import time
 
 from optparse import OptionParser
 
-parser = OptionParser(usage="./test1.py --gh HOSTNAME --gp PORT -t JOB_TYPE -s SCHEDULER")
+parser = OptionParser(usage="./test3.py --gh HOSTNAME --gp PORT -t JOB_TYPE -s SCHEDULER")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on",
@@ -25,14 +25,15 @@ parser.add_option("-t", "--job_type", dest="job_type",
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The scheduler The Grid should use.",
-	metavar="SCHEDULER", default="RoundRobin")
+	metavar="SCHEDULER", default="NOCHANGE")
 
 (options, args) = parser.parse_args()
 
-if options.scheduler:
+if options.scheduler != "NOCHANGE":
 	os.system(
 		"./client.py --gh %s --gp %s --username admin --password admin -s %s" % (options.ghost, options.gport, options.scheduler)
 		)
+
 
 os.system(
 	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
