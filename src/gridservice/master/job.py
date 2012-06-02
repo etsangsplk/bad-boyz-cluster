@@ -172,6 +172,7 @@ class Job(object):
 			'deadline': self.deadline,
 			'flags': self.flags,
 			'budget': self.budget,
+			'budget_per_node_hour': self.budget_per_node_hour,
 			'job_type': self.job_type,
 			'created_ts': self.created_ts,
 			'ready_ts': self.ready_ts,

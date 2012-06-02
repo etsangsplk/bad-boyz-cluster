@@ -228,7 +228,8 @@ class Scheduler(object):
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
 			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
-			queue_string += "Budget: %s.\n" % (units[0].job.budget)
+			queue_string += "Total Budget: ${:.2f}.\n".format(units[0].job.budget/100)
+			queue_string += "Budget per node hour: ${:.2f}.\n".format(units[0].job.budget_per_node_hour/100)
 			# Print out a job's currently queued work units
 			queue_string += "Work Units: ["
 			for unit in units:

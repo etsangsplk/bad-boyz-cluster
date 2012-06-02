@@ -132,7 +132,8 @@ if options.job_id_status:
 	# Print out information about the job:
 	print "Job: %s" % options.job_id_status
 	print "Command: ./%s %s" % (request.response['executable'], request.response['flags'])
-	print "Budget: ${:.2}".format(request.response['budget']/100)
+	print "Total Budget: ${:.2f}".format(request.response['budget']/100)
+	print "Budget per node hour: ${:.2f}".format(request.response['budget_per_node_hour']/100)
 	print "Wall Time: %s" % (request.response['walltime'])
 	print "Deadline: %s" % (time.asctime(time.localtime(request.response['deadline'])))
 	print "Status: %s." % (request.response['status'])
