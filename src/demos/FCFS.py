@@ -25,7 +25,8 @@ parser.add_option("-t", "--job_type", dest="job_type",
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The scheduler The Grid should use.",
-	metavar="SCHEDULER", default="RoundRobin")
+	metavar="SCHEDULER", default="FCFS")
+
 (options, args) = parser.parse_args()
 
 if options.scheduler != "NOCHANGE":
