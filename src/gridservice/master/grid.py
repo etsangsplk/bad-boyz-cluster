@@ -109,11 +109,21 @@ class Grid(object):
 			raise InvalidJobBudgetException("Invalid Budget specified: %s. Format: amount in cents as a whole number." % budget)
 		if budget < 0:
 			raise InvalidJobBudgetException("Invalid Budget specified: %s. Budget must be greater than 0" % budget)
+
 		# Check that wall_time format is valid
-		try:
-			wall_time_stripped = time.strptime(wall_time, "%H:%M:%S")
-		except ValueError:
-			raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: HH:MM:SS." % wall_time)
+		wall_split = wall_time.split(":")
+		# Acceptable to drop DD from the Wall_Time
+		if len(wall_split) not in [3,4]:
+			raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
+		# Check that each unit can actually be made an integer
+		for time_unit in wall_split:
+			try:
+				int(time_unit)
+			except (TypeError, ValueError):
+				raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
+		# if DD has been dropped, add it.
+		if len(wall_split) == 3:
+			wall_time = ":".join(["00", wall_time])
 
 		# Check that deadline format is valid
 		try:
@@ -126,7 +136,8 @@ class Grid(object):
 			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past." % deadline)
 		
 		# Check that deadline is reasonable
-		wall_secs = (3600 * wall_time_stripped.tm_hour) + (60 * wall_time_stripped.tm_min) + wall_time_stripped.tm_sec
+		wall_split = map(int, wall_time.split(":"))
+		wall_secs = (wall_split[0] * 86400) + (wall_split[1] * 3600) + (wall_split[2] * 60) + (wall_split[3])
 		if (deadline_since_epoch - wall_secs) < int(time.time()):
 			raise InvalidJobDeadlineException(
 				"Error: Current time plus wall time is later than the specified deadline. Please adjust either and resubmit."
@@ -139,6 +150,23 @@ class Grid(object):
 				"Invalid Job Type specified: %s. Wall time %s is too large. Wall time must be shorter than %s for job type %s."
 				% (job_type, wall_time, "{:02}:00:00".format(max_wall_time),job_type)
 				)
+
+		# Put wall time in a nicer format for printing:
+		left = wall_secs 
+		secs = left % 60
+		
+		left -= secs
+		left /= 60
+		mins = int(left) % 60
+		
+		left -= mins
+		left /= 60
+		hours = int(left) % 24
+
+		left -= hours
+		left /= 24
+		days = int(left)
+		wall_time = "{:02}:{:02}:{:02}:{:02}".format(days, hours, mins, secs)
 
 		#
 		# All tests passed, add to grid.
