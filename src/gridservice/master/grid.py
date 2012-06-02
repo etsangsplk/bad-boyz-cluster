@@ -212,15 +212,20 @@ class Grid(object):
 		# Need to make sure that budget is acceptable for at least one node
 		min_node_cost = None
 		acceptable = False
+
 		for node in self.nodes.values():
 			if (min_node_cost == None) or (node['cost'] < min_node_cost):
 				min_node_cost = node['cost']
 			if node['cost'] <= job.budget_per_node_hour:
 				acceptable = True
 				break
+		
+		# if there are no nodes keep job in hopes it will run.
+		if len(self.nodes.values()) == 0:
+			acceptable = True
 
 		if not acceptable:
-			min_budget = min_node_cost * wall_hours(job.wall_time) * job.num_work_units
+			min_budget = min_node_cost * wall_hours(strp_wall_time(job.wall_time)) * job.num_work_units
 			job.kill_msg = "Killed by The Grid: Insufficient Budget."
 			job.kill()
 			raise InsufficientBudgetException(
