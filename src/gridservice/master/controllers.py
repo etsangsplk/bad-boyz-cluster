@@ -397,22 +397,23 @@ def nodes_GET(request):
 
 	jsonNodes = []
 	for node in nodeList:
-		n = {
-			"host": node['host'],
-			"port": node['port'],
-			"node_id": node['node_id'],
-			"status": node['status'],
-			"work_units": [],
-			"type": node['type'],
-			"node_ident": node['node_ident'],
-			"cores": node['cores'],
-			"cpu": node['cpu'],
-			"cost": node['cost']
-		}
-		for unit in node["work_units"]:
-			n["work_units"].append(unit.to_dict())
-		
-		jsonNodes.append(n)
+		if  node['status'] != "DEAD":
+			n = {
+				"host": node['host'],
+				"port": node['port'],
+				"node_id": node['node_id'],
+				"status": node['status'],
+				"work_units": [],
+				"type": node['type'],
+				"node_ident": node['node_ident'],
+				"cores": node['cores'],
+				"cpu": node['cpu'],
+				"cost": node['cost']
+			}
+			for unit in node["work_units"]:
+				n["work_units"].append(unit.to_dict())
+			
+			jsonNodes.append(n)
 
 	return  JSONResponse({ 'nodes': jsonNodes}, 200)
 
