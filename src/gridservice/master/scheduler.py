@@ -1,3 +1,4 @@
+from __future__ import division
 import threading
 from collections import defaultdict, deque
 import time
@@ -225,6 +226,7 @@ class Scheduler(object):
 			# Print information about the job
 			created_ts = time.asctime(time.localtime(units[0].job.created_ts))
 			queue_string += "Job: %s.\n" % (job_id)
+			queue_string += "Type: %s.\n" % (units[0].job.job_type)
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
 			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
@@ -256,15 +258,8 @@ class RoundRobinScheduler(Scheduler):
 		# Use deque, faster than list (no element shifting)
 		self.job_id_queue = deque()
 
-	# Optionally take in a pre-created queue. For use when scheduler
-	# is called within the PriorityQueueScheduler
-	def next_work_unit(self, node, queue=None):
-
-		if queue == None:
-
-			job_queue = defaultdict(list)
-		else:
-			job_queue = queue
+	def next_work_unit(self, node):
+		job_queue = defaultdict(list)
 
 		# Add all the jobs to the queue
 		for unit in self.grid.get_queued():
@@ -273,14 +268,14 @@ class RoundRobinScheduler(Scheduler):
 			if unit.job.job_id not in self.job_id_queue:
 				self.job_id_queue.append(unit.job.job_id)
 
-			if queue == None:
-				job_queue[unit.job.job_id].append(unit)
+			job_queue[unit.job.job_id].append(unit)
 
 
 		# No work units to allocate!
 		if len(job_queue) == 0:
 			return None
 
+		# Write job_id_queue to the log for clarity.
 		self.write_to_log(str(self.job_id_queue))
 
 		# Want to send the first work unit of the first job in queue
@@ -312,18 +307,12 @@ class FCFSScheduler(Scheduler):
 		print "Using FCFS" # Prints to Server stdout
 		self.write_to_log("Using First Come First Serve Scheduler")
 
-	# Optionally take in a pre-created queue. For use when scheduler
-	# is called within the PriorityQueueScheduler
-	def next_work_unit(self, node, queue=None):
-		
-		# Build a queue, otherwise use a queue passed in
-		if queue == None:
-			job_queue = defaultdict(list) 
+	def next_work_unit(self, node):
+		job_queue = defaultdict(list) 
 
-			for unit in self.grid.get_queued():
-				job_queue[unit.job.job_id].append(unit)
-		else:
-			job_queue = queue	
+		for unit in self.grid.get_queued():
+			job_queue[unit.job.job_id].append(unit)
+
 
 		# No work units to allocate!
 		if len(job_queue) == 0:
@@ -359,18 +348,11 @@ class DeadlineScheduler(Scheduler):
 		print "Using Deadline" # Prints to Server stdout
 		self.write_to_log("Using Deadline Scheduler")
 
-	# Optionally take in a pre-created queue. For use when scheduler
-	# is called within the PriorityQueueScheduler
-	def next_work_unit(self, node, queue=None):
+	def next_work_unit(self, node):
+		job_queue = defaultdict(list) 
 
-		# Build a queue, otherwise use a queue passed in
-		if queue == None:
-			job_queue = defaultdict(list) 
-
-			for unit in self.grid.get_queued():
-				job_queue[unit.job.job_id].append(unit)
-		else:
-			job_queue = queue
+		for unit in self.grid.get_queued():
+			job_queue[unit.job.job_id].append(unit)
 
 		# No work units to allocate!
 		if len(job_queue) == 0:
@@ -383,7 +365,7 @@ class DeadlineScheduler(Scheduler):
 
 		for job_id, units in job_queue.items():
 		
-			deadline = int(units[0].job.deadline)
+			deadline = units[0].job.deadline
 			wall_seconds = wall_secs(strp_wall_time(units[0].job.wall_time))
 			time_left = deadline - wall_seconds
 
@@ -416,18 +398,11 @@ class DeadlineCostScheduler(Scheduler):
 		print "Using DeadlineCost" # Prints to Server stdout
 		self.write_to_log("Using DeadlineCost Scheduler")
 
-	# Optionally take in a pre-created queue. For use when scheduler
-	# is called within the PriorityQueueScheduler
-	def next_work_unit(self, node, queue=None):
-
-		# Build a queue, otherwise use a queue passed in
-		if queue == None:
-			job_queue = defaultdict(list) 
-				
-			for unit in self.grid.get_queued():
-				job_queue[unit.job.job_id].append(unit)
-		else:
-			job_queue = queue
+	def next_work_unit(self, node):
+		job_queue = defaultdict(list) 
+			
+		for unit in self.grid.get_queued():
+			job_queue[unit.job.job_id].append(unit)
 
 		# No work units to allocate!
 		if len(job_queue) == 0:
@@ -436,15 +411,14 @@ class DeadlineCostScheduler(Scheduler):
 		# Get the node's cost from the node JSON
 		node_cost = node['cost']
 		earliest_deadline = None
-		earliest_job = None
-
+		work_unit_to_send = None
 		for job_id, units in job_queue.items():
 			# Check that job runs on node that is within
 			# the job's budget
 			budget_per_node_hour = units[0].job.budget_per_node_hour
 			if budget_per_node_hour >= node_cost:
 		
-				deadline = int(units[0].job.deadline)
+				deadline = units[0].job.deadline
 				wall_seconds = wall_secs(strp_wall_time(units[0].job.wall_time))
 				time_left = deadline - wall_seconds
 
@@ -452,15 +426,14 @@ class DeadlineCostScheduler(Scheduler):
 				# first job's deadline as earliest
 				if earliest_deadline is None:
 					earliest_deadline = time_left
-					earliest_job = job_id
+					work_unit_to_send = job_queue[job_id][0]
 
 				# Handle case of >1 jobs with varying deadlines
 				elif time_left < earliest_deadline:
-
 					earliest_deadline = time_left
-					earliest_job = job_id
+					work_unit_to_send = job_queue[job_id][0]
 
-				return job_queue[earliest_job][0]
+		return work_unit_to_send
 
 
 class PriorityQueueScheduler(Scheduler):
@@ -468,6 +441,17 @@ class PriorityQueueScheduler(Scheduler):
 		super(PriorityQueueScheduler, self).__init__(grid)
 		print "Using Multi-level Priority Queue Scheduler" # Prints to Server stdout
 		self.write_to_log("Using Multi-level Priority Queue Scheduler")
+		
+		# Need to maintain an internal queue of job ids for round robin.
+		self.job_id_queue = deque()
+	
+	#
+	# allocate_work_units(self)
+	# 
+	# Re-implementation of Scheduler allocate_work_units. 
+	#  * Handles free nodes by type rather than getting all
+	#  * free nodes as a global pool
+	#
 	
 	def allocate_work_units(self):
 		with self.grid.queue_lock:
@@ -517,58 +501,148 @@ class PriorityQueueScheduler(Scheduler):
 				if not free_nodes:
 					self.write_to_log("Waiting for free nodes")
 
+	#
+	# next_work_unit(self, node, queue_type)
+	#
+	# queue_type determine the scheduling algorithm used.
+	#
+	
 	def next_work_unit(self, node, queue_type):
 		if len(self.grid.get_queued()) == 0:
 		
 			# No work units to allocate
 			return None
-
-		#node_cost = node['cost']
 		
-		# For each queue_type build a job list with jobs of the same type
-		# and allocate using different scheduling algorithms.
-		# Constrain all by cost.
-
+		# Scheduling alogirthm varies by queue. Due to the way The Grid
+		# manages state and dynamically switches scheduler, these all 
+		# have to be reimplemented here. Algorithms are verbatim, with 
+		# the addition of cost constrains for FCFS and Round Robin.
+		
+		# Use Cost constrained FCFS scheduler (good throughput)
 		if queue_type == "BATCH":
-			self.write_to_log("Batch queue type required.")
-			batch_queue = defaultdict(list) 
-			for unit in self.grid.get_queued():
-				if unit.job.job_type == "BATCH":
+			return self.next_FCFS_work_unit(node)
 
-					# Append to list of batch jobs
-					batch_queue[unit.job.job_id].append(unit)
-		
-			fcfs = FCFSScheduler(self.grid)
-			work_unit = fcfs.next_work_unit(node, queue=batch_queue)
-			return work_unit
-
-		# Use earliest deadline scheduler
+		# Use Cost constrained earliest deadline scheduler
 		elif queue_type == "DEFAULT":
-			self.write_to_log("Default queue type required.")
-			default_queue = defaultdict(list) 
-			for unit in self.grid.get_queued():
-				if unit.job.job_type == "DEFAULT":
-
-					# Append to list of default jobs
-					default_queue[unit.job.job_id].append(unit)
-
-			earliest_deadline = DeadlineScheduler(self.grid)
-			work_unit = earliest_deadline.next_work_unit(node, queue=default_queue)
-			return work_unit
+			return self.next_deadline_work_unit(node)
 			
-		# Use RoundRobin scheduler (good response time)			
+		# Use Cost Constrained RoundRobin scheduler (good response time)			
 		elif queue_type == "FAST":
-			self.write_to_log("Fast queue type required.")
-			fast_queue = defaultdict(list) 
-			for unit in self.grid.get_queued():
-				if unit.job.job_type == "FAST":
+			return self.next_round_robin_work_unit(node)
+	
+	#
+	# next_FCFS_work_unit(self, node)
+	#
+	# Same as FCFSScheduler(Scheduler).next_work_unit(node)
+	# but will not assign jobs to nodes they do not have budget for.
+	# 
+	def next_FCFS_work_unit(self, node):
+		job_queue = defaultdict(list) 
 
-					# Append to list of fast jobs
-					fast_queue[unit.job.job_id].append(unit)
+		for unit in self.grid.get_queued():
+			# Only want jobs of the specified type in the queue.
+			if unit.job.job_type == node['type']:
+				job_queue[unit.job.job_id].append(unit)
+
+		# No work units to return!
+		if len(job_queue) == 0:
+			return None
+
+		# Find Job with earliest creation time	
+		
+		# Add 1 second to current time to stop server crashing for jobs
+		# submitted that second.
+		earliest_time = int(time.time()) + 1 
+		work_unit_to_send = None
+		for job_id, units in job_queue.items():
+			if units[0].job.created_ts < earliest_time and units[0].job.budget_per_node_hour >= node['cost']:
+				earliest_time = units[0].job.created_ts
+				work_unit_to_send = job_queue[job_id][0]
+		
+		return work_unit_to_send
+	
+	#
+	# next_deadline_work_unit(self, node)
+	#
+	# Same as DeadlineCostScheduler(Scheduler).next_work_unit(node)
+	# 
+	def next_deadline_work_unit(self, node):
+		job_queue = defaultdict(list) 
 			
-			round_robin = RoundRobinScheduler(self.grid)
-			work_unit = round_robin.next_work_unit(node, queue=fast_queue)
-			return work_unit
+		for unit in self.grid.get_queued():
+			# Only want jobs of the specified type in the queue.
+			if unit.job.job_type == node['type']:
+				job_queue[unit.job.job_id].append(unit)
+
+		# No work units to return!
+		if len(job_queue) == 0:
+			return None
+
+		# Get the node's cost from the node JSON
+		node_cost = node['cost']
+		earliest_deadline = None
+
+		work_unit_to_send = None
+		for job_id, units in job_queue.items():
+			# Check that job runs on node that is within
+			# the job's budget
+			budget_per_node_hour = units[0].job.budget_per_node_hour
+			if budget_per_node_hour >= node_cost:
+		
+				deadline = int(units[0].job.deadline)
+				wall_seconds = wall_secs(strp_wall_time(units[0].job.wall_time))
+				time_left = deadline - wall_seconds
+
+				# If we don't have a deadline, assign the
+				# first job's deadline as earliest
+				if earliest_deadline is None:
+					earliest_deadline = time_left
+					work_unit_to_send = job_queue[job_id][0]
+
+				# Handle case of >1 jobs with varying deadlines
+				elif time_left < earliest_deadline:
+					earliest_deadline = time_left
+					work_unit_to_send = job_queue[job_id][0]
+		
+		return work_unit_to_send
+				
+	def next_round_robin_work_unit(self, node):	
+		job_queue = defaultdict(list)
+
+		# Add all the jobs to the queue
+		for unit in self.grid.get_queued():
+
+			# Add unique job ids of the given job type to local queue
+			if unit.job.job_type == node['type']:
+				if unit.job.job_id not in self.job_id_queue and unit.job.job_type == node['type']:
+					self.job_id_queue.append(unit.job.job_id)
+					
+				job_queue[unit.job.job_id].append(unit)
+		
+		# No work units to return!
+		if len(job_queue) == 0:
+			return None
+
+		# Write job_id_queue to the log for clarity.
+		self.write_to_log(str(self.job_id_queue))
+
+		work_unit_to_send = None
+		# Want to send the first work unit of the first job which meets 
+		# the cost constraints of the node
+		for job_id in self.job_id_queue:
+			if job_queue[job_id][0].job.budget_per_node_hour >= node['cost']:
+				work_unit_to_send = job_queue[job_id][0]
+				
+				# need to remove the job id from the deque and put it on the end.
+				# if its the last work unit of the job dont add it back to the deque.
+				self.job_id_queue.remove(job_id)
+				if len(job_queue[job_id]) > 1:
+					self.job_id_queue.append(job_id)
+
+				# Found our first work unit which meets cost constraint, break.
+				break
+		
+		return work_unit_to_send
 
 #
 # NodeUnavailableException

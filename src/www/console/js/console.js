@@ -91,6 +91,7 @@ function console() {
 			li.removeClass("remove");
 			li.find(".node-name").text( n.node_ident + " [" + n.node_id + "]");
 			li.find(".node-type").text( n.type);
+			li.find(".node-cores").text( n.cores);
 			li.find(".node-cpu").text( parseInt(n.cpu) + "%" );
 			li.find(".node-cost").text( "$"+ (parseFloat(n.cost)/100).toFixed(2) );
 
@@ -196,13 +197,14 @@ function console() {
 
 			li.removeClass("remove");
 			li.find(".job-name").text(j.name + " [" + j.job_id + "]");
-			if (j.kill_msg != null){
+			if (j.kill_msg != ""){
 				li.find(".job-status").text( j.kill_msg );
 
 			}else{
 				li.find(".job-status").text( j.status );
 			}
 
+			li.find(".job-type").text( j.job_type );
 			li.find(".job-command").text( j.executable );
 
 			led = li.find("img.job-status-led");
