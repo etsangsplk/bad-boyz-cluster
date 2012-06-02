@@ -225,6 +225,7 @@ class Scheduler(object):
 			# Print information about the job
 			created_ts = time.asctime(time.localtime(units[0].job.created_ts))
 			queue_string += "Job: %s.\n" % (job_id)
+			queue_string += "Type: %s.\n" % (units[0].job.job_type)
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % (units[0].job.wall_time)
 			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
