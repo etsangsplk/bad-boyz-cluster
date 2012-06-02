@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-# Client sends sleep(3) to be distributed across three processes three times.
-# Script sleeps between sends, to demonstrate FCFS.
+# Random number of input files per job
 
 import os
 import time
 
 from optparse import OptionParser
 
-parser = OptionParser(usage="./FCFS.py --gh HOSTNAME --gp PORT -t JOB_TYPE -s SCHEDULER")
+parser = OptionParser(usage="./test4.py --gh HOSTNAME --gp PORT -t JOB_TYPE -s SCHEDULER")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on",
@@ -24,7 +23,7 @@ parser.add_option("-t", "--job_type", dest="job_type",
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The scheduler The Grid should use.",
-	metavar="SCHEDULER", default="FCFS")
+	metavar="SCHEDULER", default="NOCHANGE")
 
 (options, args) = parser.parse_args()
 
@@ -35,16 +34,23 @@ if options.scheduler != "NOCHANGE":
 
 
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f1.txt testfiles/f2.txt testfiles/f3.txt"
 	% (options.ghost, options.gport, options.job_type)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f4.txt testfiles/f5.txt"
 	% (options.ghost, options.gport, options.job_type)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f6.txt"
+	% (options.ghost, options.gport, options.job_type)
+	)
+
+time.sleep(1)
+os.system(
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f7.txt testfiles/f8.txt testfiles/f9.txt\
+	 	testfiles/f1.txt"
 	% (options.ghost, options.gport, options.job_type)
 	)
