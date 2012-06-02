@@ -358,7 +358,7 @@ class Grid(object):
 			if node_id in nodes:
 				nodes.remove(node_id)
 
-		total_nodes = len(self.nodes) + 1
+		total_nodes = len(self.node_ids)
 		min_type = "NONE"
 		min_dist = 1
 
