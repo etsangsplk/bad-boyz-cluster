@@ -3,7 +3,8 @@ import json
 import urllib
 import urllib2
 import mimetypes
-from cgi import parse_qs, escape
+import base64
+from urlparse import parse_qs
 
 import BaseHTTPServer
 
@@ -11,6 +12,38 @@ OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 METHOD_NOT_ALLOWED = 405
+
+def auth_header(username, password):
+	base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+	return { "Authorization": "Basic %s" % base64string }  
+
+#
+# @authenticate decorator
+#
+
+class authenticate(object):
+	def __init__(self, users):
+		self.users = users
+
+	def __call__(self, func):
+		def decorator_func(request, *args, **kwargs):
+			try:
+				auth_header = request.env['HTTP_AUTHORIZATION']
+			except KeyError:
+				return AuthResponse()
+
+			try:
+				auth_string = base64.b64decode(auth_header.partition('Basic ')[2])
+				(username, password) = auth_string.split(':', 1)
+			except ValueError:
+				return AuthResponse()
+
+			if (username, password) not in self.users:
+				return AuthResponse()
+
+			return func(request, *args, **kwargs)
+
+		return decorator_func
 
 class Response(object):
 	
@@ -53,8 +86,8 @@ class FileResponse(Response):
 			headers = []
 
 		root = "www"
-		path = os.path.join(root, filename)
-		
+		path = filename
+
 		# Check for file injection and existance
 		if not os.path.normpath(path).startswith(root) or not os.path.exists(path):	
 			status = 404
@@ -73,6 +106,14 @@ class FileResponse(Response):
 			])
 
 		super(FileResponse, self).__init__(body, status, headers)
+
+class AuthResponse(Response):
+	
+	status = 401
+	headers = [('WWW-Authenticate', 'Basic realm="default"')]
+
+	def __init__(self):
+		super(AuthResponse, self).__init__('', self.status, self.headers)
 
 class JSONResponse(Response):
 
@@ -159,6 +200,7 @@ class HTTPRequest(object):
 
 		request = urllib2.Request(url, self.data, headers)
 		request.get_method = lambda: method
+
 		response = urllib2.urlopen(request)
 
 		self.msg = response.msg
@@ -169,16 +211,20 @@ class HTTPRequest(object):
 
 class FileHTTPRequest(HTTPRequest):
 	
-	def __init__(self, method, url, filename):
+	def __init__(self, method, url, filename, headers = None):
+
+		if headers == None:
+			headers = {}
 
 		file_data = open(filename, "rb")
 		length = os.path.getsize(filename)
 
 		# Files need their content-length specified directly as 
 		# you cannot take the length() of a file pointer
-		super(FileHTTPRequest, self).__init__(method, url, file_data, { 
-			'Content-length': length 
-		})
+		self.headers = { 'Content-length': length }
+		self.headers.update(headers)
+
+		super(FileHTTPRequest, self).__init__(method, url, file_data, self.headers)
 
 		file_data.close()
 

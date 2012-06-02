@@ -1,5 +1,12 @@
-from gridservice.grid import Grid, BullshitScheduler
+CLIENTS = [
+	('client', 'client')
+]
 
-# Bring the Grid online
+ADMINS = [
+	('admin', 'admin')
+]
 
-grid = Grid(BullshitScheduler)
+
+NODES = [
+	('node', 'node')
+]

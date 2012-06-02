@@ -3,7 +3,7 @@ import subprocess
 class Monitor:
 	def psColumn(self, colName):
 		"""Get a column of ps output as a list"""
-		ps = subprocess.Popen(["ps", "-A", "-o", colName], stdout=subprocess.PIPE)
+		ps = subprocess.Popen(["ps", "-e", "-o", colName], stdout=subprocess.PIPE)
 		(stdout, stderr) = ps.communicate()
 		column = stdout.split("\n")[1:]
 		column = [token.strip() for token in column if token != '']

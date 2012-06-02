@@ -1,3 +1,4 @@
+from __future__ import division
 from cgi import parse_qs, escape
 
 import json
@@ -18,6 +19,7 @@ def get_file(path, data):
 	fp.close()
 
 	return data
+
 
 #
 # validate_request(req, fields)
@@ -41,6 +43,7 @@ def validate_request(req, fields):
 
 def route(routes, env):
 	request = Request(env)
+
 
 	print "Request: " + str( request.raw )
 
@@ -154,3 +157,99 @@ def server(routes, env, start_response):
 
 def make_app(routes):
 	return functools.partial(server, routes)
+	
+#
+# Wall Time Parsing functions
+#
+
+#
+# strp_wall_time(wall_time)
+#
+# Converts a string of format "D:HH:MM:SS" or "HH:MM:SS" into a
+# wall_strp data type; a list of the integer values of the above:
+# [D, H, M, S]
+#
+
+def strp_wall_time(wall_time):
+	# Check that wall_time format is valid
+	wall_split = wall_time.split(":")
+	# Acceptable to drop DD from the Wall_Time
+	if len(wall_split) not in [3,4]:
+		raise WallTimeFormatException
+	# Check that each unit can actually be made an integer
+	try:
+		wall_split = map(int, wall_split)
+	except (TypeError, ValueError):
+		raise WallTimeFormatException
+	# if DD has been dropped, add it.
+	if len(wall_split) == 3:
+		wall_split = [00] + wall_split
+	return wall_split
+
+#
+# strf_wall_time(wall_strp):
+#
+# Formats a wall_strp data structure into string of "D:HH:MM:SS"
+#
+
+def strf_wall_time(wall_strp):
+	# Put wall time in a nicer format for printing:
+	left = wall_secs(wall_strp) 
+	secs = left % 60
+	
+	left -= secs
+	left /= 60
+	mins = int(left) % 60
+	
+	left -= mins
+	left /= 60
+	hours = int(left) % 24
+
+	left -= hours
+	left /= 24
+	days = int(left)
+	wall_time = "{}:{:02}:{:02}:{:02}".format(days, hours, mins, secs)
+	return wall_time
+	
+#
+# wall_days(wall_strp)
+#
+# returns the number of days as a fraction of a wall_strp datatype
+#
+
+def wall_days(wall_strp):
+	return (wall_strp[0]) + (wall_strp[1] / 24) + (wall_strp[2] / 1440) + (wall_strp[3] / 86400) 
+
+#
+# wall_hours(wall_strp)
+#
+# returns the number of hours as a fraction of a wall_strp datatype
+#
+
+def wall_hours(wall_strp):
+	return (wall_strp[0] * 24) + (wall_strp[1]) + (wall_strp[2] / 60) + (wall_strp[3] / 3600)
+
+#
+# wall_mins(wall_strp)
+#
+# returns the number of minutes as a fraction of a wall_strp datatype
+#
+
+def wall_mins(wall_strp):
+	return (wall_strp[0] * 1440) + (wall_strp[1] * 60) + (wall_strp[2]) + (wall_strp[3] / 60)
+
+#
+# wall_secs(wall_strp)
+#
+# returns the number of seconds of a wall_strp datatype
+#
+
+def wall_secs(wall_strp):
+	return (wall_strp[0] * 86400) + (wall_strp[1] * 3600) + (wall_strp[2] * 60) + (wall_strp[3])
+	
+#
+# WallTimeFormatException(Exception) 
+#
+
+class WallTimeFormatException(Exception):
+	pass

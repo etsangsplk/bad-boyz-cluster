@@ -4,6 +4,7 @@
 		<link href="/console/css/fileuploader.css" rel="stylesheet" type="text/css" />
 		<link href="/console/css/styles.css" rel="stylesheet" type="text/css" />
 
+		<script src="/console/js/base64.js" type="text/javascript"></script>
 		<script src="/console/js/jquery-1.7.2.min.js" type="text/javascript"></script>
 		<script src="/console/js/fileuploader.js" type="text/javascript"></script>
 		<script src="/console/js/up.js" type="text/javascript"></script>
@@ -13,8 +14,16 @@
 
 	<body>
 
-		<h1>CLUSTERMAN</h1>
+		<h1>THE GRID</h1>
 
+
+
+		<div id="log-holder">
+			<h2> GRID LOG </h2>
+
+			<ul id="log">
+			</ul>
+		</div>
 
 		<ul id="columns">
 			<li class="column nodes">
@@ -24,7 +33,7 @@
 				</ul>
 			</li>
 			<li class="column queue">
-				<h2> JOB QUEUE </h2>
+				<h2> JOBS </h2>
 				<ul id="jobs">
 
 				</ul>
@@ -32,45 +41,102 @@
 
 
 			<li class="column addjob">
-				<h2> ADD JOB </h2>
+				<h2> SUBMIT JOB </h2>
 
+				<ul class="steps">
+					<li class="step-define highlighted">
+						1. REGISTER JOB
+					</li>
+					<li class="step-upload">
+						2. UPLOAD FILES
+					</li>
+				</ul>
 
 				<table>
-					<tr>
-						<th>JOB NAME:</th>
-						<td><input type="text" id="text-job-name"></td>
-					</tr>
-					<tr>
-						<th>COMMAND:</th>
-						<td><input type="text" id="text-job-cmd"></td>
-					</tr>
+
+					<tbody class="step-define">
+						<tr>
+							<th>JOB NAME:</th>
+							<td><input type="text" id="text-job-name" value="New job"> </td>
+						</tr>
+						<tr>
+							<th>WALL TIME (HH:MM:SS):</th>
+							<td><input type="text" id="text-wall-time" value="1:00:00"></td>
+						</tr>
+						<tr>
+							<th>DEADLINE:</th>
+							<td><input type="text" id="text-deadline"></td>
+						</tr>
+						<tr>
+							<th>BUDGET ($):</th>
+							<td><input type="text" id="text-budget" value="1.00"></td>
+						</tr>
+
+						<tr>
+							<th>JOB TYPE:</th>
+							<td>
+								<select  id="text-job-type">
+									<option value="DEFAULT">DEFAULT</option>
+									<option value="FAST">FAST</option>
+									<option value="BATCH">BATCH</option>
+								</select>
+						</tr>
+
+						<tr>
+							<td colspan="2">
+								<button id="register" class="step" style="">REGISTER JOB</button>
+							</td>
+						</tr>
+					</tbody>
 
 
-					<tr style="display:none" class="files">
-						<th>FILES:</th>
-						<td>
-							<ul class="toolbar-expand">
-								<li>
-									<div id="upload" style="">
-										<noscript>
-											<p>Please enable JavaScript to use file uploader.</p>
-												<!-- or put a simple form for upload here -->
-										</noscript>
-									</div>
-								</li>
-								<li>
-										Or, drag and drop files here
-								</li>
-							</ul>
+					<tbody class="step-upload" style="display:none">
+						<tr class="row-executable-files">
+							<th>EXECUTABLE:</th>
+							<td>
+								<ul class="toolbar-expand">
+									<li>
+										<div id="executable-files" style="">
+											<noscript>
+												<p>Please enable JavaScript to use file uploader.</p>
+													<!-- or put a simple form for upload here -->
+											</noscript>
+										</div>
+									</li>
+									<li>
+											Or, drag and drop files here
+									</li>
+								</ul>
 
-						</td>
-					</tr>
+							</td>
+						</tr>
 
-					<tr>
-						<td colspan="2">
-							<button id="enqueue" style="display:none;">QUEUE JOB</button>
-						</td>
-					</tr>
+						<tr class="row-input-files">
+							<th>INPUT FILES:</th>
+							<td>
+								<ul class="toolbar-expand">
+									<li>
+										<div id="input-files" style="">
+											<noscript>
+												<p>Please enable JavaScript to use file uploader.</p>
+													<!-- or put a simple form for upload here -->
+											</noscript>
+										</div>
+									</li>
+									<li>
+											Or, drag and drop files here
+									</li>
+								</ul>
+
+							</td>
+						</tr>
+
+						<tr>
+							<td colspan="2">
+								<button id="enqueue"  class="step" style="display:none;">QUEUE JOB</button>
+							</td>
+						</tr>
+					</tbody>
 
 				</table>
 
@@ -87,34 +153,106 @@
 			<ul>
 				<li id="node-template">
 					<h3 class="name node-name"></h3>
+					<img class="node-status-led" />
+
+
+
 					<div class="current-job section">
-						<span class="label">JOB:</span>
-						<span class="job-value value"></span>
+						<span class="label">COST:</span>
+						<span class="node-cost value"></span>
 					</div>
 					<div class="cpu section">
 						<span class="label">CPU:</span>
-						<span class="cpu-value value"></span>
+						<span class="node-cpu value">
+
+						</span>
+
 					</div>
+
+					<div class="cpu section">
+						<span class="label">TYPE:</span>
+						<span class="node-type value">
+
+						</span>
+
+					</div>
+
+
+						<div class="cpu-chart">
+						</div>
+
+
+					<ul class="workunits">
+
+					</ul>
 
 				</li>
 
 
 				<li id="job-template">
 					<h3 class="name job-name"></h3>
+					<img class="job-status-led" />
 					<div class="queue-exe"></div>
+
+					<div class="cancel-holder">
+						<button class="cancel step">CANCEL</button>
+
+					</div>
+
 					<div class="current-job section">
 						<span class="label">STATUS:</span>
 						<span class="job-status value"></span>
 					</div>
 					<div class="cpu section">
 						<span class="label">CMD:</span>
-						<span class="job-command value"></span>
+						<span class="job-command value">
+
+						</span>
 					</div>
 
-					<div class="cpu section">
-						<span class="label">Q / A / C:</span>
-						<span class="job-queued value"></span>
+					<h3 class="name">WORK UNITS</h3>
+
+					<ul class="workunits">
+
+					</ul>
+<!--
+					<h3 class="name">JOB OUTPUT</h3>
+					<ul class="output-files">
+
+					</ul>
+-->
+				</li>
+
+
+
+				<li id="work-template" class="workunit">
+
+					<img class="unit-status-led" />
+					<div class="section">
+						<span class="label">FILE:</span>
+						<span class="work-file small-value"></span>
 					</div>
+					<div class="section">
+						<span class="label">STATUS:</span>
+						<span class="work-status small-value"></span>
+
+
+					</div>
+					<div class="section output" style="display:none">
+						<span class="label">OUTPUT:</span>
+						<span class="small-value">
+							<a class="stdout">stdout</a> &nbsp;
+							<a class="stderr">stderr</a> &nbsp;
+						</span>
+					</div>
+				</li>
+
+
+				<li id="file-template" class="file">
+					<span class="file-filename small-value"></span>
+
+				</li>
+
 
 				</li>
 
@@ -127,7 +265,7 @@
 	<script type="text/javascript">
 		var c = console();
 
-
+		
 
 	</script>
 

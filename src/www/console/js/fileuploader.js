@@ -578,6 +578,9 @@ qq.extend(qq.FileUploader.prototype, {
                 dropArea.style.display = 'none';
                 qq.removeClass(dropArea, self._classes.dropActive);
                 self._uploadFileList(e.dataTransfer.files);    
+
+                // Hide other file uploader drop targets too
+                $(".qq-upload-drop-area").css("display", "none");
             }
         });
                 
