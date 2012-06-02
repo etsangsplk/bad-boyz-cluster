@@ -27,7 +27,7 @@ parser.add_option("-s", "--scheduler", dest="scheduler",
 
 if options.scheduler:
 	os.system(
-		"./client.py --gh %s --gp %s --username admin --password -admin -s %s" % (options.ghost, options.gport, options.scheduler)
+		"./client.py --gh %s --gp %s --username admin --password admin -s %s" % (options.ghost, options.gport, options.scheduler)
 		)
 
 os.system(
