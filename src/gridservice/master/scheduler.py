@@ -9,8 +9,7 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from gridservice.http import JSONHTTPRequest
-from gridservice.utils import validate_request
-#from gridservice.master.grid import NodeUnavailableException
+from gridservice.utils import validate_request, strf_wall_time, strp_wall_time, wall_secs
 
 #
 # Scheduler
@@ -91,10 +90,11 @@ class Scheduler(object):
 				
 				# Kill any work_units which have no chance of finishing before the deadline.
 				for unit in self.grid.get_queued():
-				 	if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
+				 	if (int(time.time()) + wall_secs(strp_wall_time(unit.job.wall_time))) > unit.job.deadline:
 				 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
 				 		unit.kill()
 
+				# Get the next work unit to allocate
 				try:
 					unit = self.next_work_unit(node)
 				except Exception as e:
@@ -109,13 +109,6 @@ class Scheduler(object):
 				if unit == None:
 					self.write_to_log("Waiting for tasks to schedule.\n")
 					break
-
-
-				# Kill any work_units which have no chance of finishing before the deadline.
-				# for unit in self.grid.get_queued():
-				if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
-					unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
-				 	unit.kill()
 
 				self.write_queue_to_log()
 
@@ -167,7 +160,7 @@ class Scheduler(object):
 		node['work_units'].append(work_unit)
 	
 	#
-	# next_work_unit(self)
+	# next_work_unit(self, node)
 	# 
 	# This is the workhorse of the scheduler, this function will
 	# look through the list of queued work units and decide what
@@ -175,7 +168,7 @@ class Scheduler(object):
 	# the node that the work unit is going to be allocated to.
 	#
 
-	def next_work_unit(self):
+	def next_work_unit(self, node):
 		raise NotImplementedError()
 
 	#
@@ -365,7 +358,7 @@ class DeadlineScheduler(Scheduler):
 			for job_id, units in job_queue.items():
 			
 				deadline = int(units[0].job.deadline)
-				wall_seconds = units[0].job.wall_seconds
+				wall_seconds = wall_secs(strp_wall_time(units[0].job.wall_time))
 				time_left = deadline - wall_seconds
 
 				# If we don't have a deadline, assign the
@@ -421,7 +414,7 @@ class DeadlineCostScheduler(Scheduler):
 				if budget_per_node_hour >= node_cost:
 			
 					deadline = int(units[0].job.deadline)
-					wall_seconds = units[0].job.wall_seconds
+					wall_seconds = wall_secs(strp_wall_time(units[0].job.wall_time))
 					time_left = deadline - wall_seconds
 
 					# If we don't have a deadline, assign the
@@ -457,7 +450,7 @@ class PriorityQueueScheduler(Scheduler):
 					
 					# Kill any work_units which have no chance of finishing before the deadline.
 					for unit in self.grid.get_queued():
-						if (int(time.time()) + unit.job.wall_seconds) > unit.job.deadline:
+						if (int(time.time()) + wall_secs(strp_wall_time(unit.job.wall_time))) > unit.job.deadline:
 							unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
 							unit.kill()
 

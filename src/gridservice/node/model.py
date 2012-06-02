@@ -15,6 +15,7 @@ import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
 from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest
+from gridservice.utils import strp_wall_time, wall_secs
 
 SERVERS = [
 	('server', 'server')
@@ -355,7 +356,7 @@ class NodeServer(object):
 				self.finish_task(task)
 				del self.tasks[i]
 			# Kill task if its exceeded it wall time
-			if (int(time.time()) - task.running_ts) > task.wall_seconds:
+			if (int(time.time()) - task.running_ts) > wall_secs(strp_wall_time(task.wall_time)):
 				self.kill_task(task, "Exceeded Wall time.")
 				print "Work unit %s of job %s killed: Exceeded Wall Time." % (task.job_id, task.work_unit_id)
 			# Kill task if it exceeds its deadline (for fairness)
@@ -405,26 +406,6 @@ class Task(object):
 	def command(self):
 		return "./%s %s" % (self.executable_path, self.flags)
 	
-	@property
-	def wall_days(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0]) + (t[1] / 24) + (t[2] / 1440) + (t[3] / 86400) 
-
-	@property
-	def wall_hours(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 24) + (t[1]) + (t[2] / 60) + (t[3] / 3600)
-
-	@property
-	def wall_minutes(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 1440) + (t[1] * 60) + (t[2]) + (t[3] / 60)
-
-	@property
-	def wall_seconds(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 86400) + (t[1] * 3600) + (t[2] * 60) + (t[3])
-
 	def ready(self):
 		self.status = "READY"
 		self.ready_ts = int(time.time())

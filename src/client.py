@@ -45,7 +45,7 @@ parser.add_option("-t", "--job_type", dest="job_type",
 	metavar="TYPE")
 
 parser.add_option("-w", "--wall_time", dest="wall_time",
-	help="The length of time expected for your program to complete on your longest file. Format: DD:HH:MM:SS", 
+	help="The length of time expected for your program to complete on your longest file. Format: HH:MM:SS", 
 	metavar="WALL_TIME", default="1:00:00")
 
 parser.add_option("-d", "--deadline", dest="deadline",

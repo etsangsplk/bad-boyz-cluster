@@ -11,7 +11,7 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from gridservice.http import auth_header, JSONHTTPRequest
-from gridservice.utils import validate_request
+from gridservice.utils import validate_request, strf_wall_time, strp_wall_time, wall_secs, wall_hours, WallTimeFormatException
 
 from gridservice.master.scheduler import RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
 from gridservice.master.job import Job
@@ -20,7 +20,7 @@ from gridservice.master.job import Job
 # Grid
 #
 # If you are on the Grid, you can never leave.
-#
+
 
 class Grid(object):
 	
@@ -51,9 +51,9 @@ class Grid(object):
 
 		# (Proportion of nodes, max wall_time (hours), list of nodes)
 		self.node_queue = {
-			'DEFAULT': (0.5, 168, []), # 7 days
+			'DEFAULT': (0.5, "7:00:00:00", []),
 			'BATCH': (0.3, None, []),
-			'FAST': (0.2, 1, []) 
+			'FAST': (0.2, "01:00:00", []) 
 		}
 
 		self.next_node_id = 0
@@ -110,20 +110,12 @@ class Grid(object):
 		if budget < 0:
 			raise InvalidJobBudgetException("Invalid Budget specified: %s. Budget must be greater than 0" % budget)
 
-		# Check that wall_time format is valid
-		wall_split = wall_time.split(":")
-		# Acceptable to drop DD from the Wall_Time
-		if len(wall_split) not in [3,4]:
-			raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
-		# Check that each unit can actually be made an integer
-		for time_unit in wall_split:
-			try:
-				int(time_unit)
-			except (TypeError, ValueError):
-				raise InvalidJobWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
-		# if DD has been dropped, add it.
-		if len(wall_split) == 3:
-			wall_time = ":".join(["00", wall_time])
+		# Check that wall_time is valid:
+		try:
+			wall_stripped = strp_wall_time(wall_time)
+		except WallTimeFormatException:
+			raise InvalidWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
+
 
 		# Check that deadline format is valid
 		try:
@@ -136,37 +128,17 @@ class Grid(object):
 			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past." % deadline)
 		
 		# Check that deadline is reasonable
-		wall_split = map(int, wall_time.split(":"))
-		wall_secs = (wall_split[0] * 86400) + (wall_split[1] * 3600) + (wall_split[2] * 60) + (wall_split[3])
-		if (deadline_since_epoch - wall_secs) < int(time.time()):
+		if (deadline_since_epoch - wall_secs(wall_stripped)) < int(time.time()):
 			raise InvalidJobDeadlineException(
 				"Error: Current time plus wall time is later than the specified deadline. Please adjust either and resubmit."
 				)
 		
 		# Check that wall time is within acceptable range for job queue placement
-		wall_hours = wall_secs / 3600
-		if self.node_queue[job_type][1] != None and wall_hours > self.node_queue[job_type][1]:
+		if self.node_queue[job_type][1] != None and wall_secs(wall_stripped) > wall_secs(strp_wall_time(self.node_queue[job_type][1])):
 			raise InvalidJobTypeException(
 				"Invalid Job Type specified: %s. Wall time %s is too large. Wall time must be shorter than %s for job type %s."
-				% (job_type, wall_time, "{:02}:00:00".format(max_wall_time),job_type)
-				)
-
-		# Put wall time in a nicer format for printing:
-		left = wall_secs 
-		secs = left % 60
-		
-		left -= secs
-		left /= 60
-		mins = int(left) % 60
-		
-		left -= mins
-		left /= 60
-		hours = int(left) % 24
-
-		left -= hours
-		left /= 24
-		days = int(left)
-		wall_time = "{:02}:{:02}:{:02}:{:02}".format(days, hours, mins, secs)
+				% (job_type, strf_wall_time(wall_stripped), self.node_queue[job_type][1], job_type)
+				) 
 
 		#
 		# All tests passed, add to grid.
@@ -175,7 +147,7 @@ class Grid(object):
 		job = Job(
 			job_id = self.next_job_id,
 			flags = flags, 
-			wall_time = wall_time, 
+			wall_time = strf_wall_time(wall_stripped), 
 			deadline = deadline_since_epoch, 
 			budget = budget,
 			job_type = job_type,
@@ -249,7 +221,7 @@ class Grid(object):
 				break
 
 		if not acceptable:
-			min_budget = min_node_cost * job.wall_hours * job.num_work_units
+			min_budget = min_node_cost * wall_hours(job.wall_time) * job.num_work_units
 			job.kill_msg = "Killed by The Grid: Insufficient Budget."
 			job.kill()
 			raise InsufficientBudgetException(

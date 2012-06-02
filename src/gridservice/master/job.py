@@ -3,6 +3,8 @@ import os
 import time
 import json
 
+from gridservice.utils import strp_wall_time, wall_hours
+
 #
 # Job
 #
@@ -49,31 +51,11 @@ class Job(object):
 
 	@property
 	def budget_per_node_hour(self):
-		return int(self.budget) / self.num_work_units / self.wall_hours
+		return int(self.budget) / self.num_work_units / wall_hours(strp_wall_time(self.wall_time))
 
 	@property
 	def num_work_units(self):
 		return len(self.work_units)
-
-	@property
-	def wall_days(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0]) + (t[1] / 24) + (t[2] / 1440) + (t[3] / 86400) 
-
-	@property
-	def wall_hours(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 24) + (t[1]) + (t[2] / 60) + (t[3] / 3600)
-	
-	@property
-	def wall_minutes(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 1440) + (t[1] * 60) + (t[2]) + (t[3] / 60)
-
-	@property
-	def wall_seconds(self):
-		t = map(int, self.wall_time.split(":"))
-		return (t[0] * 86400) + (t[1] * 3600) + (t[2] * 60) + (t[3])
 	
 	@property
 	def command(self):
