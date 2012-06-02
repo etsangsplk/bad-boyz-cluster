@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-# Client sends sleep(3) to be distributed across three processes three times
-# 1 second between requests
-# Good for demonstrating FCFS and RoundRobin
+# Runs jobs with 2 input files
 
 import os
 import time

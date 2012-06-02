@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-# Client sends sleep(3) to be distributed across three processes three times
-# 1 second between requests
-# Good for demonstrating FCFS and RoundRobin
+# Good for demonstrating Priority Queues. Runs the RoundRobin 
+# demo for fast, the Deadline demo for Default, and spawns long
+# jobs for batch.
 
 import os
+import datetime
 import time
 
 from optparse import OptionParser
@@ -35,12 +36,14 @@ os.system(
 	% (options.ghost, options.gport)
 	)
 
+deadline = (datetime.datetime.now() + datetime.timedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S')
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -t BATCH -b 500 -w 24:00:00 testfiles/f1000.txt testfiles/f1000.txt"
-	% (options.ghost, options.gport)
+	'./client.py --gh %s --gp %s -e test.py -t BATCH -b 20000 -w 24:00:00 -d "%s" testfiles/f1000.txt testfiles/f1000.txt'
+	% (options.ghost, options.gport, deadline)
 	)
 
+deadline = (datetime.datetime.now() + datetime.timedelta(days=20)).strftime('%Y-%m-%d %H:%M:%S')
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -t BATCH -b 500 -w 10:00:00:00 testfiles/f1000.txt"
-	% (options.ghost, options.gport)
+	'./client.py --gh %s --gp %s -e test.py -t BATCH -b 50000 -w 10:00:00:00 -d "%s" testfiles/f1000.txt'
+	% (options.ghost, options.gport, deadline)
 	)
