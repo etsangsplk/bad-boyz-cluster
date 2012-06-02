@@ -9,7 +9,7 @@ import time
 
 from optparse import OptionParser
 
-parser = OptionParser(usage="./test1.py --gh HOSTNAME --gp PORT -s SCHEDULER")
+parser = OptionParser(usage="./test1.py --gh HOSTNAME --gp PORT -t JOB_TYPE -s SCHEDULER")
 
 parser.add_option("--gh", "--grid_hostname", dest="ghost",
 	help="The hostname the client should listen on",
@@ -19,9 +19,13 @@ parser.add_option("--gp", "--grid_port", dest="gport",
 	help="The port the client should listen on",
 	metavar="PORT", default = 8051)
 
+parser.add_option("-t", "--job_type", dest="job_type",
+	help="The type of the jobs",
+	metavar="JOB_TYPE", default="DEFAULT")
+
 parser.add_option("-s", "--scheduler", dest="scheduler",
 	help="The scheduler The Grid should use.",
-	metavar="SCHEDULER")
+	metavar="SCHEDULER", default="RoundRobin")
 
 (options, args) = parser.parse_args()
 
@@ -31,16 +35,16 @@ if options.scheduler:
 		)
 
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
-	% (options.ghost, options.gport)
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	% (options.ghost, options.gport, options.job_type)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
-	% (options.ghost, options.gport)
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	% (options.ghost, options.gport, options.job_type)
 	)
 time.sleep(1)
 os.system(
-	"./client.py --gh %s --gp %s -e test.py -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
-	% (options.ghost, options.gport)
+	"./client.py --gh %s --gp %s -e test.py -t %s -b 500 testfiles/f3.txt testfiles/f3.txt testfiles/f3.txt"
+	% (options.ghost, options.gport, options.job_type)
 	)
