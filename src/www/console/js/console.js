@@ -196,13 +196,14 @@ function console() {
 
 			li.removeClass("remove");
 			li.find(".job-name").text(j.name + " [" + j.job_id + "]");
-			if (j.kill_msg != null){
+			if (j.kill_msg != ""){
 				li.find(".job-status").text( j.kill_msg );
 
 			}else{
 				li.find(".job-status").text( j.status );
 			}
 
+			li.find(".job-type").text( j.job_type );
 			li.find(".job-command").text( j.executable );
 
 			led = li.find("img.job-status-led");
