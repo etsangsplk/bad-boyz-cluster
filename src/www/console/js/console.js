@@ -124,7 +124,7 @@ function console() {
 		wt.removeClass("remove");
 
 		// Now actually set the Work Unit information...
-		if (w.kill_msg != null && w.kill_msg.length > 0){
+		if (w.kill_msg != null){
 			wt.find(".work-status").text(w.kill_msg);
 
 		}else{
@@ -197,7 +197,7 @@ function console() {
 
 			li.removeClass("remove");
 			li.find(".job-name").text(j.name + " [" + j.job_id + "]");
-			if (j.kill_msg != ""){
+			if (j.kill_msg != null){
 				li.find(".job-status").text( j.kill_msg );
 
 			}else{

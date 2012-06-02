@@ -28,7 +28,7 @@ class Job(object):
 		self.budget = budget
 		self.job_type = job_type
 		self.name = name
-		self.kill_msg = ""
+		self.kill_msg = None
 
 		self.created_ts = int(time.time())
 		self.ready_ts = None
@@ -212,7 +212,7 @@ class WorkUnit(object):
 		self.work_unit_id = work_unit_id
 		self.task_id = None
 		self.node_id = None
-		self.kill_msg = ""
+		self.kill_msg = None
 
 		self.status = "QUEUED"
 		self.filename = filename

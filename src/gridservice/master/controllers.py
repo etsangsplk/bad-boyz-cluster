@@ -296,7 +296,7 @@ def job_workunit_POST(request, v):
 
 	unit = model.grid.finish_work_unit(job, request.json['work_unit_id'])
 	
-	if request.json['kill_msg'] != "":
+	if request.json['kill_msg'] != None:
 		unit.kill_msg = request.json['kill_msg']
 		unit.kill()
 

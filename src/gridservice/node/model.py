@@ -253,7 +253,7 @@ class NodeServer(object):
 	# to The Grid.
 	#
 
-	def kill_task(self, task, kill_msg=""):
+	def kill_task(self, task, kill_msg=None):
 		task.outfile.close()
 		task.errfile.close()
 
@@ -268,7 +268,7 @@ class NodeServer(object):
 	# Optionally sends a message as to why the task was killed.
 	#
 
-	def finish_task(self, task, kill_msg = ""):
+	def finish_task(self, task, kill_msg = None):
 
 		self.send_task_output(task)
 		self.cleanup_task_files(task)
