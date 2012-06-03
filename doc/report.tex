@@ -1,0 +1,122 @@
+%==============================================================================
+% Document:    
+% File:        
+% Authors:     
+%==============================================================================
+
+
+%==============================================================================
+% Document setup
+%==============================================================================
+
+\documentclass[12pt,a4paper]{report}
+
+
+% Use packages
+\usepackage{stys/kiss}
+\usepackage{verbatim}
+\usepackage{rotating}
+\usepackage{color}
+\usepackage{a4}
+\usepackage{url}
+\usepackage{stys/enumerate}
+\usepackage{graphicx}
+\usepackage{stys/moreverb}
+\usepackage{xcolor}
+\usepackage[anchorcolor=black,bookmarksnumbered=true,bookmarksopen=true,linkcolor=black,menucolor=black,pagecolor=black,linkbordercolor={1
+1 1}]{hyperref}
+\usepackage{stys/placeins}
+\usepackage{stys/longtable}
+\usepackage{caption2}
+\usepackage{stys/lipsum}
+
+% Specify document wide settings/parameters
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{1}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{1.5ex plus 0.5ex minus 0.2ex}
+
+
+% Include the LaTeX definitions of commonly used terms
+\include{content/definitions}
+\include{content/definitions_req}
+
+% Document revision/release number
+\def \revision  {0.1}
+\def \vdate {\today}
+\def \authors {Terence Siganakis (134860),
+Scott Ritchie (330975),
+Andrew Vadnal (326558), and
+Adam Whiteside (327705)}
+
+\addtolength{\oddsidemargin}{-.2in}
+\addtolength{\evensidemargin}{-.2in}
+\addtolength{\textwidth}{.5in}
+
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.3in}
+
+
+
+%==============================================================================
+% Begin document content
+%==============================================================================
+\begin{document}
+\begin{titlepage}
+\begin{center}
+\begin{figure}[h]
+	\begin{center}
+    	\includegraphics[height=45mm]{figs/UOM_logo.pdf}
+	\end{center}
+\end{figure}
+
+\Large\rmfamily{Department of \\ Computer Science and Software Engineering} \\
+\vspace*{35mm}
+\huge\sffamily{Report}\\
+\vspace*{5mm}
+\large\sffamily{for}\\
+\vspace*{5mm}
+\Huge\sffamily{~\subjname~}\\
+\vspace*{20mm}
+\Large\rmfamily{Version: \revision} \\
+\small{\vdate}\\
+
+\vspace*{40mm}
+%\begin{quotation}
+%	\noindent
+%The purpose of this document is to...
+%\end{quotation}
+
+\end{center}
+\end{titlepage}
+\pagestyle{plain}
+\pagenumbering{roman}
+
+% ========================
+% Inside cover page
+% ========================      
+\include{content/inside_cover}
+\newpage
+
+
+% ========================
+% Table of contents, list of figures
+% ========================      
+\tableofcontents                   
+%\listoffigures                   
+\newpage
+\pagenumbering{arabic}
+
+% ============================
+% Start of main body of the document
+% ============================
+
+% ============================
+% Start of appendices
+% ============================
+\appendix
+
+% ============================
+% End of document
+% ============================
+\end{document}
