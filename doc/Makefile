@@ -13,7 +13,7 @@ ps: $(TARGET).ps
 dvi: $(TARGET).dvi
 
 all:
-	pdflatex $(TARGET).tex $(INCLUDES);
+	pdflatex $(TARGET).tex $(INCLUDES); pdflatex $(TARGET).tex $(INCLUDES);
 
 $(TARGET).pdf: $(TARGET).tex $(INCLUDES);
 

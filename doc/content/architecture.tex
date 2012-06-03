@@ -1,0 +1,11 @@
+\chapter{Architecture}
+The architecture of The Grid involves 3 key components: The Master, The Client and The Node.
+
+\section{The Client}
+The Client is what the user interacts with to execute jobs on The Grid. The Client sends an executables and input files to The Master, and then also requests and downloads the output files from The Master when the job has completed. The Client can be installed in any location as it connects to The Master remotely. The Client can be reimplemented in any language as long as it follows the expected API to comunicate with The Master and authenticates with a trusted username and password.
+
+\section{The Node}
+The Node is the workhorse of The Grid. Many computation nodes are setup with The Node, each of which connects to The Master. After specifying the number of cores available for use, and the cost to use the node, each instance is then ready to accept jobs delegated to it by The Master. The Node is responsible for the execution of delegated jobs, then informing The Master as jobs are finished, and sending the output and error files of the job back to The Master.
+
+\section{The Master}
+The Master is the central component of The Grid. All communication between The Client and The Nodes goes through The Master. The Master accepts job requests from The Client and then adds them to an internal queue. It then determines which jobs should be run and on which node in The Grid. It keeps track of which jobs are on which nodes and what the status of each job is.
