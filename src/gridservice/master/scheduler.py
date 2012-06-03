@@ -443,6 +443,10 @@ class DeadlineCostScheduler(Scheduler):
 					earliest_deadline = time_left
 					work_unit_to_send = job_queue[job_id][0]
 
+				# Handle case where the deadlines are the same but budgets is higher
+				elif time_left == earliest_deadline and units[0].job.budget_per_node_hour > work_unit_to_send.job.budget_per_node_hour:
+					work_unit_to_send = job_queue[job_id][0]
+
 		return work_unit_to_send
 
 
@@ -581,9 +585,15 @@ class PriorityQueueScheduler(Scheduler):
 		earliest_time = int(time.time()) + 1 
 		work_unit_to_send = None
 		for job_id, units in job_queue.items():
-			if units[0].job.created_ts < earliest_time and units[0].job.budget_per_node_hour >= node['cost']:
-				earliest_time = units[0].job.created_ts
-				work_unit_to_send = job_queue[job_id][0]
+			if units[0].job.budget_per_node_hour >= node['cost']:
+				if units[0].job.created_ts < earliest_time:
+					earliest_time = units[0].job.created_ts
+					work_unit_to_send = job_queue[job_id][0]
+				
+				# Handle case where the deadlines are the same but budgets is higher
+				elif (units[0].job.created_ts == earliest_time and 
+						units[0].job.budget_per_node_hour > work_unit_to_send.job.budget_per_node_hour):
+					work_unit_to_send = job_queue[job_id][0]
 		
 		return work_unit_to_send
 	
@@ -629,7 +639,11 @@ class PriorityQueueScheduler(Scheduler):
 				elif time_left < earliest_deadline:
 					earliest_deadline = time_left
 					work_unit_to_send = job_queue[job_id][0]
-		
+			
+				# Handle case where the deadlines are the same but budgets is higher
+				elif time_left == earliest_deadline and units[0].job.budget_per_node_hour > work_unit_to_send.job.budget_per_node_hour:
+					work_unit_to_send = job_queue[job_id][0]
+
 		return work_unit_to_send
 				
 	#
