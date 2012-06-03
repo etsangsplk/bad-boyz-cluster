@@ -133,7 +133,7 @@ def strptime(wall_time):
 def strftime(wall_strp, format="%D:%H:%M:%S"):
 	if not isinstance(wall_strp, WallTime):
 		raise TypeError("Expected object of type WallTime")
-	wall_time = "{}:{:02}:{:02}:{:02}".format(wall_strp.tm_day, wall_strp.tm_hour, wall_strp.tm_minute, wall_strp.tm_second)
+	wall_time = "%s:%02d:%02d:%02d" % (wall_strp.tm_day, wall_strp.tm_hour, wall_strp.tm_minute, wall_strp.tm_second)
 	return wall_time
 	
 #

@@ -189,7 +189,7 @@ class Scheduler(object):
 		blank = " "*27 # Blank space equivalent to space taken by timestamp
 
 		# Write first line with timestamp
-		l = "[{0}] {1}\n".format(time.asctime(), lines[0])
+		l = "[%s] %s\n" % (time.asctime(), lines[0])
 
 		# We also wand to keep an in memory version of the log
 		# so that we can easily read the log from the UI without
@@ -199,7 +199,7 @@ class Scheduler(object):
 
 		# Write following lines with padding 
 		for line in lines[1:-1]:
-			l = "{0}{1}\n".format(blank, line)
+			l = "%s%s\n" % (blank, line)
 			self.log.write(l)
 			self.mem_log.append(l)
 
@@ -241,8 +241,8 @@ class Scheduler(object):
 			queue_string += "Creation Time: %s.\n" % (created_ts)
 			queue_string += "Wall Time: %s.\n" % walltime.strftime(units[0].job.wall_time)
 			queue_string += "Deadline: %s.\n" % time.asctime(time.localtime(units[0].job.deadline))
-			queue_string += "Total Budget: ${:.2f}.\n".format(units[0].job.budget/100)
-			queue_string += "Budget per node hour: ${:.2f}.\n".format(units[0].job.budget_per_node_hour/100)
+			queue_string += "Total Budget: $%0.2f.\n" % (units[0].job.budget/100)
+			queue_string += "Budget per node hour: $%0.2f.\n" % (units[0].job.budget_per_node_hour/100)
 			# Print out a job's currently queued work units
 			queue_string += "Work Units: ["
 			for unit in units:

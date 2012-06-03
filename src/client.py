@@ -143,8 +143,8 @@ if options.job_id_status:
 	print "Job: %s" % options.job_id_status
 	print "Type: %s" % request.response['job_type']
 	print "Command: ./%s %s" % (request.response['executable'], request.response['flags'])
-	print "Total Budget: ${:.2f}".format(request.response['budget']/100)
-	print "Budget per node hour: ${:.2f}".format(request.response['budget_per_node_hour']/100)
+	print "Total Budget: $%0.2f" % (request.response['budget']/100)
+	print "Budget per node hour: $%0.2f" % (request.response['budget_per_node_hour']/100)
 	print "Wall Time: %s" % (request.response['walltime'])
 	print "Deadline: %s" % (time.asctime(time.localtime(request.response['deadline'])))
 	print "Status: %s." % (request.response['status'])
@@ -216,7 +216,7 @@ if options.grid_status:
 		print "Node: %s" % (node_id)
 		print "Status: %s" % node['status']
 		print "CPU: %s" % (float(node['cpu'])/int(node['cores']))
-		print "Cost: ${:.2f}".format(node['cost']/100)
+		print "Cost: $ %0.2f" % (node['cost']/100)
 		print "Cores: %s" % node['cores']
 		print "Type: %s" % node['type']
 		print "Free Spots: %s" % (int(node['cores']) - len(node['work_units']))
