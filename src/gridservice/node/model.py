@@ -89,7 +89,7 @@ class NodeServer(object):
 
 	def reset_node_state(self):
 		# Kill all active tasks
-		for task in self.tasks:
+		for task in self.tasks.items():
 			task.kill()
 		
 		# Remove all task related files
