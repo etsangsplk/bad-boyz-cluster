@@ -91,7 +91,11 @@ if __name__ == '__main__':
 	port = options.port
 
 	app = gridservice.utils.make_app(routes)
-	httpserver.serve(app, host = host, port = port)
+	try:
+		httpserver.serve(app, host = host, port = port)
+	except Exception:
+		print 'Unable to start The Grid on this host and port, please try a different host and port.'
+		sys.exit(1)
 
 
 

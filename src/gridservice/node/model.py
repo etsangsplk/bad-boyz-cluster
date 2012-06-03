@@ -88,8 +88,9 @@ class NodeServer(object):
 	#
 
 	def reset_node_state(self):
+		print "Reconnected to The Grid. Resetting."
 		# Kill all active tasks
-		for task in self.tasks.items():
+		for task in self.tasks.values():
 			task.kill()
 		
 		# Remove all task related files

@@ -233,6 +233,7 @@ if options.grid_status:
 
 	sys.exit(1)
 
+
 #
 # Begin Client
 #
@@ -244,6 +245,10 @@ for filename in args:
 	if not os.path.exists(filename):
 		print "Could not find file: %s" % filename
 		sys.exit(1)
+
+if not options.executable:
+	print "Must specify an executable!"
+	sys.exit(1)
 
 if not os.path.exists(options.executable):
 	print "Could not find executable file: %s" % options.executable
