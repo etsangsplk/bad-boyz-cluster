@@ -1,2 +1,102 @@
 \chapter{Evaluation}
+We can evaluate the use of The Grid in order to schedule and manage parallelisable executables by performing a side-by-side comparison of The Grid and its various schedulers to running all of the jobs in a non-distributed manner.
 
+\section{The Test}
+\label{thetest}
+
+The following Jobs were to be executed, and their results collected. For the sake of testing, it is assumed that all jobs were recieved at once.
+
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\begin{tabulary}{\textwidth}{@{}LLLL@{}} \toprule
+Job ID&Wall Time&Deadline&\# Input Files\\
+\midrule
+1&1:00:00&2 days&4\\
+2&1:00:00:00&7 days&1\\
+3&12:00:00&1 day&7\\
+4&1:00:00&1 day&10\\
+5&7:00:00:00&14 days&5\\
+6&7:00:00:00&12 days&2\\
+7&14:00:00&2 days&6\\
+8&1:00:00&2 days&4\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+
+
+The following Nodes were available in The Grid.
+
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\begin{tabulary}{\textwidth}{@{}LLL@{}} \toprule
+Node ID&Cores Available&Cost\\
+\midrule
+1&2&0.15\\
+2&1&0.16\\
+3&4&0.11\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+
+
+\section{The Results}
+\label{theresults}
+
+\subsection{No Distribution}
+\label{nodistribution}
+
+With no distribution, all jobs would be executed on a single core on a single machine. This is provided at a baseline.
+
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\begin{tabulary}{\textwidth}{@{}LLLLL@{}} \toprule
+Job ID&Wait Time&Time Taken&Total Time&Made Deadline?\\
+\midrule
+1&00:00:00&4:00:00&4:00:00&Yes\\
+2&04:00:00&1:00:00:00&1:04:00:00&Yes\\
+3&1:04:00:00&3:12:00:00&4:16:00:00&No\\
+4&4:16:00:00&10:00:00&5:02:00:00&No\\
+5&5:02:00:00&35:00:00:00&40:02:00:00&No\\
+6&40:02:00:00&14:00:00:00&54:02:00:00&No\\
+7&54:02:00:00&3:12:00:00&58:15:00:00&No\\
+8&58:15:00:00&4:00:00&58:19:00:00&No\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+
+
+\textbf{Total Time Taken:} 57 Days, 14 Hours
+
+\subsection{FCFS}
+\label{fcfs}
+
+This is using the most naive of the distributed algorithms, First come first server. This provides a distributed baseline.
+
+\textbar{} Job ID \textbar{} Wait Time \textbar{} Time Taken \textbar{} Total Time \textbar{} Made Deadline? \textbar{} Comments \textbar{}
+\textbar{}:-------\textbar{}:----------\textbar{}:-----------\textbar{}:-----------\textbar{}:---------------\textbar{}:---------\textbar{}
+
+1 57:47 1 second
+2 57:49 1 second
+
+1 \textbar{} 00:00:00 \textbar{} 1:00:00 \textbar{} 1:00:00 \textbar{} Yes
+2 \textbar{} 00:00:00 \textbar{} 1:00:00:00 \textbar{} 1:00:00:00 \textbar{} Yes
+3 \textbar{} 12:00:00 \textbar{} 12:00:00 \textbar{} 24:00:00 \textbar{} Yes \textbar{} First 3 work units start immediately, 4 more after Job 1 finishes, an additional 12 hours needs to be waited for the 7th work unit
+4 \textbar{} 
