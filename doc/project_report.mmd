@@ -92,8 +92,6 @@ FCFS completes each job sequentially as they arrived. Jobs are ordered by the ti
 
 Round Robin is similar to FCFS however rather than executing all of the Work Units from a job before moving to the next one, it will instead execute one work unit from each job in the queue before moving on to the second work unit from each job in the queue. 
 
-COMMENT ABOUT HOW JOBS ARE NOT STARVED OUT
-
 ##### Deadline First ####
 
 Deadline First takes into account the deadline of the job and prioritises jobs by earliest deadline first. That is, if a job needs to be finished by tomorrow and there is another job that can be finished in a week, then the job that needs to be finsihed by tomorrow will take preference. As Jobs are allocated by schedulers as Work Units, a job may execute some work units before a Job is created that has an earlier deadline. In this event any remaining Work Units from the already running job will be placed behind the Work Units of the new scheduler. As a jobs deadline is a fixed amount of time in the past, indefinate starvation of a job cannot occur as eventually the deadline of the job will make it the highest priority to be completed. 
@@ -110,19 +108,23 @@ This scheduler also stops large jobs from taking up most of the queue during off
 
 ### The Node ###
 
-Each Node, like The Master, also instansiates a HTTP Server on a given hostname and port. It listens on this for communications from The Master. The Master sends job information to The Node, which in turn uses this information to request from The Master any files that The Node requires in order to complete the job it has been assigned.
+Each Node, like The Master, also instansiates a HTTP Server on a given hostname and port. It listens on this for communications from The Master. The Master sends job information to The Node, which in turn uses this information to request from The Master any files that The Node requires in order to complete the job it has been assigned. The Node will then execute a Work Unit once it is told by The Master that the Work Unit is READY. The Node will then preiodically check whether the Work Unit has finished executing. Once it has finished, The Node will report back to The Server that the Work Unit is complete and will then send back any information written to stdout or stderr during the Work Unit's execution.
 
 #### The Heartbeat ####
 
-The Heartbeat is a thread spawned from The Node which controls the sending of the Node's heartbeat to The Master. This heartbeat lets The Master know that The Node is still there, if this heartbeat is not received by The Master, it will be assumed to be offline. This heartbeat also detects for a loss of connection to The Master. If connection to The Master is lost, The Node will attempt to reregister itself to The Master. 
+The Heartbeat is a thread spawned from The Node which controls the sending of the Node's heartbeat to The Master. This heartbeat lets The Master know that The Node is still there, if this heartbeat is not received by The Master, it will be assumed to be offline. This heartbeat also detects for a loss of connection to The Master. If connection to The Master is lost, The Node will attempt to reregister itself to The Master. The Heartbeat has the additional task of monitoring the health of The Node. It reports information such as the CPU usage to The Server so that overall statistics of The Grid can be monitored at a Grid-wide level.
 
 #### The Monitor ####
 
-The Monitor is a thread spawned from The Node which monitors the health of The Node. It reports information such as the CPU usage to The Server so that overall statistics of The Grid can be monitored at a Grid-wide level.
+The Monitor is a thread spawned from The Node which monitors the state of all running processes and reports back to The Master when a Work Unit has finished executing. The Monitor will check for Jobs that may have exceeded their allotted wall time and kill them, returning their current progress. 
 
 ### The Client ###
 
-A job has 3 various states throughout The Grid. On The Master it exists both as a Job, and as a number of Work Units which exist as part of a Job. A work unit is a pairing of the executable for a job and one input file. In the case of a job with 5 input files, it will have 5 work units, each corresponding to one input file. The level of granularity handled by The Scheduler is a single Work Unit. 
+The Client is built on top of the available API in Python and allows the creation of new Jobs via a command line interface. It additionally allows for the monitoring of a running Job's status. As well as retreiving the output files created during a Jobs execution. The Client also allows a user to kill a running job early and retrieve any output that had been generated until that point. It is also possible to dynamically modify the Scheduler being used by The Grid, however this requires the client to be logged in with an Administrator level account. The Client must be run with a provided username and password that is valid for use with The Grid. These username and password combinations can be either Client level, or Administration level. The Client level allows the user to create, view and kill jobs. The Administration level is the same as Client level, however with the additional functionality of being able to change The Scheduler.
+
+### The Web Interface 
+
+The Web Interface is built on top of the same API as The Client, however it is written with a combination of HTML and JavaScript to run from The Browser. The Web Interface is served by The Master and is accessible to any computer that can see The Master. The Web Interface has the additional feature of also being able to easily view the output log of The Scheduler, for debugging or monitoring purposes, as well as being able to see which Nodes are available, and what Work Units have been assigned to them. 
 
 The Grid: API
 -------------
