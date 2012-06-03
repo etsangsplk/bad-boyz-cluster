@@ -11,3 +11,8 @@ Nice to Have:
  - Tidy up the Node Model
  - See if there is some nice Mixin to share code between Tasks, Work Units and Jobs
  - Clean up Scheduler logging to use the logging module
+ - Kill Scott for his abomination of a WallTime module.
+
+Known Bugs:
+ - [Console] Cancel button should reset the Add Job Column if a job is cancelled before uploading any files
+    * and submitting. Or it should be removed until files have been submitted.
