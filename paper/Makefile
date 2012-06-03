@@ -1,4 +1,4 @@
-TARGET=report
+TARGET=cgc_term_paper
 FIG=
 INCLUDES=*.tex content/*.tex
 PDFFIG=figs/*.pdf
@@ -13,7 +13,7 @@ ps: $(TARGET).ps
 dvi: $(TARGET).dvi
 
 all:
-	pdflatex $(TARGET).tex $(INCLUDES); pdflatex $(TARGET).tex $(INCLUDES);
+	pdflatex $(TARGET).tex $(INCLUDES); bibtex $(TARGET); pdflatex $(TARGET).tex $(INCLUDES); pdflatex $(TARGET).tex $(INCLUDES);
 
 $(TARGET).pdf: $(TARGET).tex $(INCLUDES);
 
