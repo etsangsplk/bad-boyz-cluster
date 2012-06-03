@@ -43,7 +43,7 @@ The Master is the central component of The Grid. All communication between The C
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/creation.png}
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/jobcreate.png}
 \caption{New Job Creation}
 \end{figure}
 
@@ -55,11 +55,26 @@ The Master is the central component of The Grid. All communication between The C
 \end{figure}
 
 
-![Get the status of The Grid](.\slash figs\slash grid status.png)
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/gridstatus.png}
+\caption{Get the status of The Grid}
+\end{figure}
 
-![Get the status of a Job](.\slash figs\slash job get.png)
 
-![Get the output of a finished Job](.\slash figs\slash output get.png)
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/jobget.png}
+\caption{Get the status of a Job}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/getoutput.png}
+\caption{Get the output of a finished Job}
+\end{figure}
+
 
 \begin{figure}[htbp]
 \centering
@@ -70,7 +85,7 @@ The Master is the central component of The Grid. All communication between The C
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{server-node.png}
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/servernode.png}
 \caption{Interaction between The Master and The Nodes in The Grid}
 \end{figure}
 
@@ -196,12 +211,12 @@ Only a single executable file may be uploaded to the server for a particular job
 \begin{adjustwidth}{2.5em}{2.5em}
 \begin{verbatim}
 
-URL:    /json/job/submit-executable/<job_id>/?qqfile=<file_name>
-Method: POST
+URL:    /job/<job_id>/executable/<file_name>    
+Method: PUT
 Parameters: 
     job_id          the id of the job to submit the file to
     file_name       name of the executable file
-    file_content    content of the file in the post body
+    file_content    content of the file in the content body
 Returns:    
     job_id, file_name
 
@@ -216,13 +231,14 @@ Many files may be associated with a single job, with the executable being execut
 \begin{adjustwidth}{2.5em}{2.5em}
 \begin{verbatim}
 
-URL:    /json/job/submit-file/<job_id>/?qqfile=<file_name>
-Method: POST
+URL:    /job/<job_id>/files/<file_name>
+Method: PUT
 Parameters: 
-job_id          the id of the job to submit the file to
-file_name       name of the executable file
-file_content    content of the file in the post body
-Returns:        job_id, file_name
+    job_id          the id of the job to submit the file to
+    file_name       name of the executable file
+    file_content    content of the file in the content body
+Returns:        
+    job_id, file_name
 
 \end{verbatim}
 \end{adjustwidth}
@@ -238,8 +254,8 @@ After all the required files have been uploaded, the job may be started using th
 URL:    /job/<job_id>/status
 Method: POST
 Parameters: 
-job_id      the id of the job to start
-status      must always be “READY”
+    job_id      the id of the job to start
+    status      must always be "READY"
 Returns:
 
 \end{verbatim}
@@ -256,7 +272,7 @@ A job may be killed when it is Queued, Ready, Pending or Running, in which case 
 URL:    /job/<job_id>
 Method: DELETE
 Parameters: 
-job_id      the id of the job to kill
+    job_id      the id of the job to kill
 Returns:
 
 \end{verbatim}
@@ -266,10 +282,36 @@ Returns:
 \label{listavailablenodes}
 
 A list of all currently connected nodes is provided at this url along with the work items that each node is currently working on.
- URL: \slash json\slash nodes
- Method: GET
- Parameters:
- Returns: JSON encoded string listing available nodes.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /node
+Method: GET
+Parameters:
+Returns:    
+    JSON encoded string listing available nodes.
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Node Information}
+\label{nodeinformation}
+
+Get all the information The Grid stores on a specific Job
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /node/<node_id>
+Method: GET
+Parameters:
+    node_id     the id of the node
+Returns:    
+    JSON encoded string of the node
+
+\end{verbatim}
+\end{adjustwidth}
 
 \subsection{List Jobs}
 \label{listjobs}
@@ -279,10 +321,29 @@ A list of all jobs that are in the pending, ready, queued, running, finished or 
 \begin{adjustwidth}{2.5em}{2.5em}
 \begin{verbatim}
 
-URL:    /json/jobs
+URL:    /job
 Method: GET
 Parameters:
-Returns:    JSON encoded string listing jobs that have been submitted.
+Returns:    
+    JSON encoded string listing jobs that have been submitted.
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Job Information}
+\label{jobinformation}
+
+Get all the information The Grid stores on a specific Job
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>
+Method: GET
+Parameters:
+    job_id      the id of the job
+Returns:    
+    JSON encoded string of the job
 
 \end{verbatim}
 \end{adjustwidth}
@@ -298,6 +359,17 @@ Returns:    JSON encoded string listing jobs that have been submitted.
 
 \chapter{Future Improvements}
 \label{futureimprovements}
+
+There are a number of key improvments that could make The Grid much better.
+
+\begin{itemize}
+\item The use of SSL in order to secure the communication between The Master and The Nodes and The Clients.
+
+\item The use of a proper job specification format that would allow the sending of non-self-contained executables around the heterogenous grid.
+
+\item The use of a virtual file system that would allow better sandboxing of executables on The Grid.
+
+\end{itemize}
 
  \clearpage \chapter{Contributions}
 \label{contributions}
