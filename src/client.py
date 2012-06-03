@@ -11,8 +11,7 @@ from httplib import HTTPException
 
 from optparse import OptionParser
 from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest, JSONResponse
-from gridservice.utils import wall_secs, strp_wall_time
-
+import gridservice.walltime as walltime
 import gridservice.client.utils as client_utils
 
 # Parse the arguments from the CLI
@@ -224,7 +223,7 @@ if options.grid_status:
 		if (int(node['cores']) - len(node['work_units'])) == 0:
 			earliest_end = None
 			for unit in node['work_units']:
-				end = int(unit['created_ts']) + wall_secs(strp_wall_time(unit['wall_time']))
+				end = int(unit['created_ts']) + walltime.wall_secs(walltime.strptime(unit['wall_time']))
 				if earliest_end == None:
 					earliest_end = end
 				if end < earliest_end:

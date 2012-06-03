@@ -15,7 +15,7 @@ import gridservice.node.monitor as monitor
 import gridservice.node.utils as node_utils
 
 from gridservice.http import auth_header, HTTPRequest, FileHTTPRequest, JSONHTTPRequest
-from gridservice.utils import WallTime, strp_wall_time, wall_secs
+import gridservice.walltime as walltime
 
 SERVERS = [
 	('server', 'server')
@@ -144,7 +144,7 @@ class NodeServer(object):
 			executable = executable, 
 			filename = filename,
 			flags = flags, 
-			wall_time = strp_wall_time(wall_time),
+			wall_time = walltime.strptime(wall_time),
 			deadline = deadline
 		)
 		self.get_task_executable(task)
@@ -356,7 +356,7 @@ class NodeServer(object):
 				self.finish_task(task)
 				del self.tasks[i]
 			# Kill task if its exceeded it wall time
-			if (int(time.time()) - task.running_ts) > wall_secs(task.wall_time):
+			if (int(time.time()) - task.running_ts) > walltime.wall_secs(task.wall_time):
 				self.kill_task(task, "Exceeded Wall time.")
 				print "Work unit %s of job %s killed: Exceeded Wall Time." % (task.job_id, task.work_unit_id)
 			# Kill task if it exceeds its deadline (for fairness)

@@ -11,7 +11,8 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from gridservice.http import auth_header, JSONHTTPRequest
-from gridservice.utils import validate_request, WallTime, strf_wall_time, strp_wall_time, wall_secs, wall_hours, WallTimeFormatException
+from gridservice.utils import validate_request
+import gridservice.walltime as walltime
 
 from gridservice.master.scheduler import RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
 from gridservice.master.job import Job
@@ -51,9 +52,9 @@ class Grid(object):
 
 		# (Proportion of nodes, max wall_time (hours), list of nodes)
 		self.node_queue = {
-			'DEFAULT': (0.5, "7:00:00:00", []),
+			'DEFAULT': (0.5, walltime.strptime("7:00:00:00"), []),
 			'BATCH': (0.3, None, []),
-			'FAST': (0.2, "01:00:00", []) 
+			'FAST': (0.2, walltime.strptime("01:00:00"), []) 
 		}
 
 		self.next_node_id = 0
@@ -112,7 +113,7 @@ class Grid(object):
 
 		# Check that wall_time is valid:
 		try:
-			wall_stripped = strp_wall_time(wall_time)
+			wall_stripped = walltime.strptime(wall_time)
 		except WallTimeFormatException:
 			raise InvalidWallTimeFormatException("Invalid Wall Time specified: %s. Format: DD:HH:MM:SS." % wall_time)
 
@@ -127,16 +128,16 @@ class Grid(object):
 			raise InvalidJobDeadlineException("Invalid Deadline specified: %s. Deadline specified is in the past." % deadline)
 		
 		# Check that deadline is reasonable
-		if (deadline_since_epoch - wall_secs(wall_stripped)) < int(time.time()):
+		if (deadline_since_epoch - walltime.wall_secs(wall_stripped)) < int(time.time()):
 			raise InvalidJobDeadlineException(
 				"Error: Current time plus wall time is later than the specified deadline. Please adjust either and resubmit."
 				)
 		
 		# Check that wall time is within acceptable range for job queue placement
-		if self.node_queue[job_type][1] != None and wall_secs(wall_stripped) > wall_secs(strp_wall_time(self.node_queue[job_type][1])):
+		if self.node_queue[job_type][1] != None and walltime.wall_secs(wall_stripped) > walltime.wall_secs(self.node_queue[job_type][1]):
 			raise InvalidJobTypeException(
 				"Invalid Job Type specified: %s. Wall time %s is too large. Wall time must be shorter than %s for job type %s."
-				% (job_type, strf_wall_time(wall_stripped), self.node_queue[job_type][1], job_type)
+				% (job_type, walltime.strftime(wall_stripped), self.node_queue[job_type][1], job_type)
 				) 
 
 		#
