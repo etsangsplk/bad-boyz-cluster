@@ -17,9 +17,14 @@ import gridservice.client.utils as client_utils
 
 # Parse the arguments from the CLI
 
-parser = OptionParser(
-			usage="./client.py --username USERNAME --password PASSWORD --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES"
-		)
+usage="./client.py --username USERNAME --password PASSWORD --gh HOSTNAME --gp PORT -e EXECUTABLE -t TYPE -w WALL_TIME -d DEADLINE -f \"FLAGS\" -b BUDGET FILES\n"
+usage += "./client.py --username USERNAME --password PASSWORD --kj JOB_ID\n"
+usage += "./client.py --username USERNAME --password PASSWORD -s SCHEDULER\n"
+usage += "./client.py --username USERNAME --password PASSWORD --jo JOB_ID\n"
+usage += "./client.py --username USERNAME --password PASSWORD --js JOB_ID\n"
+usage += "./client.py --username USERNAME --password PASSWORD --gs"
+
+parser = OptionParser(usage)
 
 parser.add_option("--username", dest="username",
 	help="The client username", 
@@ -63,19 +68,19 @@ parser.add_option("-b", "--budget", dest="budget",
 
 parser.add_option("--kj", "--kill_job", dest="job_id",
 	help="The Job ID of a job to be killed.", 
-	metavar="KILL_JOB_ID")
+	metavar="JOB_ID")
 
 parser.add_option("-s", "--scheduler", dest="scheduler",
-	help="The Scheduler to change The Grid to.",
+	help="The Scheduler to change The Grid to. Must be an Administrator.",
 	metavar="SCHEDULER")
 
-parser.add_option("-o", "--output", dest="job_id_output",
+parser.add_option("--jo", "--job_output", dest="job_id_output",
 	help="The Job ID of a job to request the output of.",
-	metavar="JOB_OUTPUT")
+	metavar="JOB_ID")
 
 parser.add_option("--js", "--job_status", dest="job_id_status",
 	help="The Job ID of a job to request the status of.",
-	metavar="JOB_STATUS")
+	metavar="JOB_ID")
 
 parser.add_option("--gs", "--grid_status", dest="grid_status",
 	action="store_true", default = False,
