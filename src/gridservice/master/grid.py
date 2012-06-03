@@ -18,10 +18,17 @@ from gridservice.master.scheduler import RoundRobinScheduler, FCFSScheduler, Dea
 from gridservice.master.job import Job
 
 #
-# Grid
+# The Grid.
 #
-# If you are on the Grid, you can never leave.
-
+# A digital fronteir.
+# I tried to picture clusters of information as they moved through the computer.
+# What did they look like? Ships? Motorcycles?
+# Were the circuits like freeways?
+# I kept dreaming of a world I'd never see.
+#
+# And then one day,
+# I got in.
+#
 
 class Grid(object):
 	
@@ -88,7 +95,7 @@ class Grid(object):
 		self._scheduler.start()
 
 	#
-	# add_job(self, executable, flags, wall_time, deadline, budget)
+	# add_job(self, flags, wall_time, deadline, budget, job_type, name)
 	#
 	# Adds a new job to the Grid
 	#
@@ -223,9 +230,10 @@ class Grid(object):
 			for work_unit in job.work_units:
 				self.queue.append(work_unit)
 	#
-	# finish_work_unit(self, job, filename)
+	# finish_work_unit(self, job, work_unit_id)
 	#
-	#
+	# Finishes the work unit and removes it from The Grid's internal
+	# state of the Node it was running on.
 	#
 
 	def finish_work_unit(self, job, work_unit_id):
@@ -398,7 +406,10 @@ class Grid(object):
 	#
 	# get_free_node
 	#
-	# A generator of node that have at least 1 core free
+	# A generator of node that have at least 1 core free.
+	# If given a node_type will return only nodes of the specified type.
+	# If there are no nodes registered with the specified type will return
+	# a free DEFAULT node.
 	#
 
 	def get_free_node(self, node_type=None):
@@ -423,7 +434,7 @@ class Grid(object):
 				yield node
 
 	# 
-	# remove_timed_out_nodes
+	# remove_timed_out_nodes(self)
 	#
 	# Looks for nodes that have not had their heartbeat within
 	# NODE_TIMEOUT and removes them from the nodes list and the 

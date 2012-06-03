@@ -19,3 +19,5 @@ Known Bugs:
 	* Do nothing.
  - [Console] Console isnt detecting which nodes are running jobs correctly. Running work units only appear
     on the first node displayed.
+ - [Console] Cancel button should reset the Add Job Column if a job is cancelled before uploading any files
+    * and submitting. Or it should be removed until files have been submitted.
