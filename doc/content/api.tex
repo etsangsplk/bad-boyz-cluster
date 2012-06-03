@@ -1,0 +1,178 @@
+\chapter{The Grid: API}
+\label{thegrid:api}
+
+Both the Web based User Interface and the Client application (Client.py) communicate with the master node of The Grid through a REST API. REST stands for Representational State Transfer and is becoming the de-facto standard for web based API's, such as those used by Twitter and Facebook. The key benefits to using this technology are that many tools exist for consuming these services; it works over HTTP enabling consumption of services on mobile devices and provides a consistent model to develop with.
+
+Rather than using XML, we have chosen to use the JSON format. The primary driver for selecting JSON is its simplicity. XML can easily become cumbersome for development due to the challenges of maintaining XML schemas in a rapidly evolving development process. JSON is also extremely well supported within Python and Javascript which greatly simplified development.
+
+The REST API is secured using based HTTP Authentication, preventing unauthorized access to The Grid.
+
+\section{API End Points}
+\label{apiendpoints}
+
+\subsection{Submit Job}
+\label{submitjob}
+
+The meta-data of a job must be submitted before files can be submitted and before the job can be started.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job
+Method: POST
+Parameters: 
+    name            label for identifying the job
+    wall_time       time allowance for the job (HH:MM:SS)
+    deadline        date and time that the job must be completed by
+    budget          amount of money this job may cost
+    job_type        type of job (BATCH, FAST, DEFAULT)
+Returns:    
+    job_id
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Submit Executable File}
+\label{submitexecutablefile}
+
+Only a single executable file may be uploaded to the server for a particular job. If multiple files are uploaded, then latter uploads will replace the initial file.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>/executable/<file_name>    
+Method: PUT
+Parameters: 
+    job_id          the id of the job to submit the file to
+    file_name       name of the executable file
+    file_content    content of the file in the content body
+Returns:    
+    job_id, file_name
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Submit Input File}
+\label{submitinputfile}
+
+Many files may be associated with a single job, with the executable being executed with a single input file in each invocation which may occur on different servers.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>/files/<file_name>
+Method: PUT
+Parameters: 
+    job_id          the id of the job to submit the file to
+    file_name       name of the executable file
+    file_content    content of the file in the content body
+Returns:        
+    job_id, file_name
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Start Job}
+\label{startjob}
+
+After all the required files have been uploaded, the job may be started using the above mentioned url.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>/status
+Method: POST
+Parameters: 
+    job_id      the id of the job to start
+    status      must always be "READY"
+Returns:
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Kill Job}
+\label{killjob}
+
+A job may be killed when it is Queued, Ready, Pending or Running, in which case all work items that have been queued or are running will be halted. The output for jobs that have already been run will still be available.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>
+Method: DELETE
+Parameters: 
+    job_id      the id of the job to kill
+Returns:
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{List Available Nodes}
+\label{listavailablenodes}
+
+A list of all currently connected nodes is provided at this url along with the work items that each node is currently working on.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /node
+Method: GET
+Parameters:
+Returns:    
+    JSON encoded string listing available nodes.
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Node Information}
+\label{nodeinformation}
+
+Get all the information The Grid stores on a specific Job
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /node/<node_id>
+Method: GET
+Parameters:
+    node_id     the id of the node
+Returns:    
+    JSON encoded string of the node
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{List Jobs}
+\label{listjobs}
+
+A list of all jobs that are in the pending, ready, queued, running, finished or killed state along with each jobs work items and the output files associated with those work items.
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job
+Method: GET
+Parameters:
+Returns:    
+    JSON encoded string listing jobs that have been submitted.
+
+\end{verbatim}
+\end{adjustwidth}
+
+\subsection{Job Information}
+\label{jobinformation}
+
+Get all the information The Grid stores on a specific Job
+
+\begin{adjustwidth}{2.5em}{2.5em}
+\begin{verbatim}
+
+URL:    /job/<job_id>
+Method: GET
+Parameters:
+    job_id      the id of the job
+Returns:    
+    JSON encoded string of the job
+
+\end{verbatim}
+\end{adjustwidth}
