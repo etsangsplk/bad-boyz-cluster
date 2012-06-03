@@ -51,6 +51,9 @@ class Job(object):
 
 	@property
 	def budget_per_node_hour(self):
+		# Work units have not been created yet, assume there will be at least 1.
+		if self.num_work_units == 0:
+			return int(self.budget) / walltime.wall_hours(self.wall_time)
 		return int(self.budget) / self.num_work_units / walltime.wall_hours(self.wall_time)
 
 	@property
@@ -107,7 +110,7 @@ class Job(object):
 		return finished
 
 	#
-	#
+	# Filepath operations
 	#
 
 	@property
@@ -144,6 +147,10 @@ class Job(object):
 
 	def add_file(self, filename):
 		self.files.append(filename)
+
+	#
+	# Creation and Destruction
+	#
 
 	def create_work_units(self):
 		if self.files:
@@ -223,6 +230,10 @@ class WorkUnit(object):
 	def cost(self):
 		return self.job.budget_per_node_hour
 
+	#
+	# Status Setters
+	#
+
 	def running(self, node_id, task_id):
 		self.node_id = node_id
 		self.task_id = task_id
@@ -249,6 +260,10 @@ class WorkUnit(object):
 
 		if self.job.is_finished():
 			self.job.finish()
+
+	#
+	# Representations
+	#
 
 	def to_dict(self):
 		d = {
