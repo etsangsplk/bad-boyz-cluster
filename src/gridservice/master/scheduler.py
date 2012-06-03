@@ -87,6 +87,15 @@ class Scheduler(object):
 	def allocate_work_units(self):
 		with self.grid.queue_lock:
 			free_nodes = False
+
+			# Check that there are jobs to schedule
+			if len(self.grid.get_queued()) == 0:
+				self.write_to_log("Waiting for tasks to schedule.\n")
+				return
+
+			# Write the job queue to the log
+			self.write_queue_to_log()
+
 			for node in self.grid.get_free_node():
 				free_nodes = True
 				
@@ -95,42 +104,39 @@ class Scheduler(object):
 				 	if (int(time.time()) + walltime.wall_secs(unit.job.wall_time)) > unit.job.deadline:
 				 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
 				 		unit.kill()
-
-				# Get the next work unit to allocate
-				try:
-					unit = self.next_work_unit(node)
-				except Exception as e:
-					self.write_to_log("Work unit allocator crashed\n")
-					exc_type, exc_value, exc_tb = sys.exc_info()
-					traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-					self.log.write(traceback_msg)
-					self.log.close()
-					print "Error in Scheduler. Shutting down Server."
-					os._exit(1)
 				
-				if unit == None:
-					self.write_to_log("Waiting for tasks to schedule.\n")
-					break
+				# Want to allocate on all free cores on the node
+				for free_core in range(0, (node['cores'] - len(node['work_units']))):
+					
+					# Get the next work unit to allocate
+					try:
+						unit = self.next_work_unit(node)
+					except Exception as e:
+						self.write_to_log("Work unit allocator crashed\n")
+						exc_type, exc_value, exc_tb = sys.exc_info()
+						traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+						self.log.write(traceback_msg)
+						self.log.close()
+						print "Error in Scheduler. Shutting down Server."
+						os._exit(1)
+					
+					# Output to log file
+					self.write_to_log("Allocating work unit " + 
+								   str(unit.work_unit_id) + " of job " + 
+								   str(unit.job.job_id) + " on node " + 
+								   str(node['node_id']) + ".\n\n")
 
-				self.write_queue_to_log()
-
-				# Output to log file
-				self.write_to_log("Allocating work unit " + 
-							   str(unit.work_unit_id) + " of job " + 
-							   str(unit.job.job_id) + " on node " + 
-							   str(node['node_id']) + ".\n\n")
-
-				# If allocating the work unit has failed,
-				# we break to avoid death.
-				try:
-					self.allocate_work_unit(node, unit)
-				except NodeUnavailableException as e:
-					self.write_to_log("Failed to allocated job!\n")
-					self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+					# If allocating the work unit has failed,
+					# we break to avoid death.
+					try:
+						self.allocate_work_unit(node, unit)
+					except NodeUnavailableException as e:
+						self.write_to_log("Failed to allocated job!\n")
+						self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
 			
 			# Find a cleaner way to do this!
 			if not free_nodes:
-				self.write_to_log("Waiting for free nodes")
+				self.write_to_log("Waiting for free nodes.")
 
 
 	#
@@ -217,6 +223,10 @@ class Scheduler(object):
 	def write_queue_to_log(self):
 		job_queue = defaultdict(list)
 
+		# No work units, dont print.
+		if len(self.grid.get_queued()) == 0:
+			return
+			
 		# Build Queue by Job ID
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
@@ -271,11 +281,6 @@ class RoundRobinScheduler(Scheduler):
 
 			job_queue[unit.job.job_id].append(unit)
 
-
-		# No work units to allocate!
-		if len(job_queue) == 0:
-			return None
-
 		# Write job_id_queue to the log for clarity.
 		self.write_to_log(str(self.job_id_queue))
 
@@ -314,11 +319,6 @@ class FCFSScheduler(Scheduler):
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
 
-
-		# No work units to allocate!
-		if len(job_queue) == 0:
-			return None
-
 		# Find Job with earliest creation time	
 		
 		# Add 1 second to current time to stop server crashing for jobs
@@ -354,10 +354,6 @@ class DeadlineScheduler(Scheduler):
 
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
-
-		# No work units to allocate!
-		if len(job_queue) == 0:
-			return None
 
 		# Point of differece from FCFS. Have to process
 		# jobs before we can see what the earliest deadline is
@@ -404,10 +400,6 @@ class DeadlineCostScheduler(Scheduler):
 			
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
-
-		# No work units to allocate!
-		if len(job_queue) == 0:
-			return None
 
 		# Get the node's cost from the node JSON
 		node_cost = node['cost']
@@ -456,69 +448,73 @@ class PriorityQueueScheduler(Scheduler):
 	
 	def allocate_work_units(self):
 		with self.grid.queue_lock:
-			free_nodes = False
+			# Check that there are jobs to schedule
+			if len(self.grid.get_queued()) == 0:
+				self.write_to_log("Waiting for tasks to schedule.\n")
+				return
+			
+			# Write the job queue to the log
+			self.write_queue_to_log()
+		
 			for queue in self.grid.node_queue.keys():
+				free_nodes = False
 				for node in self.grid.get_free_node(queue):
 					free_nodes = True
-					
+				
 					# Kill any work_units which have no chance of finishing before the deadline.
 					for unit in self.grid.get_queued():
-						if (int(time.time()) + walltime.wall_secs(unit.job.wall_time)) > unit.job.deadline:
-							unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
-							unit.kill()
-
-					try:
-						unit = self.next_work_unit(node, queue)
-					except Exception as e:
-						self.write_to_log("Work unit allocator crashed\n")
-						exc_type, exc_value, exc_tb = sys.exc_info()
-						traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-						self.log.write(traceback_msg)
-						self.log.close()
-						print "Error in Scheduler. Shutting down Server."
-						os._exit(1)
-					
-					if unit == None:
-						self.write_to_log("Waiting for tasks to schedule.\n")
-						break
-
-					self.write_queue_to_log()
-
-					# Output to log file
-					self.write_to_log("Allocating work unit " + 
-								   str(unit.work_unit_id) + " of job " + 
-								   str(unit.job.job_id) + " on node " + 
-								   str(node['node_id']) + ".\n\n")
-
-					# If allocating the work unit has failed,
-					# we break to avoid death.
-					try:
-						self.allocate_work_unit(node, unit)
-					except NodeUnavailableException as e:
-						self.write_to_log("Failed to allocated job!\n")
-						self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+					 	if (int(time.time()) + walltime.wall_secs(unit.job.wall_time)) > unit.job.deadline:
+					 		unit.kill_msg = "Killed by scheduler: Unable to complete work_unit by deadline."
+					 		unit.kill()
 				
+
+					# Want to allocate on all free cores on the node
+					for free_core in range(0, (node['cores'] - len(node['work_units']))):
+					
+						# Get the next work unit to allocate
+						try:
+							unit = self.next_work_unit(node, queue)
+						except Exception as e:
+							self.write_to_log("Work unit allocator crashed\n")
+							exc_type, exc_value, exc_tb = sys.exc_info()
+							traceback_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+							self.log.write(traceback_msg)
+							self.log.close()
+							print "Error in Scheduler. Shutting down Server."
+							os._exit(1)
+				
+						# No work units to allocate for this queue, continue
+						if unit == None:
+							continue
+
+						# Output to log file
+						self.write_to_log("Allocating work unit " + 
+									   str(unit.work_unit_id) + " of job " + 
+									   str(unit.job.job_id) + " on node " + 
+									   str(node['node_id']) + ".\n\n")
+
+						# If allocating the work unit has failed,
+						# we break to avoid death.
+						try:
+							self.allocate_work_unit(node, unit)
+						except NodeUnavailableException as e:
+							self.write_to_log("Failed to allocated job!\n")
+							self.grid.nodes[ node['node_id'] ]['status'] = "DEAD"
+			
 				# Find a cleaner way to do this!
 				if not free_nodes:
-					self.write_to_log("Waiting for free nodes")
+					self.write_to_log("Waiting for free nodes of type %s." % queue)
 
 	#
 	# next_work_unit(self, node, queue_type)
 	#
-	# queue_type determine the scheduling algorithm used.
+	# Scheduling alogirthm varies by queue. Due to the way The Grid
+	# manages state and dynamically switches scheduler, these all 
+	# have to be reimplemented here. Algorithms are verbatim, with 
+	# the addition of cost constrains for FCFS and Round Robin.
 	#
 	
 	def next_work_unit(self, node, queue_type):
-		if len(self.grid.get_queued()) == 0:
-		
-			# No work units to allocate
-			return None
-		
-		# Scheduling alogirthm varies by queue. Due to the way The Grid
-		# manages state and dynamically switches scheduler, these all 
-		# have to be reimplemented here. Algorithms are verbatim, with 
-		# the addition of cost constrains for FCFS and Round Robin.
-		
 		# Use Cost constrained FCFS scheduler (good throughput)
 		if queue_type == "BATCH":
 			return self.next_FCFS_work_unit(node)
@@ -545,7 +541,7 @@ class PriorityQueueScheduler(Scheduler):
 			if unit.job.job_type == node['type']:
 				job_queue[unit.job.job_id].append(unit)
 
-		# No work units to return!
+		# No jobs to schedule of this type!
 		if len(job_queue) == 0:
 			return None
 
@@ -575,7 +571,7 @@ class PriorityQueueScheduler(Scheduler):
 			if unit.job.job_type == node['type']:
 				job_queue[unit.job.job_id].append(unit)
 
-		# No work units to return!
+		# No jobs to schedule of this type!
 		if len(job_queue) == 0:
 			return None
 
@@ -620,10 +616,10 @@ class PriorityQueueScheduler(Scheduler):
 					
 				job_queue[unit.job.job_id].append(unit)
 		
-		# No work units to return!
+		# No jobs to schedule of this type!
 		if len(job_queue) == 0:
 			return None
-
+		
 		# Write job_id_queue to the log for clarity.
 		self.write_to_log(str(self.job_id_queue))
 

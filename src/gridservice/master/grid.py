@@ -420,16 +420,21 @@ class Grid(object):
 		if node_type is None:
 			node_list = self.nodes.values()
 		elif node_type in self.node_queue.keys():
-			node_list = self.node_queue[node_type][2]
+			node_ids = self.node_queue[node_type][2]
 
 			# If there's no nodes in that queue assign to the DEFAULT queue
-			if len(node_list) is 0:
-				node_list = self.node_queue["DEFAULT"][2]
+			if len(node_ids) is 0:
+				node_ids = self.node_queue["DEFAULT"][2]
+
+			# Recover nodes from node_ids list:
+			node_list = []
+			for node_id in node_ids:
+				node_list.append(self.nodes[node_id])
 		else:
 			raise InvalidNodeTypeException("%s is not a valid priority queue type.\n" % node_type)
 
 		# Check for node with at least 1 core free
-		for node in self.nodes.values():
+		for node in node_list:
 			if node['status'] == "ONLINE" and (node['cores'] - len(node['work_units']) > 0):
 				yield node
 
