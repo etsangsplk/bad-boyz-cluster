@@ -14,6 +14,12 @@ def auth_server(func):
 		return authenticate(model.SERVERS)(func)(*args, **kwargs)
 	return decorator_func
 
+#
+# task_POST(request)
+#
+# Adds a WorkUnit from The Grid as a task on the Node.
+#
+
 @require_json
 @auth_server
 def task_POST(request):
@@ -36,6 +42,12 @@ def task_POST(request):
 		return JSONResponse({ 'error_msg': e.args[0] }, http.BAD_REQUEST)
 
 	return JSONResponse({ 'success': 'Task created.', 'task_id': task.task_id }, 200)
+
+#
+# task_id_DELETE(request, v)
+#
+# Deletes a task from the Node
+#
 
 @auth_server
 def task_id_DELETE(request, v):

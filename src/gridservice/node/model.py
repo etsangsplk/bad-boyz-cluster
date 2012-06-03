@@ -129,7 +129,7 @@ class NodeServer(object):
 
 			
 	#
-	# add_task(self, job_id, work_unit_id, executable, flags, filename, wall_time)
+	# add_task(self, job_id, work_unit_id, executable, filename, flags, wall_time, deadline)
 	#
 	# Takes the given task variables and creates a new task, requests the
 	# required file from the server, and readies the task for execution, which
@@ -137,6 +137,7 @@ class NodeServer(object):
 	#
 
 	def add_task(self, job_id, work_unit_id, executable, filename, flags, wall_time, deadline):
+		# create the task
 		task = Task(
 			task_id = self.next_task_id, 
 			job_id = job_id,
@@ -147,8 +148,12 @@ class NodeServer(object):
 			wall_time = walltime.strptime(wall_time),
 			deadline = deadline
 		)
+
+		# Get the files for the task
 		self.get_task_executable(task)
 		self.get_task_file(task)
+
+		# Task is now READY
 		task.ready()
 	
 		self.tasks.update({ task.task_id: task })
@@ -170,6 +175,8 @@ class NodeServer(object):
 		except(HTTPException, URLError) as e:
 			node_utils.request_error_cli(e, "Unable to establish a connection to The Grid")
 			sys.exit(1)
+
+		# This will be horrible with large files
 
 		fp = open(task.executable_path, 'w+')
 		fp.write(request.response)
@@ -265,7 +272,8 @@ class NodeServer(object):
 	#
 	# Send the .o and .e files from the process to the server
 	# and inform the server the task is completed.
-	# Optionally sends a message as to why the task was killed.
+	# Sends back the kill_msg which will be None unless the Node
+	# killed the task.
 	#
 
 	def finish_task(self, task, kill_msg = None):
@@ -347,6 +355,13 @@ class NodeServer(object):
 			self.monitor_tasks()
 			time.sleep(self.MONITOR_INTERVAL)
 	
+	#
+	# monitor_tasks(self)
+	#
+	# Monitors the tasks and checks if they are finished,
+	# or kills them if they exceed their wall time or deadline.
+	#
+
 	def monitor_tasks(self):
 		print self.tasks
 		
@@ -355,12 +370,14 @@ class NodeServer(object):
 			if task.has_finished():
 				self.finish_task(task)
 				del self.tasks[i]
+
 			# Kill task if its exceeded it wall time
-			if (int(time.time()) - task.running_ts) > walltime.wall_secs(task.wall_time):
+			elif (int(time.time()) - task.running_ts) > walltime.wall_secs(task.wall_time):
 				self.kill_task(task, "Exceeded Wall time.")
 				print "Work unit %s of job %s killed: Exceeded Wall Time." % (task.job_id, task.work_unit_id)
+
 			# Kill task if it exceeds its deadline (for fairness)
-			if int(time.time()) > task.deadline:
+			elif int(time.time()) > task.deadline:
 				self.kill_task(task, "Exceeded deadline.")
 				print "Work unit %s of job %s killed: Exceeded Deadline." % (task.job_id, task.work_unit_id)
 
@@ -478,7 +495,6 @@ class Task(object):
 			os.makedirs(dir_path)
 
 	def kill(self):
-
 		# Kill the running process
 		if self.is_running() and not self.has_finished():
 			self.process.kill()
