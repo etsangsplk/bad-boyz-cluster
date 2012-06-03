@@ -11,7 +11,7 @@ from urllib2 import HTTPError, URLError
 from httplib import HTTPException
 
 from gridservice.http import auth_header, JSONHTTPRequest
-from gridservice.utils import validate_request, strf_wall_time, strp_wall_time, wall_secs, wall_hours, WallTimeFormatException
+from gridservice.utils import validate_request, WallTime, strf_wall_time, strp_wall_time, wall_secs, wall_hours, WallTimeFormatException
 
 from gridservice.master.scheduler import RoundRobinScheduler, FCFSScheduler, DeadlineScheduler, DeadlineCostScheduler, PriorityQueueScheduler
 from gridservice.master.job import Job
@@ -146,7 +146,7 @@ class Grid(object):
 		job = Job(
 			job_id = self.next_job_id,
 			flags = flags, 
-			wall_time = strf_wall_time(wall_stripped), 
+			wall_time = wall_stripped, 
 			deadline = deadline_since_epoch, 
 			budget = budget,
 			job_type = job_type,
