@@ -270,7 +270,6 @@ class WorkUnit(object):
 			'work_unit_id': self.work_unit_id,
 			'job_id': self.job.job_id,
 			'executable': self.job.executable,
-			'command': "%s %s" % (self.job.command, self.filename),
 			'flags': self.job.flags,
 			'filename': self.filename,
 			'wall_time': walltime.strftime(self.job.wall_time),
