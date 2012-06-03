@@ -35,7 +35,7 @@ def auth_node(func):
 	return decorator_func
 
 #
-# schduler_PUT
+# scheduler_PUT
 #
 # Sets the scheduler in use by The Grid
 #
