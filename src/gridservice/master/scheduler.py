@@ -120,6 +120,9 @@ class Scheduler(object):
 						print "Error in Scheduler. Shutting down Server."
 						os._exit(1)
 					
+					if unit == None:
+						continue
+	
 					# Output to log file
 					self.write_to_log("Allocating work unit " + 
 								   str(unit.work_unit_id) + " of job " + 
