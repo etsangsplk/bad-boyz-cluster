@@ -148,7 +148,7 @@ if options.job_id_status:
 	print "Wall Time: %s" % (request.response['walltime'])
 	print "Deadline: %s" % (time.asctime(time.localtime(request.response['deadline'])))
 	print "Status: %s." % (request.response['status'])
-	if request.response['kill_msg'] != "":
+	if request.response['kill_msg'] != None:
 		print "\t* %s" % request.response['kill_msg']
 
 	# Print out information about each work unit:
@@ -157,7 +157,7 @@ if options.job_id_status:
 		print "Work Unit: %s" % unit['work_unit_id']
 		print "file: %s" % unit['filename']
 		print "Status: %s." % (unit['status'])
-		if unit['kill_msg'] != "":
+		if unit['kill_msg'] != None:
 			print "\t* %s" % unit['kill_msg']
 		print
 	sys.exit(1)
