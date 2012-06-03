@@ -1,0 +1,10 @@
+Demo scripts for each algorithm are intended to demonstrate algorithms perform correctly.
+
+MUST be execute from src/ directory.
+
+To demonstrate deadline cost three nodes should be set up with these costs:
+10
+200
+700
+
+For Priority Queue it is recommended set costs to 10 (default) for the three nodes.
