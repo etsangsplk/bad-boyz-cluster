@@ -10,6 +10,10 @@ from gridservice.http import require_json, authenticate, FileResponse, JSONRespo
 from gridservice.master.grid import NodeNotFoundException, JobNotFoundException, InvalidSchedulerException, InvalidJobParameterException
 from gridservice.master.scheduler import NodeUnavailableException
 
+#
+# Authentication Decorators.
+#
+
 def auth_any(func):
 	def decorator_func(*args, **kwargs):
 		return authenticate(model.ADMINS + model.CLIENTS + model.NODES)(func)(*args, **kwargs)
@@ -98,7 +102,7 @@ def job_POST(request):
 			name = name
 		)
 	except InvalidJobParameterException as e:
-		return JSONResponse({ 'error_msg': "%s" % str(e) }, http.BAD_REQUEST)
+		return JSONResponse({ 'error_msg': "%s" % e.args[0] }, http.BAD_REQUEST)
 
 	return JSONResponse({ 'success': "Job added successfully.", 'id': job.job_id }, http.OK)
 
@@ -164,7 +168,10 @@ def job_status_PUT(request, v):
 #
 # job_output_files_GET(request, v)
 # 
-# Returns a list of filenames of a finished job
+# Returns a list of filenames of a job with finished work units.
+# Additional info_msg is returned if the job is still running, 
+# has been killed, or has killed components, warning that the 
+# content/number of output files will be incomplete.
 #
 
 @auth_client
@@ -280,7 +287,7 @@ def job_files_PUT(request, v):
 #
 # job_workunit_POST(request, v)
 # 
-# Marks the given workunit as finished
+# Marks the given workunit as finished or killed.
 #
 
 @require_json
@@ -369,7 +376,11 @@ def node_id_POST(request, v):
 		return JSONResponse({ 'error_msg': e.args[0] }, http.NOT_FOUND)
 
 	return JSONResponse(model.grid.node_to_dict(node), http.OK)
-		
+
+#
+# Routes related to console function
+#
+
 #
 # index_GET(request)
 #
@@ -386,11 +397,17 @@ def index_GET(request):
 # Serves a file directly from disk
 #
 
+@auth_client
 def file_GET(request, v):
 	return FileResponse(os.path.join("www", v["file"]))
 
 
-# Controller actions for the Console...
+# 
+# Duplicate of nodes_GET
+#
+# Returns a list isntead of a dictionary.
+#
+
 @auth_client
 def nodes_GET(request):
 	nodeList = model.grid.nodes.values()
@@ -417,6 +434,11 @@ def nodes_GET(request):
 
 	return  JSONResponse({ 'nodes': jsonNodes}, 200)
 
+#
+# Duplicate of job_GET
+#
+# Returns a list of jobs on The Grid.
+#
 
 @auth_client
 def jobs_GET(request):
@@ -431,6 +453,12 @@ def jobs_GET(request):
 	return  JSONResponse({ 'jobs': ljobs}, 200)
 
 
+#
+# log_GET(request)
+#
+# Returns the updated portion of the Scheduler Log since
+# the last call to log_GET
+#
 
 @auth_client
 def log_GET(request):
@@ -447,7 +475,11 @@ def log_GET(request):
 
 	return  JSONResponse({ 'log': logs}, 200)
 
+#
+# Duplicate of job_files_PUT
+#
 
+@auth_client
 def job_submit_file_POST(request, v):
 	file_name = request.query["qqfile"][0]
 	try:
@@ -463,10 +495,13 @@ def job_submit_file_POST(request, v):
 
 	job.add_file(file_name)
 
-
-
 	return JSONResponse( {'tmp_job_id': v['tmp_job_id'], 'filename': file_path} , 200)
 
+#
+# Duplicate of job_files_PUT
+#
+
+@auth_client
 def job_submit_executable_POST(request, v):
 	file_name = request.query["qqfile"][0]
 	try:
@@ -483,13 +518,3 @@ def job_submit_executable_POST(request, v):
 	job.add_executable(file_name)
 
 	return JSONResponse( {'tmp_job_id': v['tmp_job_id'], 'filename': file_path} , 200)
-
-
-@auth_client
-def job_queue_POST(request):
-	if request.post.has_key("tmp_job_id"):
-		tmp_job_id = int(request.post["tmp_job_id"][0])
-
-	job_id = model.grid.tmp_job_enqueue(tmp_job_id)
-
-	return JSONResponse( {'job_id': job_id} , 200)
