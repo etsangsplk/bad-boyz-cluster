@@ -3,7 +3,7 @@ String.prototype.endsWith = function(suffix) {
 };
 
 
-function console() {
+function cmdconsole() {
 	var _ = this;
 
 	// this.user = "client";
@@ -168,30 +168,30 @@ function console() {
 
 			// alert(j.job_id);
 
-			var li = $("#" + job_id(j) );
-			if ( li.length==0){
+			var li = $("#" + job_id(j));
+			if (li.length == 0){
+				//console.log("Binding job " + job_id(j));
 				// Create a new list item for you please!
 				li = $("#job-template").clone();
 				li.attr("id", job_id(j));
 				$("#jobs").prepend( li );
 
-
 				// Bind the cancel button
 				var cancel = li.find("button.cancel");
 				cancel.data("job", j);
 				cancel.click(function(){
-					j = cancel.data("job");
+					j = $(this).data("job");
 					$.ajax({
 						url: "/job/" + j.job_id,
 						type: "DELETE",
 						success: function (response) {
 							alert("Canceled Job");
+							//console.log("Cancelled " + j.job_id);
 							cancel.hide();
 						},
 						error: function () {
 						}
 					});
-
 				});
 			}
 
