@@ -414,6 +414,10 @@ def nodes_GET(request):
 
 	jsonNodes = []
 	for node in nodeList:
+		try:
+			cpu = node['cpu']
+		except KeyError:
+			cpu = 0
 		if  node['status'] != "DEAD":
 			n = {
 				"host": node['host'],
@@ -424,7 +428,7 @@ def nodes_GET(request):
 				"type": node['type'],
 				"node_ident": node['node_ident'],
 				"cores": node['cores'],
-				"cpu": node['cpu'],
+				"cpu": cpu,
 				"cost": node['cost']
 			}
 			for unit in node["work_units"]:
