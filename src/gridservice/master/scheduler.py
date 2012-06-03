@@ -213,9 +213,11 @@ class Scheduler(object):
 	#
 	# Ex:
 	#   Job: 0
+	#   Type: [DEFAULT | BATCH | FAST]   
 	#   Created Time: Day Month Date HH:MM:SS Year
 	#	Wall Time:
-	#   Budget:
+	#   Total Budget:
+	#   Budget per node hour:
 	#   Deadline:
 	#   Work Units: [0, 1, ...]
 	#
@@ -429,6 +431,17 @@ class DeadlineCostScheduler(Scheduler):
 		return work_unit_to_send
 
 
+#
+# PrioirtyQueueScheduler
+#
+# Uses different scheduling algorithms for different prioirty queues.
+# All algorithms are cost constrained.
+#
+# FAST queue: Round Robin for good response time
+# DEFAULT queue: Earliest Deadline First
+# BATCH queue: First Come First Serve for high throughput.
+#
+
 class PriorityQueueScheduler(Scheduler):
 	def __init__(self, grid):
 		super(PriorityQueueScheduler, self).__init__(grid)
@@ -533,6 +546,7 @@ class PriorityQueueScheduler(Scheduler):
 	# Same as FCFSScheduler(Scheduler).next_work_unit(node)
 	# but will not assign jobs to nodes they do not have budget for.
 	# 
+
 	def next_FCFS_work_unit(self, node):
 		job_queue = defaultdict(list) 
 
@@ -603,6 +617,12 @@ class PriorityQueueScheduler(Scheduler):
 		
 		return work_unit_to_send
 				
+	#
+	# next_round_robin_work_unit(self, node):
+	#
+	# Cost constrained version of RoundRobin(Scheduler).next_work_unit(node)
+	#
+
 	def next_round_robin_work_unit(self, node):	
 		job_queue = defaultdict(list)
 
