@@ -27,6 +27,7 @@ function cmdconsole() {
 	function work_id(j, i) {
 		return "work_unit_" + j.job_id + "_" + i;
 	}
+
 	function node_work_id(j, i) {
 		return "node_work_unit_" + j + "_" + i;
 	}
@@ -104,7 +105,7 @@ function cmdconsole() {
 				for (ii=0; ii < n.work_units.length; ii++){
 					w = n.work_units[ii]
 
-					wid = work_id(i, ii);
+					wid = node_work_id(w.job_id, w.work_unit_id);
 
 					createWorkUnit(w, wid, li.find(".workunits"))
 				}
@@ -228,7 +229,7 @@ function cmdconsole() {
 				for (ii=0; ii < j.work_units.length; ii++){
 					w = j.work_units[ii]
 
-					wid = work_id(j, ii);
+					wid = work_id(j, w.work_unit_id);
 
 					createWorkUnit(w, wid, li.find(".workunits"))
 
