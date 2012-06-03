@@ -136,7 +136,7 @@ class Scheduler(object):
 			
 			# Find a cleaner way to do this!
 			if not free_nodes:
-				self.write_to_log("Waiting for free nodes.")
+				self.write_to_log("Waiting for free nodes.\n")
 
 
 	#
@@ -283,6 +283,9 @@ class RoundRobinScheduler(Scheduler):
 
 			job_queue[unit.job.job_id].append(unit)
 
+		if len(job_queue) == 0:
+			return None
+
 		# Write job_id_queue to the log for clarity.
 		self.write_to_log(str(self.job_id_queue))
 
@@ -321,6 +324,9 @@ class FCFSScheduler(Scheduler):
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
 
+		if len(job_queue) == 0:
+			return None
+
 		# Find Job with earliest creation time	
 		
 		# Add 1 second to current time to stop server crashing for jobs
@@ -356,6 +362,9 @@ class DeadlineScheduler(Scheduler):
 
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
+
+		if len(job_queue) == 0:
+			return None
 
 		# Point of differece from FCFS. Have to process
 		# jobs before we can see what the earliest deadline is
@@ -402,6 +411,9 @@ class DeadlineCostScheduler(Scheduler):
 			
 		for unit in self.grid.get_queued():
 			job_queue[unit.job.job_id].append(unit)
+
+		if len(job_queue) == 0:
+			return None
 
 		# Get the node's cost from the node JSON
 		node_cost = node['cost']
