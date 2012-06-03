@@ -5,6 +5,9 @@ See:
  ./server --help
  ./node --help
 
+Console can be accessed from a browser on the same hostname and port as the 
+server is running on.
+
 Only one node should run per machine. If you want to run multiple nodes you 
 must move into a new folder and run from there.
 
