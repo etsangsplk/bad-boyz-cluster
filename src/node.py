@@ -2,6 +2,7 @@
 
 from optparse import OptionParser
 from paste import httpserver, reloader
+import sys
 
 import gridservice.utils
 import gridservice.node.controllers as controllers
@@ -57,4 +58,9 @@ if __name__ == '__main__':
 	reloader.install()		
 
 	app = gridservice.utils.make_app(routes)
-	httpserver.serve(app, host = options.host, port = options.port)
+	try:
+		httpserver.serve(app, host = options.host, port = options.port)
+	except Exception:
+		print "Unable to start Node on this host and port. Please try a different host or port and try again."
+		sys.exit(1)
+		
