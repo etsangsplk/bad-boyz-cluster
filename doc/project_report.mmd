@@ -44,7 +44,7 @@ Design
 
 ![New Job Creation](./figs/jobcreate.png)
 
-![Kill a Job](./figs/deletion.png)
+![Kill a Job](./figs/jobkill.png)
 
 ![Get the status of The Grid](./figs/gridstatus.png)
 
@@ -189,16 +189,6 @@ After all the required files have been uploaded, the job may be started using th
 		status		must always be "READY"
 	Returns:
 
-#### Kill Job
-	
-A job may be killed when it is Queued, Ready, Pending or Running, in which case all work items that have been queued or are running will be halted. The output for jobs that have already been run will still be available.
-
-	URL:	/job/<job_id>
-	Method:	DELETE
-	Parameters:	
-		job_id		the id of the job to kill
-	Returns:
-
 #### List Available Nodes
 	
 A list of all currently connected nodes is provided at this url along with the work items that each node is currently working on.
@@ -242,12 +232,81 @@ Get all the information The Grid stores on a specific Job
 	Returns:	
 		JSON encoded string of the job
 
+#### Kill Job
+	
+A job may be killed when it is Queued, Ready, Pending or Running, in which case all work items that have been queued or are running will be halted. The output for jobs that have already been run will still be available.
+
+	URL:	/job/<job_id>
+	Method:	DELETE
+	Parameters:	
+		job_id		the id of the job to kill
+	Returns:
 
 Evaluation
 ==========
 
 Evaluation
 ----------
+
+We can evaluate the use of The Grid in order to schedule and manage parallelisable executables by performing a side-by-side comparison of The Grid and its various schedulers to running all of the jobs in a non-distributed manner.
+
+### The Test ###
+
+The following Jobs were to be executed, and their results collected. For the sake of testing, it is assumed that all jobs were recieved at once.
+
+| Job ID | Wall Time | Deadline | # Input Files |
+|:-------|:----------|:---------|:--------------|
+| 1 | 1:00:00 | 2 days | 4 |
+| 2 | 1:00:00:00 | 7 days | 1 |
+| 3 | 12:00:00 | 1 day | 7 |
+| 4 | 1:00:00 | 1 day | 10 |
+| 5 | 7:00:00:00 | 14 days | 5 |
+| 6 | 7:00:00:00 | 12 days | 2 |
+| 7 | 14:00:00 | 2 days | 6 |
+| 8 | 1:00:00 | 2 days | 4 |
+
+The following Nodes were available in The Grid.
+
+| Node ID | Cores Available | Cost |
+|:--------|:----------------|:-----|
+| 1 | 2 | 0.15 |
+| 2 | 1 | 0.16 |
+| 3 | 4 | 0.11 |
+
+### The Results ###
+
+#### No Distribution ####
+
+With no distribution, all jobs would be executed on a single core on a single machine. This is provided at a baseline.
+
+| Job ID | Wait Time | Time Taken | Total Time | Made Deadline? |
+|:-------|:----------|:-----------|:-----------|:---------------|
+| 1 | 00:00:00 | 4:00:00 | 4:00:00 | Yes |
+| 2 | 04:00:00 | 1:00:00:00 | 1:04:00:00 | Yes |
+| 3 | 1:04:00:00 | 3:12:00:00 | 4:16:00:00 | No | 
+| 4 | 4:16:00:00 | 10:00:00 | 5:02:00:00 | No | 
+| 5 | 5:02:00:00 | 35:00:00:00 | 40:02:00:00 | No |
+| 6 | 40:02:00:00 | 14:00:00:00 | 54:02:00:00 | No | 
+| 7 | 54:02:00:00 | 3:12:00:00 | 58:15:00:00 | No |
+| 8 | 58:15:00:00 | 4:00:00 | 58:19:00:00 | No |
+
+__Total Time Taken:__ 57 Days, 14 Hours
+
+#### FCFS ####
+
+This is using the most naive of the distributed algorithms, First come first server. This provides a distributed baseline.
+
+| Job ID | Wait Time | Time Taken | Total Time | Made Deadline? | Comments |
+|:-------|:----------|:-----------|:-----------|:---------------|:---------|
+
+
+1 57:47 1 second
+2 57:49 1 second
+
+1 | 00:00:00 | 1:00:00 | 1:00:00 | Yes
+2 | 00:00:00 | 1:00:00:00 | 1:00:00:00 | Yes
+3 | 12:00:00 | 12:00:00 | 24:00:00 | Yes | First 3 work units start immediately, 4 more after Job 1 finishes, an additional 12 hours needs to be waited for the 7th work unit
+4 | 
 
 Future Improvements
 ===================
@@ -260,6 +319,8 @@ There are a number of key improvments that could make The Grid much better.
 - The use of SSL in order to secure the communication between The Master and The Nodes and The Clients.
 - The use of a proper job specification format that would allow the sending of non-self-contained executables around the heterogenous grid.
 - The use of a virtual file system that would allow better sandboxing of executables on The Grid.
+- The allowance of more complex input/output execution than stdin and stdout.
+- The allowance of executables that run on more than one processor
 
 <!-- \clearpage -->
 
