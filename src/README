@@ -17,3 +17,6 @@ gridservice/node/*
 
 Demo scripts have been included to demonstrate functionality of algorithms. See:
 demos/README
+
+The scheduler log is useful to see the performance of the algorithms. Run command:
+tail -f scheduler_log.txt
