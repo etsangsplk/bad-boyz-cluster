@@ -1,6 +1,60 @@
 \chapter{Design}
-The Master - The Scheduler
-The Node - The Heartbeat - The Monitor
-The Client
 
-A job has 3 various states throughout The Grid. On The Master it exists both as a Job, and as a number of Work Units which exist as part of a Job. A work unit is a pairing of the executable for a job and one input file. In the case of a job with 5 input files, it will have 5 work units, each corresponding to one input file. The level of granularity handled by The Scheduler is a single Work Unit.
+\section{Class Diagram}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/class.png}
+\caption{Class Diagram}
+\end{figure}
+
+\section{Sequence Diagrams}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/jobcreate.png}
+\caption{New Job Creation}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/jobkill.png}
+\caption{Kill a Job}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/gridstatus.png}
+\caption{Get the status of The Grid}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/jobget.png}
+\caption{Get the status of a Job}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/getoutput.png}
+\caption{Get the output of a finished Job}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/scheduler.png}
+\caption{Change the scheduler dynamically}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[keepaspectratio,width=\textwidth,height=0.75\textheight]{./figs/servernode.png}
+\caption{Interaction between The Master and The Nodes in The Grid}
+\end{figure}
+

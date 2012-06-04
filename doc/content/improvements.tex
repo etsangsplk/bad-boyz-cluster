@@ -1,2 +1,19 @@
-\chapter{Introduction}
-This report outlines the architecure, design and implementation details of The Grid, a distributed grid computing software package. The Grid allows for the distribution and exectution of self-contained executable files across a heterogenous grid, allowing users of the software to optimise the running of their jobs based on their deadline and any cost restraints. This software package includes a number of different scheduling algorithms that can be used depending on the type of jobs The Grid will be used for.
+\chapter{Future Improvements}
+\label{futureimprovements}
+
+There are a number of key improvments that could make The Grid much better.
+
+\begin{itemize}
+\item The use of SSL in order to secure the communication between The Master and The Nodes and The Clients.
+
+\item The use of a proper job specification format that would allow the sending of non-self-contained executables around the heterogenous grid.
+
+\item The use of a virtual file system that would allow better sandboxing of executables on The Grid.
+
+\item The allowance of more complex input\slash output execution than stdin and stdout.
+
+\item The allowance of executables that run on more than one processor
+
+\item Determine computational power at runtime to factor into the Node queue type load balancing. This would prevent load balancing from allocating improperly Nodes with an unusually large number of cores, RAM or processing power.
+
+\end{itemize}
