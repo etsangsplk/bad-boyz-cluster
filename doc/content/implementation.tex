@@ -3,7 +3,7 @@ The Grid is implemented using Python 2.6, with a package dependency on Paste. Pa
 
 Python 2.6 was chosen for both internal and external reasons. Internally, the development group all knew Python better than any other language which was suitable for the task. Secondly, development in Python is quite fast, though Python itself can be quite slow. As the main latency in The Grid is in the sending of input files and executables around, the computational speed loss due to language choice was deemed negligible. Externally, Python 2.6 was chosen due to its commonly installed nature which would make it easier to install The Node software on potential nodes. 
 
-The dependency on an external library Paste was determined nessecary, though external libraries were avoided where possible. This was done to both avoid licensing issues, as well as making the software easier to install as it needed to be portable and installed on many different environments due to the heterogenous nature of The Grid. Neither of the WSGI servers available in the standard library of Python were suitable as neither is multi-threaded, which is unworkable due to having to send possibly large files around that would otherwise block the server from accepting new requests.
+The dependency on an external library Paste was determined necessary, though external libraries were avoided where possible. This was done to both avoid licensing issues, as well as making the software easier to install as it needed to be portable and installed on many different environments due to the heterogeneous nature of The Grid. Neither of the WSGI servers available in the standard library of Python were suitable as neither is multi-threaded, which is unworkable due to having to send possibly large files around that would otherwise block the server from accepting new requests.
 
 The choice of HTTP to communicate over was done so because of the familiarity of the development team with HTTP based communication protocols and the development of RESTful APIs with which to communicate via JSON over HTTP. It also allowed for the easy development of a web based GUI which both had the benefit of playing to the development teams strengths as well as allowing for a interface to The Grid that is accessible anywhere in the world via the internet. HTTP also has built in authentication which was utilised in order to provided a level of security for who can access and use The Grid. HTTP is also extendible to use HTTPS which would allow for the easy securing of communication within The Grid as a possible future extension of the software.
 
@@ -12,10 +12,10 @@ JSON specifically was chosen as it is light-weight and easier to parse than XML,
 The code was developed following the MVC style architecture, though as the majority of the views are actually JSON, the majority of the code is organised into Models and Controllers. Each of the web servers on The Master and The Nodes listen to a provided list of Routes which map URIs and request type (GET, POST, PUT, DELETE) to a controller which calls any specific functions from the model and returns the relevant output JSON.
 
 \section{The Master}
-The Master instansiates a HTTP Server on a given hostname and port, which it listens on for both communications from instances of The Client as well as web requests to the Graphical User Interface provided. The Master also uses this HTTP Server to accept messages from each of The Nodes in The Grid. 
+
+The Master instantiates a HTTP Server on a given hostname and port, which it listens on for both communications from instances of The Client as well as web requests to the Graphical User Interface provided. The Master also uses this HTTP Server to accept messages from each of The Nodes in The Grid.  
 
 \subsection{The Scheduler}
-The Master contains a Scheduler, which runs inside its own thread. It periodically polls the internal node list to see if any nodes have become available. If a node is available, it will check to see if there are any Work Units available that can be run on that node. If there is a job available, then The Scheduler will allocate the Work Unit to that node. It will then continue looking at available nodes and attempting to find available Work Units for them.
 
 The Master contains a Scheduler, which runs inside its own thread. It periodically polls the internal node list to see if any nodes have become available. If a node is available, it will check to see if there are any Work Units available that can be run on that node. If there is a job available, then The Scheduler will allocate the Work Unit to that node. It will then continue looking at available nodes and attempting to find available Work Units for them. 
 
@@ -45,16 +45,20 @@ Different scheduling algorithms are used for each of the three different types o
 Each Node, like The Master, also instansiates a HTTP Server on a given hostname and port. It listens on this for communications from The Master. The Master sends job information to The Node, which in turn uses this information to request from The Master any files that The Node requires in order to complete the job it has been assigned. The Node will then execute a Work Unit once it is told by The Master that the Work Unit is READY. The Node will then preiodically check whether the Work Unit has finished executing. Once it has finished, The Node will report back to The Server that the Work Unit is complete and will then send back any information written to stdout or stderr during the Work Unit's execution.
 
 \subsection{The Heartbeat}
+
 The Heartbeat is a thread spawned from The Node which controls the sending of the Node's heartbeat to The Master. This heartbeat lets The Master know that The Node is still there, if this heartbeat is not received by The Master, it will be assumed to be offline. This heartbeat also detects for a loss of connection to The Master. If connection to The Master is lost, The Node will attempt to reregister itself to The Master. The Heartbeat has the additional task of monitoring the health of The Node. It reports information such as the CPU usage to The Server so that overall statistics of The Grid can be monitored at a Grid-wide level.
 
 \subsection{The Monitor}
-The Monitor is a thread spawned from The Node which monitors the state of all running processes and reports back to The Master when a Work Unit has finished executing. The Monitor will check for Jobs that may have exceeded their allotted wall time and kill them, returning their current progress.
+
+The Monitor is a thread spawned from The Node which monitors the state of all running processes and reports back to The Master when a Work Unit has finished executing. The Monitor will check for Jobs that may have exceeded their allotted wall time and kill them, returning their current progress. 
 
 \section{The Client}
+
 The Client is built on top of the available API in Python and allows the creation of new Jobs via a command line interface. It additionally allows for the monitoring of a running Job's status. As well as retreiving the output files created during a Jobs execution. The Client also allows a user to kill a running job early and retrieve any output that had been generated until that point. It is also possible to dynamically modify the Scheduler being used by The Grid, however this requires the client to be logged in with an Administrator level account. The Client must be run with a provided username and password that is valid for use with The Grid. These username and password combinations can be either Client level, or Administration level. The Client level allows the user to create, view and kill jobs. The Administration level is the same as Client level, however with the additional functionality of being able to change The Scheduler.
 
 \section{The Web Interface}
-The Web Interface is built on top of the same API as The Client, however it is written with a combination of HTML and JavaScript to run from The Browser. The Web Interface is served by The Master and is accessible to any computer that can see The Master. The Web Interface has the additional feature of also being able to easily view the output log of The Scheduler, for debugging or monitoring purposes, as well as being able to see which Nodes are available, and what Work Units have been assigned to them.
+
+The Web Interface is built on top of the same API as The Client, however it is written with a combination of HTML and JavaScript to run from The Browser. The Web Interface is served by The Master and is accessible to any computer that can see The Master. The Web Interface has the additional feature of also being able to easily view the output log of The Scheduler, for debugging or monitoring purposes, as well as being able to see which Nodes are available, and what Work Units have been assigned to them. 
 
 
 
