@@ -12,7 +12,7 @@ Introduction
 Introduction
 ------------
 
-This report outlines the architecure, design and implementation details of The Grid, a distributed grid computing software package. The Grid allows for the distribution and exectution of self-contained executable files across a heterogenous grid, allowing users of the software to optimise the running of their jobs based on their deadline and any cost restraints. This software package includes a number of different scheduling algorithms that can be used depending on the type of jobs The Grid will be used for.
+This report outlines the architecture, design and implementation details of The Grid, a distributed grid computing software package. The Grid allows for the distribution and execution of self-contained executable files across a heterogeneous grid, allowing users of the software to optimise the running of their jobs based on their deadline and any cost restraints. This software package includes a number of different scheduling algorithms that can be used depending on the type of jobs The Grid will be used for.
 
 
 Architecture
@@ -25,7 +25,7 @@ The architecture of The Grid involves 3 key components: The Master, The Client a
 
 ### The Client ###
 
-The Client is what the user interacts with to execute jobs on The Grid. The Client sends an executables and input files to The Master, and then also requests and downloads the output files from The Master when the job has completed. The Client can be installed in any location as it connects to The Master remotely. The Client can be reimplemented in any language as long as it follows the expected API to comunicate with The Master and authenticates with a trusted username and password.
+The Client is what the user interacts with to execute jobs on The Grid. The Client sends an executables and input files to The Master, and then also requests and downloads the output files from The Master when the job has completed. The Client can be installed in any location as it connects to The Master remotely. The Client can be reimplemented in any language as long as it follows the expected API to communicate with The Master and authenticates with a trusted username and password.
 
 ### The Node ###
 
@@ -66,7 +66,7 @@ The Grid is implemented using Python 2.6, with a package dependency on Paste. Pa
 
 Python 2.6 was chosen for both internal and external reasons. Internally, the development group all knew Python better than any other language which was suitable for the task. Secondly, development in Python is quite fast, though Python itself can be quite slow. As the main latency in The Grid is in the sending of input files and executables around, the computational speed loss due to language choice was deemed negligible. Externally, Python 2.6 was chosen due to its commonly installed nature which would make it easier to install The Node software on potential nodes. 
 
-The dependency on an external library Paste was determined nessecary, though external libraries were avoided where possible. This was done to both avoid licensing issues, as well as making the software easier to install as it needed to be portable and installed on many different environments due to the heterogenous nature of The Grid. Neither of the WSGI servers available in the standard library of Python were suitable as neither is multi-threaded, which is unworkable due to having to send possibly large files around that would otherwise block the server from accepting new requests.
+The dependency on an external library Paste was determined necessary, though external libraries were avoided where possible. This was done to both avoid licensing issues, as well as making the software easier to install as it needed to be portable and installed on many different environments due to the heterogeneous nature of The Grid. Neither of the WSGI servers available in the standard library of Python were suitable as neither is multi-threaded, which is unworkable due to having to send possibly large files around that would otherwise block the server from accepting new requests.
 
 The choice of HTTP to communicate over was done so because of the familiarity of the development team with HTTP based communication protocols and the development of RESTful APIs with which to communicate via JSON over HTTP. It also allowed for the easy development of a web based GUI which both had the benefit of playing to the development teams strengths as well as allowing for a interface to The Grid that is accessible anywhere in the world via the internet. HTTP also has built in authentication which was utilised in order to provided a level of security for who can access and use The Grid. HTTP is also extendible to use HTTPS which would allow for the easy securing of communication within The Grid as a possible future extension of the software.
 
@@ -76,7 +76,7 @@ The code was developed following the MVC style architecture, though as the major
 
 ### The Master ###
 
-The Master instansiates a HTTP Server on a given hostname and port, which it listens on for both communications from instances of The Client as well as web requests to the Graphical User Interface provided. The Master also uses this HTTP Server to accept messages from each of The Nodes in The Grid. 
+The Master instantiates a HTTP Server on a given hostname and port, which it listens on for both communications from instances of The Client as well as web requests to the Graphical User Interface provided. The Master also uses this HTTP Server to accept messages from each of The Nodes in The Grid. 
 
 #### The Scheduler ####
 
@@ -94,7 +94,7 @@ Round Robin is similar to FCFS however rather than executing all of the Work Uni
 
 ##### Deadline First ####
 
-Deadline First takes into account the deadline of the job and prioritises jobs by earliest deadline first. That is, if a job needs to be finished by tomorrow and there is another job that can be finished in a week, then the job that needs to be finsihed by tomorrow will take preference. As Jobs are allocated by schedulers as Work Units, a job may execute some work units before a Job is created that has an earlier deadline. In this event any remaining Work Units from the already running job will be placed behind the Work Units of the new scheduler. As a jobs deadline is a fixed amount of time in the past, indefinate starvation of a job cannot occur as eventually the deadline of the job will make it the highest priority to be completed. 
+Deadline First takes into account the deadline of the job and prioritises jobs by earliest deadline first. That is, if a job needs to be finished by tomorrow and there is another job that can be finished in a week, then the job that needs to be finished by tomorrow will take preference. As Jobs are allocated by schedulers as Work Units, a job may execute some work units before a Job is created that has an earlier deadline. In this event any remaining Work Units from the already running job will be placed behind the Work Units of the new scheduler. As a jobs deadline is a fixed amount of time in the past, indefinite starvation of a job cannot occur as eventually the deadline of the job will make it the highest priority to be completed. 
 
 ##### Deadline/Cost First ####
 
@@ -102,13 +102,13 @@ Deadline/Cost First takes into account not only the deadline of each Work Unit a
 
 ##### Multi-level Priority Queues ####
 
-This Multi-Level Priority Queue implementation splits The Nodes on The Grid into seperate queues. There can be any number of different queues, with a different proportion of The Grid allocated to them. The default queues are Default, Batch and Fast. Half of The Nodes on The Grid are allocated to Default, which is for any generic job between 1 hour and a few days. Batch is allocated 30% of the nodes and is for jobs that will take a week or more. Fast is allocated 20% of the nodes and is for jobs that are less than an hour. These priorities reserve nodes for specific job types without indefinately starving any one type of job if there is an excess of another.
+This Multi-Level Priority Queue implementation splits The Nodes on The Grid into separate queues. There can be any number of different queues, with a different proportion of The Grid allocated to them. The default queues are Default, Batch and Fast. Half of The Nodes on The Grid are allocated to Default, which is for any generic job between 1 hour and a few days. Batch is allocated 30% of the nodes and is for jobs that will take a week or more. Fast is allocated 20% of the nodes and is for jobs that are less than an hour. These priorities reserve nodes for specific job types without indefinitely starving any one type of job if there is an excess of another.
 
 This scheduler also stops large jobs from taking up most of the queue during offpeak periods, and then causing a large back log of other jobs. This is an unfortunate side effect of not being able to pause and resume a Work Unit once it has begun. While Deadline First and such can interupt a low priority job in terms of stopping further execution of additional work units, if a job is already running a number of work units which each may take a long time, there is no way to interrupt these running processes.
 
 ### The Node ###
 
-Each Node, like The Master, also instansiates a HTTP Server on a given hostname and port. It listens on this for communications from The Master. The Master sends job information to The Node, which in turn uses this information to request from The Master any files that The Node requires in order to complete the job it has been assigned. The Node will then execute a Work Unit once it is told by The Master that the Work Unit is READY. The Node will then preiodically check whether the Work Unit has finished executing. Once it has finished, The Node will report back to The Server that the Work Unit is complete and will then send back any information written to stdout or stderr during the Work Unit's execution.
+Each Node, like The Master, also instantiates a HTTP Server on a given hostname and port. It listens on this for communications from The Master. The Master sends job information to The Node, which in turn uses this information to request from The Master any files that The Node requires in order to complete the job it has been assigned. The Node will then execute a Work Unit once it is told by The Master that the Work Unit is READY. The Node will then periodically check whether the Work Unit has finished executing. Once it has finished, The Node will report back to The Server that the Work Unit is complete and will then send back any information written to stdout or stderr during the Work Unit's execution.
 
 #### The Heartbeat ####
 
@@ -120,7 +120,7 @@ The Monitor is a thread spawned from The Node which monitors the state of all ru
 
 ### The Client ###
 
-The Client is built on top of the available API in Python and allows the creation of new Jobs via a command line interface. It additionally allows for the monitoring of a running Job's status. As well as retreiving the output files created during a Jobs execution. The Client also allows a user to kill a running job early and retrieve any output that had been generated until that point. It is also possible to dynamically modify the Scheduler being used by The Grid, however this requires the client to be logged in with an Administrator level account. The Client must be run with a provided username and password that is valid for use with The Grid. These username and password combinations can be either Client level, or Administration level. The Client level allows the user to create, view and kill jobs. The Administration level is the same as Client level, however with the additional functionality of being able to change The Scheduler.
+The Client is built on top of the available API in Python and allows the creation of new Jobs via a command line interface. It additionally allows for the monitoring of a running Job's status. As well as retrieving the output files created during a Jobs execution. The Client also allows a user to kill a running job early and retrieve any output that had been generated until that point. It is also possible to dynamically modify the Scheduler being used by The Grid, however this requires the client to be logged in with an Administrator level account. The Client must be run with a provided username and password that is valid for use with The Grid. These username and password combinations can be either Client level, or Administration level. The Client level allows the user to create, view and kill jobs. The Administration level is the same as Client level, however with the additional functionality of being able to change The Scheduler.
 
 ### The Web Interface 
 
@@ -248,65 +248,15 @@ Evaluation
 Evaluation
 ----------
 
-We can evaluate the use of The Grid in order to schedule and manage parallelisable executables by performing a side-by-side comparison of The Grid and its various schedulers to running all of the jobs in a non-distributed manner.
+The Grid allows for the sending of self-contained executables across a heterogeneous grid. It suffers from a few key weaknesses. The first of these is the insecure method of communication between The Master, The Client, and The Nodes. In a distributed computing environment, a lot of uses are confidential and as such the transfer of files to remote computers needs to be secured from outside interference and interception. One way in which this could be resolved is to use SSL in order to take advantage of the HTTP based transfer and authentication layer used in The Grid.
 
-### The Test ###
+It also has the weakness that executables must be entirely self contained. Without being entirely self contained, a executable make look for linked system libraries which will not be present on the distributed nodes. Any compiler that uses architecture specific compilations may also suffer as these executables may not operate on all Nodes in The Grid. It is out recommendation that users of The Grid ensure that each Node has minimum versions of common languages such Python and Java installed on all machines. Users of The Grid can then be assured that if they write their software to work with these languages, that their software will execute. 
 
-The following Jobs were to be executed, and their results collected. For the sake of testing, it is assumed that all jobs were recieved at once.
+There is also an inherent weakness in allowing users into a remotely distributed network. Doing so puts a large amount of trust in the user, who through malicious or simply accidental means, could do quite a bit of damage to The Grid. This is always going to be a factor if you are allowing users to execute remote code on a distributed environment. To minimise this, a more complex virtual file system could be used to better sandbox and limit the functionality the submitted executables have over the system. 
 
-| Job ID | Wall Time | Deadline | # Input Files |
-|:-------|:----------|:---------|:--------------|
-| 1 | 1:00:00 | 2 days | 4 |
-| 2 | 1:00:00:00 | 7 days | 1 |
-| 3 | 12:00:00 | 1 day | 7 |
-| 4 | 1:00:00 | 1 day | 10 |
-| 5 | 7:00:00:00 | 14 days | 5 |
-| 6 | 7:00:00:00 | 12 days | 2 |
-| 7 | 14:00:00 | 2 days | 6 |
-| 8 | 1:00:00 | 2 days | 4 |
+The Grid also only accepts very limited software in terms of the way it operates. The only form of parallelism available is for problems that are "Embarrassingly Parallel". That is, an executable must be supplied with the input files, pre-split, which it can then work on independently without inter-node communication. The weakness of this method is still that the files must be pre-split, and the output files re-joined manually or by another program in order to be used by The Grid. 
 
-The following Nodes were available in The Grid.
-
-| Node ID | Cores Available | Cost |
-|:--------|:----------------|:-----|
-| 1 | 2 | 0.15 |
-| 2 | 1 | 0.16 |
-| 3 | 4 | 0.11 |
-
-### The Results ###
-
-#### No Distribution ####
-
-With no distribution, all jobs would be executed on a single core on a single machine. This is provided at a baseline.
-
-| Job ID | Wait Time | Time Taken | Total Time | Made Deadline? |
-|:-------|:----------|:-----------|:-----------|:---------------|
-| 1 | 00:00:00 | 4:00:00 | 4:00:00 | Yes |
-| 2 | 04:00:00 | 1:00:00:00 | 1:04:00:00 | Yes |
-| 3 | 1:04:00:00 | 3:12:00:00 | 4:16:00:00 | No | 
-| 4 | 4:16:00:00 | 10:00:00 | 5:02:00:00 | No | 
-| 5 | 5:02:00:00 | 35:00:00:00 | 40:02:00:00 | No |
-| 6 | 40:02:00:00 | 14:00:00:00 | 54:02:00:00 | No | 
-| 7 | 54:02:00:00 | 3:12:00:00 | 58:15:00:00 | No |
-| 8 | 58:15:00:00 | 4:00:00 | 58:19:00:00 | No |
-
-__Total Time Taken:__ 57 Days, 14 Hours
-
-#### FCFS ####
-
-This is using the most naive of the distributed algorithms, First come first server. This provides a distributed baseline.
-
-| Job ID | Wait Time | Time Taken | Total Time | Made Deadline? | Comments |
-|:-------|:----------|:-----------|:-----------|:---------------|:---------|
-
-
-1 57:47 1 second
-2 57:49 1 second
-
-1 | 00:00:00 | 1:00:00 | 1:00:00 | Yes
-2 | 00:00:00 | 1:00:00:00 | 1:00:00:00 | Yes
-3 | 12:00:00 | 12:00:00 | 24:00:00 | Yes | First 3 work units start immediately, 4 more after Job 1 finishes, an additional 12 hours needs to be waited for the 7th work unit
-4 | 
+While The Grid is quite simple in its current state, with a few improvements as outlined in the Future Improvements section, and outlined in this section, it could potentially become a fairly powerful tool for easily deploying distributed heterogeneous computer grids for the use in computation. The basic requirements of Python in order to get started mean that it quite simple to get running on a small internal network of desktop machines and would allow the use of their processing power to work on distributed tasks. 
 
 Future Improvements
 ===================
@@ -314,11 +264,11 @@ Future Improvements
 Future Improvements
 -------------------
 
-There are a number of key improvments that could make The Grid much better.
+There are a number of key improvements that could make The Grid much better.
 
 - The use of SSL in order to secure the communication between The Master and The Nodes and The Clients.
-- The use of a proper job specification format that would allow the sending of non-self-contained executables around the heterogenous grid.
-- The use of a virtual file system that would allow better sandboxing of executables on The Grid.
+- The use of a proper job specification format that would allow the sending of non-self-contained executables around the heterogeneous grid.
+- The use of a virtual file system that would allow better sand-boxing of executables on The Grid.
 - The allowance of more complex input/output execution than stdin and stdout.
 - The allowance of executables that run on more than one processor
 
