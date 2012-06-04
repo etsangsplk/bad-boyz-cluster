@@ -69,7 +69,7 @@ class Response(object):
 
 		start_response(self.status_string, self.headers)
 
-		print "Response: " + str(self.status) + ": " + self.body
+		##print "Response: " + str(self.status) + ": " + self.body
 
 		return [self.body]
 
@@ -196,7 +196,7 @@ class HTTPRequest(object):
 		self.headers = { 'Content-Type': self.content_type }
 		self.headers.update(headers)
 
-		print "Request: " + str(url) + " " + str(self.data)
+		##print "Request: " + str(url) + " " + str(self.data)
 
 		request = urllib2.Request(url, self.data, headers)
 		request.get_method = lambda: method
@@ -207,7 +207,7 @@ class HTTPRequest(object):
 		self.status = response.getcode()
 		self.response = response.read()
 
-		print "Response: " + str(self.status) + ": " + str(self.response)
+		##print "Response: " + str(self.status) + ": " + str(self.response)
 
 class FileHTTPRequest(HTTPRequest):
 	

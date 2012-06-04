@@ -57,7 +57,7 @@ def route(routes, env):
 	request = Request(env)
 
 
-	print "Request: " + str( request.raw )
+	#print "Request: " + str( request.raw )
 
 	route = route_find(routes, env)
 	if route: 

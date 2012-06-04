@@ -364,7 +364,8 @@ class NodeServer(object):
 	#
 
 	def monitor_tasks(self):
-		print self.tasks
+		if len(self.tasks) != 0:
+			print self.tasks
 		
 		for i, task in list(self.tasks.items()):
 			# Check if a task has finished
